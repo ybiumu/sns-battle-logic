@@ -1,0 +1,25 @@
+<div style="text-align:left;">
+<form action="post_map.cgi" method="post">
+<input type="hidden" name="view_type" value="4" />
+<input type="submit" name="view" value="7.投稿を見る" accesskey="7" />
+</form>
+<div style="background-color:#221F20;color:#FFFFFF">
+<hr style="border-style:solid; border-color:#00AF00;" />
+</div>
+<form action="post_map.cgi" method="post">
+位置　：<span style="font-size:medium"><select name="x">$_t{x}</select>-<select name="y">$_t{y}</select></span><br/>
+<input type="hidden" name="view_type" value="2" />
+<input type="hidden" name="map" value="$map" />
+<input type="submit" name="view" value="8.出現ﾓﾝｽを見る" accesskey="8" />
+</form>
+<div style="background-color:#221F20;color:#FFFFFF">
+<hr style="border-style:solid; border-color:#00AF00;" />
+</div>
+<form action="post_map.cgi" method="post">
+ﾓﾝｽﾀｰ&nbsp;：<select name="mname">$_monster_list</select>
+<input type="hidden" name="map" value="$map" />
+<input type="hidden" name="view_type" value="3" /><br />
+<input type="submit" name="view" value="9.出現地域を見る" accesskey="9" />
+</form>
+</div>
+

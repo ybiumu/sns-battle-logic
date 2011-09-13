@@ -1,0 +1,53 @@
+__DAMAGES__
+<form action="pet_calc.cgi" method="get">
+
+<br /><br /><br />
+
+
+<a href="#a" accesskey="1">A</a>/<a href="#b" accesskey="2">B</a>/<a href="#c" accesskey="3">C</a>/<a href="#d" accesskey="4">D</a>
+<a name="a"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-A-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+魅力　　　：<input type="text" size="5" maxlength="5" name="ps" value="$ps" istyle="4" mode="numeric" /><br />
+ﾍﾟｯﾄ係数　：<input type="text" size="5" maxlength="5" name="sr" value="$sr" istyle="4" mode="numeric" /><br />
+疲労度　　：<input type="text" size="2" maxlength="2" name="tired" value="$tired" istyle="4" mode="numeric" /><br />
+ﾍﾟｯﾄLv　　：<input type="text" size="2" maxlength="2" name="lv" value="$lv" istyle="4" mode="numeric" /><br />
+(成長速度 ：<span style="font-size:medium"><select name="lv_type"><option value="fast"$_level_type{fast}>速</option><option value="normal"$_level_type{normal}>中</option><option value="slow" $_level_type{slow}>遅</option></select></span>)<br />
+距離係数　：<span style="font-size:medium"><select name="range_rate"><option value="1" $_range{1}>近接</option><option value="0.9" $_range{0.9}>中距</option><option value="0.8" $_range{0.8}>遠隔</option></select></span><br />
+乱数係数　：<span style="font-size:medium"><select name="rand_rate"><option value="0" $_rand{0}>0</option><option value="5" $_rand{5}>5</option><option value="10" $_rand{10}>10</option><option value="20" $_rand{20}>20</option><option value="25" $_rand{25}>25</option><option value="50" $_rand{50}>50</option><option value="100" $_rand{100}>100</option></select></span><br />
+
+<a name="b"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-B-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+力場　　：<input type="text" size="5" maxlength="5" name="power_val" value="$power_val" istyle="4" mode="numeric"/><br />
+連携　　：<input type="text" size="2" maxlength="2" name="chain" value="$chain" istyle="4" mode="numeric"/><br />
+
+<a name="c"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-C-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+種族　　　　：<span style="font-size:medium"><select name="seed_rate"><option value="-1"$_weak>弱化</option><option value="0"$_normal>----</option><option value="1"$_strong>強化</option></select></span><br />
+属性耐性(主)：<input type="text" name="main_regist" size="5" maxlength="5" value="$main_regist" istyle="4" mode="numeric"/><br />
+属性耐性(副)：<input type="text" name="sub_regist"  size="5" maxlength="5" value="$sub_regist" istyle="4" mode="numeric"/><br />
+睡眠：<input type="checkbox" name="sleep" value="1" $c_sleep/>
+石化：<input type="checkbox" name="stone" value="1" $c_stone/>
+
+
+
+<!--
+
+
+
+
+
+
+【状態】
+Ｌ|Dn|Dr|Ｗ|Ｓ|Ｂ|引|弾|<br>
+<input type="checkbox" name="stats" value="t_lift">|<input type="checkbox" name="stats" value="t_down">|<input type="checkbox" name="stats" value="t_dry">|<input type="checkbox" name="stats" value="t_wet">|<input type="checkbox" name="stats" value="t_shock">|<input type="checkbox" name="stats" value="t_blank">|<input type="checkbox" name="stats" value="t_draw">|<input type="checkbox" name="stats" value="t_knockback"><br>
+燃|凍|麻|幻|睡|毒|猛|<br>
+<input type="checkbox" name="stats" value="t_burn">|<input type="checkbox" name="stats" value="t_freeze">|<input type="checkbox" name="stats" value="t_para">|<input type="checkbox" name="stats" value="t_confuse">|<input type="checkbox" name="stats" value="t_sleep">|<input type="checkbox" name="stats" value="t_poison">|<input type="checkbox" name="stats" value="t_venom"><br>
+石|恐|狼|飛|重|捕|<br>
+<input type="checkbox" name="stats" value="t_stone">|<input type="checkbox" name="stats" value="t_fear">|<input type="checkbox" name="stats" value="t_disconcent">|<input type="checkbox" name="stats" value="t_fly">|<input type="checkbox" name="stats" value="t_gravity">|<input type="checkbox" name="stats" value="t_capture"><br>
+
+-->
+<a name="d"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-D-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+防御：<input type="text" name="ap" size="5" maxlength="5"  value="$ap" istyle="4" mode="numeric" /><br />
+
+<input type="submit" name="calc" value="8.計算!"  accesskey="8" />
+<input type="submit" name="calc_all" value="9.全ﾊﾟﾀｰﾝ計算!"  accesskey="9" />
+</form>
+<div style="background-color:#FFC382;text-align:center;color:#550000">$version</div>
+
