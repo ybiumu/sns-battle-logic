@@ -1,0 +1,36 @@
+<div style="text-align:left;">
+__SAVE_MESSAGE__
+<form action="post_map.cgi" method="post">
+<br /><br /><br />
+
+<a name="a"><div style="background-color:#747367;color:#FFFFFF">■基本情報</div></a>
+<input type="hidden" name="id" value="" />
+ﾏｯﾌﾟ名：<span style="font-size:medium"><select name="map">$_t{map}</select></span><input type="submit" name="view" value="選んで見る" /><input type="hidden" name="view_type" value="" /><br/>
+位置　：<span style="font-size:medium"><select name="x">$_t{x}</select>-<select name="y">$_t{y}</select></span><br/>
+侵食率：<input type="text" name="ero"   value="$ero" size="5" maxlength="5" istyle="4" mode="numeric"/><br/>
+
+<a name="b"><div style="background-color:#747367;color:#FFFFFF">■ｽﾃｯﾌﾟ</div></a>
+<input type="submit" name="lst1" value="1ｽﾃｯﾌﾟ" /><input type="text" name="st1"   value="$st1" size="20" maxlength="128" /><br/>
+<input type="submit" name="lst2" value="2ｽﾃｯﾌﾟ" /><input type="text" name="st2"   value="$st2" size="20" maxlength="128" /><br/>
+<input type="submit" name="lst3" value="3ｽﾃｯﾌﾟ" /><input type="text" name="st3"   value="$st3" size="20" maxlength="128" /><br/>
+<input type="submit" name="lst4" value="4ｽﾃｯﾌﾟ" /><input type="text" name="st4"   value="$st4" size="20" maxlength="128" /><br/>
+<input type="submit" name="lst5" value="5ｽﾃｯﾌﾟ" /><input type="text" name="st5"   value="$st5" size="20" maxlength="128" /><br/>
+
+<a name="c"><div style="background-color:#747367;color:#FFFFFF">■ｱｲﾃﾑ</div></a>
+ﾄﾞﾛｯﾌﾟ：<input type="text" name="drop"   value="$drop" size="20" maxlength="128" /><br/>
+採取掘：<input type="text" name="gets"   value="$gets" size="20" maxlength="128" /><br/>
+
+
+
+
+
+<input type="submit" name="saved" value="9.save" accesskey="9" />
+</form>
+</div>
+
+<div style="background-color:#221F20;color:#FFFFFF">
+<hr style="border-style:solid; border-color:#00AF00;" />
+<div style="text-align:center;">$version</div>
+<hr style="border-style:solid; border-color:#00AF00;" />
+</div>
+    

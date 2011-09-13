@@ -1,0 +1,52 @@
+<form target="get_date.cgi" method="post">
+<br /><br /><br />
+
+<a name="a"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-基本情報-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+<input type="hidden" name="id" value="" />
+《<input type="text" name="name" size="20" maxlength="20" value="$name" />》<br/>
+
+体力<input type="text" name="hp"   value="$hp" size="5" maxlength="5" istyle="4" mode="numeric"/> 魔力<input type="text" name="mp"   value="$mp" size="5" maxlength="5" istyle="4" mode="numeric"/><br/>
+防御<input type="text" name="ap"   value="$ap" size="5" maxlength="5" istyle="4" mode="numeric"/> 敏捷<input type="text" name="sp"   value="$sp" size="5" maxlength="5" istyle="4" mode="numeric"/><br/>
+
+<a name="b"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-種族-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+ﾋﾞｰｽﾄ　 ：<span style="font-size:medium"><select name="1">$_t{1}</select></span><br/>
+ｲﾝｾｸﾄ　 ：<span style="font-size:medium"><select name="2">$_t{2}</select></span><br/>
+ﾌﾟﾗﾝﾄ　 ：<span style="font-size:medium"><select name="3">$_t{3}</select></span><br/>
+ｱﾝﾃﾞｯﾄﾞ ：<span style="font-size:medium"><select name="4">$_t{4}</select></span><br/>
+ﾋｭｰﾏﾉｲﾄﾞ：<span style="font-size:medium"><select name="5">$_t{5}</select></span><br/>
+ｱｽﾄﾗﾙ　 ：<span style="font-size:medium"><select name="6">$_t{6}</select></span><br/>
+魔動体　：<span style="font-size:medium"><select name="7">$_t{7}</select></span><br/>
+機械体　：<span style="font-size:medium"><select name="8">$_t{8}</select></span><br/>
+ﾄﾞﾗｺﾞﾝ　：<span style="font-size:medium"><select name="9">$_t{9}</select></span><br/>
+ｹｲｵｽ　　：<span style="font-size:medium"><select name="10">$_t{10}</select></span><br/>
+ﾙｰﾀｰ　　：<span style="font-size:medium"><select name="11">$_t{11}</select></span><br/>
+ﾙｰﾗｰ　　：<span style="font-size:medium"><select name="12">$_t{12}</select></span><br/>
+ﾎﾞｽ　　 ：<span style="font-size:medium"><select name="13">$_t{13}</select></span><br/>
+ｱｳﾀｰｽﾞ　：<span style="font-size:medium"><select name="14">$_t{14}</select></span><br/>
+
+<a name="c"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-属性耐性-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+斬撃<input type="text" name="t_slash"  value="$t_slash"  size="4" maxlength="4" istyle="4" mode="numeric"/> 炎<input type="text" name="t_fire"     value="$t_fire"  size="4" maxlength="4" istyle="4" mode="numeric"/><br/>
+衝撃<input type="text" name="t_crush"  value="$t_crush"  size="4" maxlength="4" istyle="4" mode="numeric"/> 冷<input type="text" name="t_cold"     value="$t_cold"  size="4" maxlength="4" istyle="4" mode="numeric"/><br/>
+貫通<input type="text" name="t_thrust" value="$t_thrust" size="4" maxlength="4" istyle="4" mode="numeric"/> 光<input type="text" name="t_light"    value="$t_light" size="4" maxlength="4" istyle="4" mode="numeric"/><br/>
+精神<input type="text" name="t_mind"   value="$t_mind"   size="4" maxlength="4" istyle="4" mode="numeric"/> 闇<input type="text" name="t_dark"     value="$t_dark"  size="4" maxlength="4" istyle="4" mode="numeric"/><br/>
+
+
+<a name="d"><hr style="border-style:solid; border-color:#FFC382;" /><div style="background-color:#FFC382;text-align:center;color:#550000">-状態耐性-</div><hr style="border-style:solid; border-color:#FFC382;" /></a>
+&nbsp;ﾘﾌﾄ&nbsp;｜ﾀﾞｳﾝ｜ﾄﾞﾗｲ｜ｳｪｯﾄ<br/>
+<span style="font-size:medium"><select name="t_lift">$_t{t_lift}</select></span>&nbsp;<span style="font-size:medium"><select name="t_down">$_t{t_down}</select></span>&nbsp;<span style="font-size:medium"><select name="t_dry">$_t{t_dry}</select></span>&nbsp;<span style="font-size:medium"><select name="t_wet">$_t{t_wet}</select></span><br/>
+ｼｮｯｸ&nbsp;｜ﾌﾞﾗﾝｸ｜ﾄﾞﾛｳ｜ﾉｯｸﾊﾞｯｸ<br/>
+<span style="font-size:medium"><select name="t_shock">$_t{t_shock}</select></span>&nbsp;<span style="font-size:medium"><select name="t_blank">$_t{t_blank}</select></span>&nbsp;<span style="font-size:medium"><select name="t_draw">$_t{t_draw}</select></span>&nbsp;<span style="font-size:medium"><select name="t_knockback">$_t{t_knockback}</select></span><br/>
+燃焼&nbsp;｜凍結｜麻痺｜幻覚<br/>
+<span style="font-size:medium"><select name="t_burn">$_t{t_burn}</select></span>&nbsp;<span style="font-size:medium"><select name="t_freeze">$_t{t_freeze}</select></span>&nbsp;<span style="font-size:medium"><select name="t_para">$_t{t_para}</select></span>&nbsp;<span style="font-size:medium"><select name="t_confuse">$_t{t_confuse}</select></span><br/>
+睡眠&nbsp;｜&nbsp;毒&nbsp;｜猛毒<br/>
+<span style="font-size:medium"><select name="t_sleep">$_t{t_sleep}</select></span>&nbsp;<span style="font-size:medium"><select name="t_poison">$_t{t_poison}</select></span>&nbsp;<span style="font-size:medium"><select name="t_venom">$_t{t_venom}</select></span><br/>
+石化&nbsp;｜恐怖｜狼狽｜飛行｜重力｜捕縛<br/>
+<span style="font-size:medium"><select name="t_stone">$_t{t_stone}</select></span>&nbsp;<span style="font-size:medium"><select name="t_fear">$_t{t_fear}</select></span>&nbsp;<span style="font-size:medium"><select name="t_disconcent">$_t{t_disconcent}</select></span>&nbsp;<span style="font-size:medium"><select name="t_fly">$_t{t_fly}</select></span>&nbsp;<span style="font-size:medium"><select name="t_gravity">$_t{t_gravity}</select></span>&nbsp;<span style="font-size:medium"><select name="t_capture">$_t{t_capture}</select></span><br/>
+
+
+
+<input type="submit" name="saved" value="9.Create" accesskey="8" />
+</form>
+
+<div style="background-color:#FFC382;text-align:center;color:#550000">$version</div>
+    
