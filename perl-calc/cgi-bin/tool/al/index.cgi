@@ -1,17 +1,26 @@
 #!/usr/local/bin/perl
 use CGI;
 
-
-my $system_log = "../../../.htlog/calc.log";
+my $log_dir  = "../../../.htlog";
+my $log_list = [
+    { label => "calc"    , file => "calc.log" },
+    { label => "gn"      , file => "gn_post_map.log" },
+    { label => "howmany" , file => "howmany_loop.log" },
+    { label => "overlap" , file => "overlap_effect.log" },
+];
 
 my $lines = 0;
 my $line_num = 500;
 my $c = new CGI();
 
 my $target_line = $c->param("ln") or 0;
+my $target_log  = $c->param("tl") or 0;
 my $buffer = "";
 my @store_lines;
 my $rf = 0;
+
+#my $system_log = "../../../.htlog/calc.log";
+my $system_log = sprintf("%s/%s", $log_dir,$log_list->[$target_log]->{file} );
 
 open(FILE, $system_log) or die "Can't open $system_log: $!";
 while( <FILE> )
@@ -59,11 +68,12 @@ Content-type: text/html;
  "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
 
 <html>
-<head><title>systool - al</title></head>
-<body>
+<head><title>systool - al - label: $log_list->[$target_log]->{label}</title></head>
+<body style="color:#000000;background-color:#FFEFB2;font-size:x-small;">
 _HEADER_
 
 printf "line: %s<br />\n", $lines;
+printf "label: %s<br />\n",$log_list->[$target_log]->{label};
 
 foreach my $line ( @store_lines )
 {

@@ -200,6 +200,10 @@ sub getExpRate
     {
         $exp_rate = sqrt(($class->getMainExpr()+1000)/1000);
     }
+    elsif( $type == 6 )
+    {
+        $exp_rate = sqrt( ( ($class->getMainExpr()*3+$class->getSubExpr())*7 + 1000) / 1000 );
+    }
 #    warn "[EXP_RATE] $exp_rate";
     return sprintf("%s", $exp_rate);
 #    return sprintf("%.2f", $exp_rate);

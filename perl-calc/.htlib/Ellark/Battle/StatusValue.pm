@@ -61,6 +61,10 @@ sub getRegistRate
     {
         $regist = ( $class->getMainRegist() + $class->getSubRegist() ) / 2;
     }
+    elsif ( $class->getRegistType() == 2 )
+    {
+        $regist = ( $class->getMainRegist()*3 + $class->getSubRegist()*7 ) / 10;
+    }
     else
     {
         $regist = $class->getMainRegist();

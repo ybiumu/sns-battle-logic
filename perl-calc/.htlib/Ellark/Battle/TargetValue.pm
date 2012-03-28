@@ -6,9 +6,11 @@ use ObjMethod;
 use base qw( ObjMethod );
 
 use constant CONCENT_TYPE => {
-    normal => 0,
-    gun    => 1,
-    high_c => 2,
+    normal  => 0,
+    gun     => 1,
+    high_c  => 2,
+    high_c2 => 3,
+    high_c3 => 4,
 };
 
 sub new
@@ -26,6 +28,7 @@ sub init
     my $class = shift;
     $class->setConcent(0);
     $class->setPlaceVal(0);
+    $class->setPlaceVector(1);
     $class->setChain(1);
 }
 
@@ -85,13 +88,25 @@ sub getConcentRate
 sub getPlacePower
 {
     my $class = shift;
-    return ((100+$class->getPlaceVal())/100);
+    return ( 1 + (int($class->getPlaceVal() - 0.5)/100)*$class->getPlaceVector() );
 }
 
 sub getChainRate
 {
     my $class = shift;
     return ($class->getChain()+1)/2;
+}
+
+
+sub setPlaceVector
+{
+    my $class = shift;
+    return $class->setAttribute( 'place_vector', shift );
+}
+
+sub getPlaceVector
+{
+    return $_[0]->getAttribute( 'place_vector' );
 }
 
 
