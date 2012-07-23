@@ -1,0 +1,16 @@
+ユーザー登録をします
+<form name="regist" action="setup.cgi?guid=ON">
+ｷｬﾗｸﾀｰ名:<input name="name" maxlength="32" size="32" value="$out->{name}" /><br />
+性別:$genders<br />
+<hr />
+顔:<br />
+$faces
+<br />
+髪型:<br />
+$hairs
+<br />
+<input type="hidden" name="guid" value="ON" />
+<input type="hidden" name="st" value="1" />
+<input type="submit" value="送信" />
+</form>
+
