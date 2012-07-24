@@ -1,9 +1,9 @@
 ‚±‚ê‚Å‚¢‚¢‚Å‚·‚©?
 <form name="regist" action="setup.cgi?guid=ON">
 ·¬×¸À°–¼:$out->{name}<input type="hidden" name="name" value="$out->{name}"/><br />
-«•Ê:$_gender->{$out->{gender}}<input type="hidden" name="gender" value="$out->{gender}" /><br />
+«•Ê:$out->{_gender}->{$out->{gender}}<input type="hidden" name="gender" value="$out->{gender}" /><br />
 <hr />
-Šç•”¯:$_hair->{$out->{hair}}$_face->{$out->{face}}<input type="hidden" name="face" value="$out->{face}"><input type="hidden" name="hair" value="$out->{hair}"><br />
+Šç•”¯:$out->{_hair}->{$out->{hair}}$out->{_face}->{$out->{face}}<input type="hidden" name="face" value="$out->{face}"><input type="hidden" name="hair" value="$out->{hair}"><br />
 <br />
 <input type="hidden" name="st" value="2" />
 <input type="hidden" name="guid" value="ON" />
