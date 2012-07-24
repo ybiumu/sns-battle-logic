@@ -10,6 +10,11 @@ sub new
     return $self;
 }
 
+sub init
+{
+    my $class = shift;
+}
+
 sub setAttribute
 {
     my $class = shift;
