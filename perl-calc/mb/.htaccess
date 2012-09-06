@@ -1,0 +1,98 @@
+AuthType Basic
+AuthName "Please wait..."
+AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
+AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
+require valid-user
+
+
+ErrorDocument 403 /.hterror/notmobile.html
+
+Order Deny,Allow
+Deny from all
+#Order Allow,deny
+#Allow from all
+
+#
+# DoCoMo
+Allow from 210.153.84.0/24
+Allow from 210.136.161.0/24
+Allow from 210.153.86.0/24
+Allow from 124.146.174.0/24
+Allow from 124.146.175.0/24
+Allow from 202.229.176.0/24
+Allow from 202.229.177.0/24
+Allow from 202.229.178.0/24
+
+#
+# Au
+Allow from 111.107.116.0/26
+Allow from 111.107.116.64/26
+Allow from 111.107.116.192/28
+Allow from 210.230.128.224/28
+Allow from 121.111.227.160/27
+Allow from 61.117.1.0/28
+Allow from 219.108.158.0/27
+Allow from 219.125.146.0/28
+Allow from 61.117.2.32/29
+Allow from 61.117.2.40/29
+Allow from 219.108.158.40/29
+Allow from 219.125.148.0/25
+Allow from 222.5.63.0/25
+Allow from 222.5.63.128/25
+Allow from 222.5.62.128/25
+Allow from 59.135.38.128/25
+Allow from 219.108.157.0/25
+Allow from 219.125.145.0/25
+Allow from 121.111.231.0/25
+Allow from 121.111.227.0/25
+Allow from 118.152.214.192/26
+Allow from 118.159.131.0/25
+Allow from 118.159.133.0/25
+Allow from 118.159.132.160/27
+Allow from 111.86.142.0/26
+Allow from 111.86.141.64/26
+Allow from 111.86.141.128/26
+Allow from 111.86.141.192/26
+Allow from 118.159.133.192/26
+Allow from 111.86.143.192/27
+Allow from 111.86.143.224/27
+Allow from 111.86.147.0/27
+Allow from 111.86.142.128/27
+Allow from 111.86.142.160/27
+Allow from 111.86.142.192/27
+Allow from 111.86.142.224/27
+Allow from 111.86.143.0/27
+Allow from 111.86.143.32/27
+Allow from 111.86.147.32/27
+Allow from 111.86.147.64/27
+Allow from 111.86.147.96/27
+Allow from 111.86.147.128/27
+Allow from 111.86.147.160/27
+Allow from 111.86.147.192/27
+Allow from 111.86.147.224/27
+
+# SoftBank
+Allow from 123.108.237.112/28
+Allow from 123.108.239.224/28
+Allow from 202.253.96.144/28
+Allow from 202.253.99.144/28
+Allow from 210.228.189.188/30
+Allow from 123.108.237.0/27
+Allow from 202.253.96.224/27
+Allow from 210.146.7.192/26
+
+
+# Admin address
+Allow from 122.208.216.58
+
+# Google Crowler
+Allow from 209.85.128.0/17
+Allow from 72.14.199.0/24
+Allow from 74.125.16.0/24
+Allow from 74.125.70.0/24
+Allow from 66.249.67.0/24
+Allow from 66.249.73.0/24
+
+# Local
+
+Allow from 192.168.137.0/24

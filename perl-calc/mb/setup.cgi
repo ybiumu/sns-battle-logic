@@ -99,6 +99,7 @@ my $sth  = $db->prepare("SELECT user_id, user_name FROM t_user WHERE carrier_id 
 my $stat = $sth->execute(($carrier_id, $mob_uid));
 my $row  = $sth->fetchrow_arrayref();
 my $rownum = $sth->rows();
+$pu->output_log(qq[row: $rownum,] . sprintf(" findrow: %s %s",$row->[0], $row->[1]));
 if ( $rownum > 0 )
 {
     # Redirect event mapper
@@ -106,10 +107,10 @@ if ( $rownum > 0 )
 }
 elsif ( $c->param("commit") eq "OK" )
 {
-    $sth  = $db->prepare("INSERT INTO t_user SET carrier_id = ?, uid = ?, user_name = ?, face_type = ?, hair_type = ?, gender = ?");
+    $sth  = $db->prepare("INSERT INTO t_user SET carrier_id = ?, uid = ?, user_name = ?, face_type = ?, hair_type = ?, gender = ? ");
     $stat = $sth->execute( $carrier_id, $mob_uid, $c->param("name"), $c->param("face"), $c->param("hair"), $c->param("gender") );
     my $id = $db->{'mysql_insertid'};
-    my $sth2 = $db->prepare("INSERT INTO t_user_status(user_id) VALUES(?);");
+    my $sth2 = $db->prepare("INSERT INTO t_user_status(user_id,node_id) VALUES(?,1);");
     $stat = $sth2->execute($id);
 
     # Check.
