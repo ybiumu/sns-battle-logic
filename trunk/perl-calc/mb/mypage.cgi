@@ -73,12 +73,13 @@ my $c = new CGI();
 
 ## Main
 
-my $sth  = $db->prepare("SELECT b.user_id AS user_id, b.user_name AS user_name, b.msg AS msg, b.face_type AS face_type, b.hair_type AS hair_type, s.a_max_hp AS max_hp, s.a_hp AS hp  FROM t_user AS b JOIN t_user_status s USING( user_id ) WHERE b.carrier_id = ? AND b.uid = ?");
+my $sth  = $db->prepare("SELECT b.user_id AS user_id, b.user_name AS user_name, b.msg AS msg, b.face_type AS face_type, b.hair_type AS hair_type, s.a_max_hp AS max_hp, s.a_hp AS hp,n.node_name FROM t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?");
 my $stat = $sth->execute(($carrier_id, $mob_uid));
 my $row  = $sth->fetchrow_hashref();
 
+$pu->output_log(qq["CHECK: " ], sprintf("carrier: %s, uid: %s, row: %s",$carrier_id, $mob_uid, $sth->rows() ));
 
-if ( ! $sth->rows() > 0 )
+if ( $sth->rows() == 0 )
 {
     $db->disconnect();
     print $c->redirect("setup.cgi?guid=ON");    
@@ -91,6 +92,7 @@ $out->{V_MHP} = $row->{max_hp};
 $out->{MSG}   = $row->{msg};
 $out->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
 $out->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
+$out->{PLACE} = $row->{node_name};
 $db->disconnect();
 
 
