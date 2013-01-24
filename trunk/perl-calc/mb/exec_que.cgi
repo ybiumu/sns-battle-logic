@@ -69,9 +69,49 @@ my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
 my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
+my $select_result_summary = "
+SELECT
+    r.result_id,
+    r.enemy_group_id
+FROM
+    t_result_master
+    t_user AS u
+    JOIN t_user_status AS s USING(user_id)
+    JOIN t_selection_que AS q USING(user_id)
+    JOIN t_selection AS sel USING(selection_id)
+    JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id )
+WHERE u.carrier_id = ? AND u.uid = ? ";
+
+my $rs_sth = $db->prepare( $select_result_summary );
+$pu->output_log($rs_sth->execute(($carrier_id, $mob_uid)));
+
+my $rs_row  = $rs_sth->fetchrow_hashref();
+if ( ! $rs_sth->rows() > 0 )
+{
+    exit;
+}
+$rs_sth->finish();
+
+my $rid  = $row->{result_id};
+my $egid = $row->{enemy_group_id};
+
+# 本当はnodeに紐付いたイベントも結合して、優先順位の高いイベントから処理するようにしないといけない
 # insert result;
-my $result_sth = $db->prepare("INSERT INTO t_result_log (user_id,result_id,wday) SELECT u.user_id , r.result_id, WEEKDAY(NOW()) FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection_que AS q  USING(user_id) JOIN t_selection AS sel USING(selection_id) JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id ) WHERE u.carrier_id = ? AND u.uid = ? ");
-$pu->output_log($result_sth->execute(($carrier_id, $mob_uid)));
+my $insert_prepost = "
+INSERT INTO t_result_log (user_id,result_id,result_text,wday)
+SELECT
+    u.user_id ,
+    r.result_id,
+    WEEKDAY(NOW())
+FROM
+    t_user AS u
+    JOIN t_user_status AS s USING(user_id)
+    JOIN t_selection_que AS q USING(user_id)
+    JOIN t_selection AS sel USING(selection_id)
+    JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id )
+    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
+my $result_sth = $db->prepare( $insert_prepost );
+$pu->output_log($result_sth->execute(('pre',$carrier_id, $mob_uid)));
 $result_sth->finish();
 
 # change user_status;
@@ -79,6 +119,7 @@ my $up_sth = $db->prepare("UPDATE t_user AS u JOIN t_user_status AS s USING(user
 $pu->output_log($up_sth->execute(($carrier_id, $mob_uid)));
 $up_sth->finish();
 
+my $battle_html = doBattle();
 
 ## Main
 
@@ -117,3 +158,7 @@ $at->output();
 
 exit;
 
+sub doBattle
+{
+    return "UNDER CONSTRUCTION!";
+}
