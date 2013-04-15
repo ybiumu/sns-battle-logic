@@ -75,8 +75,9 @@ if ( $out->{CHOSED} == 1 )
 
 
 # Check record exists.
-my $sth  = $db->prepare("SELECT u.user_id, u.user_name, s.next_queing_hour, s.node_id, n.node_name, n.node_descr, q.selection_id FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_node_master AS n USING(node_id) LEFT JOIN t_selection_que q USING( user_id ) WHERE carrier_id = ? AND uid = ?");
+my $sth  = $db->prepare("SELECT u.user_id, u.user_name, s.next_queing_hour, s.node_id, n.node_name, n.node_descr, n.node_img, q.selection_id FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_node_master AS n USING(node_id) LEFT JOIN t_selection_que q USING( user_id ) WHERE carrier_id = ? AND uid = ?");
 my $stat = $sth->execute(($carrier_id, $mob_uid));
+$pu->output_log(sprintf( "c: %s u:%s ", $carrier_id, $mob_uid));
 my $row  = $sth->fetchrow_hashref();
 my $rownum = $sth->rows();
 if ( $rownum == 1 )
@@ -84,6 +85,7 @@ if ( $rownum == 1 )
     $out->{NAME} = sprintf("(%s)%s", $row->{user_id},$row->{user_name});
     $out->{QUE_HOUR} = $row->{next_queing_hour};
     $out->{NODE_ID}  = $row->{node_id};
+    $out->{NODE_IMG} = $row->{node_img};
     $out->{NODE_DESCR} = $row->{node_descr};
     $out->{NODE_NAME}  = $row->{node_name};
     $out->{SELECTION_ID} = $row->{selection_id};

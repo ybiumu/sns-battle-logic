@@ -47,7 +47,7 @@ my $dp = "$base_dir/data";
 my $t  = "$dp/anothark";
 
 $at->setBase("$t/template.html");
-$at->setBody("$t/body_result.html");
+$at->setBody("$t/body_resultview.html");
 
 $pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
 $pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
@@ -69,26 +69,38 @@ my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
 my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
+my $rid = $c->param("result_log_id") || 0;
+my $offset = $c->param("offset") || 0;
 
+if( $offset !~ /^[1-9]\d*$/ )
+{
+    $offset = 0;
+}
 
 ## Main
 
-my $get_result_list_sql = "
+my $get_result_sql = "
     SELECT
-        l.result_log_id,
-        l.result_id,
-        l.last_update
+        REPLACE(r.result_text,'<_NAME_>',b.user_name) AS result
     FROM
-        t_result_log AS l
-        JOIN
         t_user AS b
-        USING(user_id)
+        JOIN
+        t_user_status s USING( user_id )
+        JOIN
+        t_result_log r USING( user_id )
+        JOIN
+        t_result_master m USING(result_id)
     WHERE
-        b.carrier_id = ? AND b.uid = ? AND l.sequence_id = 0
-    GROUP BY result_log_id
-    ORDER BY last_update DESC";
-my $sth  = $db->prepare($get_result_list_sql);
-my $stat = $sth->execute(($carrier_id, $mob_uid));
+        b.carrier_id = ?
+        AND
+        b.uid = ?
+        AND
+        r.result_log_id = ?
+    ORDER BY r.sequence_id LIMIT 1 OFFSET $offset
+    ";
+
+my $sth  = $db->prepare($get_result_sql);
+my $stat = $sth->execute(($carrier_id, $mob_uid, $rid));
 my $row ;
 
 
@@ -99,7 +111,9 @@ if ( $sth->rows() > 0 )
     while( $row  = $sth->fetchrow_hashref() )
     {
         $lines++;
-        $out->{RESULT} .= sprintf(qq[<a href="resulttext.cgi?guid=ON&result_log_id=%s">&nbsp;%s</a><hr />\n],$row->{result_log_id}, $row->{last_update})
+        my $result_text = sprintf("%s<br />",$row->{result});
+        $result_text =~ s/\n/<br \/>/g;
+        $out->{RESULT} .= $result_text;
     }
     $pu->output_log("passed find result row. count[$lines]");
 }
