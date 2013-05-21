@@ -26,14 +26,22 @@ our $out = $at->setOut({
     gendar => 0,
 });
 
-my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-my $dp = "$base_dir/data";
-my $t  = "$dp/anothark";
-$at->setBase("$t/template.html");
-$at->setBody("$t/body_setup.html");
+#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
+#my $dp = "$base_dir/data";
+#my $t  = "$dp/anothark";
+#$at->setBase("$t/template.html");
+#$at->setBody("$t/body_setup.html");
+#
+#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
+#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
 
-$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
+$at->setBase("template.html");
+$at->setBody("body_setup.html");
+
+$pu->setSystemLog( "aa_calc.log" );
+$pu->setAccessLog( "aa_access.log" );
+
+
 $at->setPageName("ƒ†[ƒU[“o˜^");
 
 my $version = "0.1a20120328";
@@ -113,10 +121,15 @@ elsif ( $c->param("commit") eq "OK" )
     my $sth2 = $db->prepare("INSERT INTO t_user_status(user_id,node_id) VALUES(?,1);");
     $stat = $sth2->execute($id);
 
+
+    my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.carrier_id = ? AND u.uid = ? ");
+    $up_sth->execute((1,$carrier_id, $mob_uid));
+
     # Check.
     # Redirect event mapper
     $db->disconnect();
-    $at->setBody("$t/body_setup_ok.html");
+#    $at->setBody("$t/body_setup_ok.html");
+    $at->setBody("body_setup_ok.html");
 }
 
 
@@ -125,7 +138,8 @@ elsif ( $c->param("commit") eq "OK" )
 my $st = $c->param("st") || 0;
 if ( $st == 1 )
 {
-    $at->setBody("$t/body_setup_chk.html");
+#    $at->setBody("$t/body_setup_chk.html");
+    $at->setBody("body_setup_chk.html");
 }
 
 

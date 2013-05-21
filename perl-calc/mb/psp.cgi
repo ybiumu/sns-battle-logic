@@ -22,65 +22,34 @@ $at->setMobileUtil($mu);
 
 my $ad_str = "";
 
-
-#our $out = $at->setOut( {
-#    NAME  => "ゲスト",
-#    MSG   => "よろしくおねがいします",
-#    BRD   => "",
-#    PLACE => "彼の庭",
-#    GOLD  => 120327,
-#    FACE  => 0,
-#    HAIR  => 0,
-#    V_HP  => 100,
-#    V_MHP => 100,
-#    V_CON => "0&nbsp;&nbsp;",
-#    V_ATK => "89&nbsp;",
-#    V_MAG => "0&nbsp;&nbsp;",
-#    V_DEF => "60&nbsp;",
-#    V_AGL => "55&nbsp;",
-#    V_KHI => "100",
-#    V_SNC => "100",
-#    V_LUK => "100",
-#    V_HMT => "100",
-#    V_CHR => "100",
-#});
-
-
-
+#
+# Players in Same Place.
+# 
 
 #my $base_dir = "/home/users/2/ciao.jp-anothark/web";
 #my $dp = "$base_dir/data";
 #my $t  = "$dp/anothark";
-#
-#$at->setBase("$t/template.html");
-#$at->setBody("$t/body_mypage.html");
-#
-#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
-
-
 
 $at->setBase("template.html");
-$at->setBody("body_mypage.html");
+$at->setBody("body_any.html");
 
 $pu->setSystemLog( "aa_calc.log" );
 $pu->setAccessLog( "aa_access.log" );
 
-
-$at->setPageName("マイページ");
+$at->setPageName("近くの人");
 my $version = "0.1a20120328";
 
 
 my $content_type = $mu->getContentType();
 my $browser      = $mu->getBrowser();
-#my $carrier_id   = $mu->getCarrierId();
+my $carrier_id   = $mu->getCarrierId();
 
 
 
 
 $pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
 my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
-#my $mob_uid = $mu->get_muid();
+my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
 
@@ -96,18 +65,25 @@ if ( ! $result )
 }
 
 
-if ( $c->param("user_id") && $c->param("user_id") ne $aa->{out}->{user_id} )
+my $php_sql = "SELECT u.user_name AS user_name ,u.user_id AS user_id FROM t_user_status AS s JOIN t_user AS u USING(user_id) WHERE s.node_id = ? AND u.user_id <> ?";
+
+my $sth  = $db->prepare($php_sql);
+my $stat = $sth->execute(($aa->{out}->{NODE_ID}, $aa->{out}->{USER_ID}));
+my $row;
+my $lines = 0;
+
+
+
+if ( $sth->rows > 0 )
 {
-    $result = $at->getBaseDataByUserId($c->param("user_id"));
-    if ( ! $result )
+    $out->{RESULT} = "<form name=\"item\" method=\"get\" action=\"items.cgi\">\n";
+    while( $row  = $sth->fetchrow_hashref() )
     {
-        $at->Error();
-        $at->{out}->{RESULT} = "そのユーザーは存在しません";
+        $lines++;
+        $out->{RESULT} .= sprintf("<a href=\"mypage.cgi?guid=ON&user_id=%s\">%s<br />\n", $row->{user_id}, $row->{user_name});
     }
+    $out->{RESULT} .= "<hr />";
 }
-
-
-
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
 
 

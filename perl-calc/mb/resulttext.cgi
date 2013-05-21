@@ -18,39 +18,45 @@ my $ad_str = "";
 my $db = DbUtil::getDbHandler();
 
 our $out = $at->setOut( {
-    NAME  => "ゲスト",
-    MSG   => "よろしくおねがいします",
-    BRD   => "",
-    PLACE => "彼の庭",
-    GOLD  => 120327,
-    FACE  => 0,
-    HAIR  => 0,
-    V_HP  => 100,
-    V_MHP => 100,
-    V_CON => "0&nbsp;&nbsp;",
-    V_ATK => "89&nbsp;",
-    V_MAG => "0&nbsp;&nbsp;",
-    V_DEF => "60&nbsp;",
-    V_AGL => "55&nbsp;",
-    V_KHI => "100",
-    V_SNC => "100",
-    V_LUK => "100",
-    V_HMT => "100",
-    V_CHR => "100",
+#    NAME  => "ゲスト",
+#    MSG   => "よろしくおねがいします",
+#    BRD   => "",
+#    PLACE => "彼の庭",
+#    GOLD  => 120327,
+#    FACE  => 0,
+#    HAIR  => 0,
+#    V_HP  => 100,
+#    V_MHP => 100,
+#    V_CON => "0&nbsp;&nbsp;",
+#    V_ATK => "89&nbsp;",
+#    V_MAG => "0&nbsp;&nbsp;",
+#    V_DEF => "60&nbsp;",
+#    V_AGL => "55&nbsp;",
+#    V_KHI => "100",
+#    V_SNC => "100",
+#    V_LUK => "100",
+#    V_HMT => "100",
+#    V_CHR => "100",
 });
 
 
 
 
-my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-my $dp = "$base_dir/data";
-my $t  = "$dp/anothark";
+#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
+#my $dp = "$base_dir/data";
+#my $t  = "$dp/anothark";
+#
+#$at->setBase("$t/template.html");
+#$at->setBody("$t/body_resultview.html");
+#
+#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
+#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
 
-$at->setBase("$t/template.html");
-$at->setBody("$t/body_resultview.html");
+$at->setBase("template.html");
+$at->setBody("body_resultview.html");
 
-$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
+$pu->setSystemLog( "aa_calc.log" );
+$pu->setAccessLog( "aa_access.log" );
 
 $at->setPageName("リザルト");
 my $version = "0.1a20120328";
@@ -81,7 +87,8 @@ if( $offset !~ /^[1-9]\d*$/ )
 
 my $get_result_sql = "
     SELECT
-        REPLACE(r.result_text,'<_NAME_>',b.user_name) AS result
+        m.result_title AS result_title,
+        REPLACE(REPLACE(r.result_text,'<_NAME_>',b.user_name),'<_SELF_CALL_>',g.self_call) AS result
     FROM
         t_user AS b
         JOIN
@@ -89,7 +96,9 @@ my $get_result_sql = "
         JOIN
         t_result_log r USING( user_id )
         JOIN
-        t_result_master m USING(result_id)
+        t_result_text m USING(result_id)
+        JOIN
+        t_gender_map g USING( gender )
     WHERE
         b.carrier_id = ?
         AND
@@ -114,6 +123,7 @@ if ( $sth->rows() > 0 )
         my $result_text = sprintf("%s<br />",$row->{result});
         $result_text =~ s/\n/<br \/>/g;
         $out->{RESULT} .= $result_text;
+        $out->{RESULT_TITLE} = $row->{result_title};
     }
     $pu->output_log("passed find result row. count[$lines]");
 }

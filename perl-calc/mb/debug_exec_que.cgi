@@ -8,6 +8,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
+use Anothark::Battle;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -42,17 +43,22 @@ our $out = $at->setOut( {
 
 
 
-my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-my $dp = "$base_dir/data";
-my $t  = "$dp/anothark";
+#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
+#my $dp = "$base_dir/data";
+#my $t  = "$dp/anothark";
+#
+#$at->setBase("$t/template.html");
+#$at->setBody("$t/body_result.html");
+#
+#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
+#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
 
-$at->setBase("$t/template.html");
-$at->setBody("$t/body_result.html");
+$at->setBase("template.html");
+$at->setBody("body_result.html");
 
-$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
-
-$at->setPageName("リザルト");
+$pu->setSystemLog( "aa_calc.log" );
+$pu->setAccessLog( "aa_access.log" );
+$at->setPageName("DEBUG:処理実行");
 my $version = "0.1a20120328";
 
 my $mu = new MobileUtil();
@@ -141,6 +147,15 @@ my $log_id = $db->{'mysql_insertid'};
 #    JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id )
 #    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
 
+
+# next_node_idで発生するイベントの検索
+#
+# SELECT * FROM t_event_master JOIN t_flag_append USING(event_id) LEFT JOIN t_user_flagment AS u ON (append_flag_id = u.flag_id AND u.user_id = 1 ) WHERE node_id = 2 AND u.user_id IS NULL
+#ORDER BY priority LIMIT 1;
+
+
+my $ins_pre = "";
+my $ins_post = "";
 my $insert_prepost = "
 INSERT INTO t_result_log (result_log_id,user_id,result_id,wday,hour,sequence_id,result_text)
 SELECT
@@ -150,54 +165,83 @@ SELECT
     WEEKDAY(NOW()),
     HOUR(NOW()),
     ?,
-    t.result_text
+    CONCAT(?,t.result_text,?) AS result_text
 FROM
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_result_master AS r ON ( r.node_id = ? )
     JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
 
-$pu->output_log("SQL [$insert_prepost]");
 my $result_sth = $db->prepare( $insert_prepost );
-$pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id,$nnid,'pre',$carrier_id, $mob_uid)));
-my $affected = $result_sth->execute(($log_id,$seq_id,$nnid,'pre',$carrier_id, $mob_uid));
+my $affected = "";
+
+$pu->output_log("SQL [$insert_prepost]");
+$pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'pre',$carrier_id, $mob_uid)));
+$affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'pre',$carrier_id, $mob_uid));
 $pu->output_log("insert result[$affected]");
 $seq_id++ if ( $affected && $affected ne "0E0" );
 $pu->output_log("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" );
 
 
+my $battle = new Anothark::Battle();
+$battle->setCharacter();
+$battle->doBattle();
 
-my $battle_html = doBattle();
+my $battle_html = $battle->getBattleText();
 
 
-
+$ins_pre = $battle->getResultText();
 
 
 $pu->output_log("SQL [$insert_prepost]");
-$pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id,$nnid,'post',$carrier_id, $mob_uid)));
-$affected = $result_sth->execute(($log_id,$seq_id,$nnid,'post',$carrier_id, $mob_uid));
+$pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'post',$carrier_id, $mob_uid)));
+$affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'post',$carrier_id, $mob_uid));
 $pu->output_log("insert result[$affected]");
 $seq_id++ if ( $affected && $affected ne "0E0" );
 $pu->output_log("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" );
+
+
 $result_sth->finish();
 
 ## Main
 
-my $sth  = $db->prepare("SELECT REPLACE(r.result_text,'<_NAME_>',b.user_name) AS result FROM t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_result_log r USING( user_id ) JOIN  t_result_master m USING(result_id) WHERE b.carrier_id = ? AND b.uid = ? ORDER BY r.result_log_id DESC LIMIT 1");
-#my $sth  = $db->prepare("SELECT b.user_id AS user_id, b.user_name AS user_name, b.msg AS msg, b.face_type AS face_type, b.hair_type AS hair_type, s.a_max_hp AS max_hp, s.a_hp AS hp,n.node_name FROM t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?");
-my $stat = $sth->execute(($carrier_id, $mob_uid));
-my $row  = $sth->fetchrow_hashref();
 
+#my $get_result_sql = "
+#    SELECT
+#        REPLACE(REPLACE(r.result_text,'<_NAME_>',b.user_name),'<_SELF_CALL_>',g.self_call) AS result
+#    FROM
+#        t_user AS b
+#        JOIN
+#        t_user_status s USING( user_id )
+#        JOIN
+#        t_result_log r USING( user_id )
+#        JOIN
+#        t_result_master m USING(result_id)
+#        JOIN
+#        t_gender_map g USING( gender )
+#    WHERE
+#        b.carrier_id = ?
+#        AND
+#        b.uid = ?
+#    ORDER BY r.result_log_id,r.sequence_id DESC LIMIT 1
+#";
+#
+#my $sth  = $db->prepare($get_result_sql);
+##my $sth  = $db->prepare("SELECT REPLACE(r.result_text,'<_NAME_>',b.user_name) AS result FROM t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_result_log r USING( user_id ) JOIN  t_result_master m USING(result_id) WHERE b.carrier_id = ? AND b.uid = ? ORDER BY r.result_log_id DESC LIMIT 1");
+#my $stat = $sth->execute(($carrier_id, $mob_uid));
+#my $row  = $sth->fetchrow_hashref();
+#
+#
+#
+#
+#
+#
+#if ( ! $sth->rows() > 0 )
+#{
+#    exit;
+#}
+#$sth->finish();
 
-
-
-
-
-if ( ! $sth->rows() > 0 )
-{
-    exit;
-}
-$sth->finish();
 
 
 
@@ -209,22 +253,30 @@ $up_sth->finish();
 
 
 
-$out->{RESULT} = $row->{result};
-$out->{RESULT} =~ s/\n/<br \/>\n/g;
+
+my $flag_update = "
+INSERT INTO t_user_flagment(user_id,flag_id,enable)
+VALUES
+    SELECT
+        user_id,
+        append_flag_id,
+        1,
+    FROM
+        t_flag_append
+        LEFT JOIN
+        t_user_flagment AS u ON (append_flag_id = u.flag_id AND u.user_id = ? )
+    WHERE
+        node_id = ?
+        AND
+        event_id = ?
+";
+
+
+
 $db->disconnect();
 
-
-
-
-
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
-
-
-
-
-$at->setup();
-
-$at->output();
+print $c->redirect("recent_text.cgi?guid=ON");    
 
 $pu->output_log("End que.");
 
