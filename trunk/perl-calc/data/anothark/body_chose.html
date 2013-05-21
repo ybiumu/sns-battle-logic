@@ -1,14 +1,20 @@
 <div class="contents2">$out->{NODE_NAME}</div>
 <hr />
+<img src="img/$out->{NODE_IMG}" />
 $out->{NODE_DESCR}
 <hr />
+<a href="img/Map_p1.jpg">地図</a>/<a href="">ﾊﾞｻﾞｰ</a>/<a href="psp.cgi?guid=ON">近くの人</a><br />
+掲示板:<a href="">雑記</a>
+<hr />
 <form name="chose" action="chose.cgi?guid=ON">
-　次回処理時間:$out->{QUE_HOUR}時頃<br />
+<div class="contents3">次回処理時間<br />$out->{QUE_HOUR}時頃</div>
 <hr />
 $out->{SELECTION_STR}
 <br />
 <input type="hidden" name="guid" value="ON" />
 <input type="hidden" name="chosed" value="1" />
-<input type="submit" value="送信" />
+<input type="submit" value="決定" />
 </form>
 
+<hr />
+<a href="recent_text.cgi?guid=ON">前回の結果</a>

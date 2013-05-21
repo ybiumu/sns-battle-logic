@@ -4,12 +4,15 @@ use strict;
 
 
 use ObjMethod;
+use LocalConfig;
 use base qw( ObjMethod );
 
-my $BASE_DIR = "/home/users/2/ciao.jp-anothark/web";
-my $LOG_DIR = $BASE_DIR . "/.htlog";
-my $access_log = $LOG_DIR . "/access_log";
-my $system_log = $LOG_DIR . "/system_log";
+#my $BASE_DIR = "/home/users/2/ciao.jp-anothark/web";
+#my $LOG_DIR = $BASE_DIR . "/.htlog";
+#my $access_log = $LOG_DIR . "/access_log";
+#my $system_log = $LOG_DIR . "/system_log";
+my $access_log = "access_log";
+my $system_log = "system_log";
 my $content_type = "text/html";
 my $selected_str = 'selected="true"';
 
@@ -61,7 +64,7 @@ sub getSelectedStr
 sub setSystemLog
 {
     my $class = shift;
-    return $class->setAttribute( 'system_log', shift );
+    return $class->setAttribute( 'system_log', getLogPath(shift) );
 }
 
 sub getSystemLog
@@ -72,7 +75,7 @@ sub getSystemLog
 sub setAccessLog
 {
     my $class = shift;
-    return $class->setAttribute( 'access_log', shift );
+    return $class->setAttribute( 'access_log', getLogPath(shift) );
 }
 
 sub getAccessLog
@@ -80,6 +83,10 @@ sub getAccessLog
     return $_[0]->getAttribute( 'access_log' );
 }
 
+sub getLogPath
+{
+    return sprintf("%s/%s", $LocalConfig::LOG_DIR, shift );
+}
 
 sub output_access_log
 {
