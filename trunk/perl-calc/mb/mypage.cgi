@@ -23,55 +23,19 @@ $at->setMobileUtil($mu);
 my $ad_str = "";
 
 
-#our $out = $at->setOut( {
-#    NAME  => "ゲスト",
-#    MSG   => "よろしくおねがいします",
-#    BRD   => "",
-#    PLACE => "彼の庭",
-#    GOLD  => 120327,
-#    FACE  => 0,
-#    HAIR  => 0,
-#    V_HP  => 100,
-#    V_MHP => 100,
-#    V_CON => "0&nbsp;&nbsp;",
-#    V_ATK => "89&nbsp;",
-#    V_MAG => "0&nbsp;&nbsp;",
-#    V_DEF => "60&nbsp;",
-#    V_AGL => "55&nbsp;",
-#    V_KHI => "100",
-#    V_SNC => "100",
-#    V_LUK => "100",
-#    V_HMT => "100",
-#    V_CHR => "100",
-#});
 
 
-
-
-#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-#my $dp = "$base_dir/data";
-#my $t  = "$dp/anothark";
-#
-#$at->setBase("$t/template.html");
-#$at->setBody("$t/body_mypage.html");
-#
-#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
-
-
-
-$at->setBase("template.html");
+#$at->setBase("template.html");
 $at->setBody("body_mypage.html");
 
-$pu->setSystemLog( "aa_calc.log" );
-$pu->setAccessLog( "aa_access.log" );
+#$pu->setSystemLog( "aa_calc.log" );
+#$pu->setAccessLog( "aa_access.log" );
 
 
 $at->setPageName("マイページ");
 my $version = "0.1a20120328";
 
 
-my $content_type = $mu->getContentType();
 my $browser      = $mu->getBrowser();
 #my $carrier_id   = $mu->getCarrierId();
 
@@ -91,6 +55,7 @@ my $result = $at->setupBaseData();
 
 if ( ! $result )
 {
+    $db->disconnect();
     print $c->redirect("setup.cgi?guid=ON");    
     exit;
 }
@@ -101,7 +66,7 @@ if ( $c->param("user_id") && $c->param("user_id") ne $aa->{out}->{user_id} )
     $result = $at->getBaseDataByUserId($c->param("user_id"));
     if ( ! $result )
     {
-        $at->Error();
+        $at->Critical();
         $at->{out}->{RESULT} = "そのユーザーは存在しません";
     }
 }
@@ -120,6 +85,7 @@ $at->output();
 
 
 
+$db->disconnect();
 
 exit;
 

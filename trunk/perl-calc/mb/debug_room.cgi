@@ -52,11 +52,11 @@ our $out = $at->setOut( {
 #$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
 
 
-$at->setBase("template.html");
+#$at->setBase("template.html");
 $at->setBody("body_debug_room.html");
 
-$pu->setSystemLog( "aa_calc.log" );
-$pu->setAccessLog( "aa_access.log" );
+#$pu->setSystemLog( "aa_calc.log" );
+#$pu->setAccessLog( "aa_access.log" );
 
 $at->setPageName("ÃÞÊÞ¯¸Þ");
 my $version = "0.1a20130415";

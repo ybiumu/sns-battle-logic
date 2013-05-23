@@ -30,11 +30,11 @@ my $ad_str = "";
 #my $dp = "$base_dir/data";
 #my $t  = "$dp/anothark";
 
-$at->setBase("template.html");
+#$at->setBase("template.html");
 $at->setBody("body_any.html");
 
-$pu->setSystemLog( "aa_calc.log" );
-$pu->setAccessLog( "aa_access.log" );
+#$pu->setSystemLog( "aa_calc.log" );
+#$pu->setAccessLog( "aa_access.log" );
 
 $at->setPageName("‹ß‚­‚Ìl");
 my $version = "0.1a20120328";
@@ -60,6 +60,7 @@ my $result = $at->setupBaseData();
 
 if ( ! $result )
 {
+    $db->disconnect();
     print $c->redirect("setup.cgi?guid=ON");    
     exit;
 }
@@ -68,7 +69,7 @@ if ( ! $result )
 my $php_sql = "SELECT u.user_name AS user_name ,u.user_id AS user_id FROM t_user_status AS s JOIN t_user AS u USING(user_id) WHERE s.node_id = ? AND u.user_id <> ?";
 
 my $sth  = $db->prepare($php_sql);
-my $stat = $sth->execute(($aa->{out}->{NODE_ID}, $aa->{out}->{USER_ID}));
+my $stat = $sth->execute(($at->{out}->{NODE_ID}, $at->{out}->{USER_ID}));
 my $row;
 my $lines = 0;
 
@@ -76,13 +77,13 @@ my $lines = 0;
 
 if ( $sth->rows > 0 )
 {
-    $out->{RESULT} = "<form name=\"item\" method=\"get\" action=\"items.cgi\">\n";
+    $at->{out}->{RESULT} = "";
     while( $row  = $sth->fetchrow_hashref() )
     {
         $lines++;
-        $out->{RESULT} .= sprintf("<a href=\"mypage.cgi?guid=ON&user_id=%s\">%s<br />\n", $row->{user_id}, $row->{user_name});
+        $at->{out}->{RESULT} .= sprintf("<a href=\"mypage.cgi?guid=ON&user_id=%s\">%s</a><br />\n", $row->{user_id}, $row->{user_name});
     }
-    $out->{RESULT} .= "<hr />";
+    $at->{out}->{RESULT} .= "<hr />";
 }
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
 
@@ -93,6 +94,7 @@ $at->setup();
 
 $at->output();
 
+$db->disconnect();
 
 
 

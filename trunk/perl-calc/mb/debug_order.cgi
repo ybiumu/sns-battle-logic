@@ -31,9 +31,9 @@ my $ad_str = "";
 #$at->setBody("$t/body_debug_order.html");
 
 
-$pu->setSystemLog( "aa_calc.log" );
-$pu->setAccessLog( "aa_access.log" );
-$at->setBase("template.html");
+#$pu->setSystemLog( "aa_calc.log" );
+#$pu->setAccessLog( "aa_access.log" );
+#$at->setBase("template.html");
 $at->setBody("body_debug_order.html");
 
 my $version = "0.1a20120328";

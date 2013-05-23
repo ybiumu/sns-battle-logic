@@ -6,10 +6,11 @@ use strict;
 use ObjMethod;
 use Avatar;
 use LocalConfig;
+use Anothark::Character;
 use base qw( ObjMethod );
 
 
-my $base = undef;
+my $base = "template.html";
 my $body = undef;
 my $base_html = undef;
 my $body_html = undef;
@@ -31,6 +32,7 @@ sub init
     my $class = shift;
     $class->setOut($out);
     $class->setPageName($page_name);
+    $class->setBase($base);
 }
 
 
@@ -139,6 +141,7 @@ sub setDbHandler
 
 sub getDbHandler
 {
+#    $_[0]->getAttribute( 'db_handler' )->do("set names sjis");
     return $_[0]->getAttribute( 'db_handler' );
 }
 
@@ -250,7 +253,6 @@ sub setupBaseData
 
     if ( $sth->rows() == 0 )
     {
-        $class->getDbHandler()->disconnect();
         return $result;
     }
 
@@ -259,8 +261,6 @@ sub setupBaseData
     $class->{out}->{V_HP} =  $row->{hp};
     $class->{out}->{V_MHP} = $row->{max_hp};
     $class->{out}->{MSG}   = $row->{msg};
-    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
-    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
     $class->{out}->{PLACE} = $row->{node_name};
     $class->{out}->{NODE_ID} = $row->{node_id};
     $class->{out}->{USER_ID} = $row->{user_id};
@@ -278,7 +278,10 @@ sub setupBaseData
     $class->{out}->{V_HMT} = $row->{a_kikyou};
     $class->{out}->{V_CHR} = $row->{a_chrm};
 
-    $class->getDbHandler()->disconnect();
+
+    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
+    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
+
     return $result;
 }
 
@@ -287,14 +290,91 @@ sub Error
 {
     my $class = shift;
     $class->setPageName("ERROR");
-    $class->setBase("body_error.html");
+#    $class->setBase("template.html");
+    $class->setBody("body_any.html");
 }
+
+
+sub Critical
+{
+    my $class = shift;
+    $class->setPageName("ERROR");
+    $class->setBase("small_template.html");
+    $class->setBody("body_any.html");
+}
+
 
 sub getBaseDataByUserId
 {
     my $class = shift;
     my $user_id = shift;
     my $result = 0;
+#    my $get_base_sql = "
+#        SELECT
+#            b.user_id AS user_id,
+#            b.user_name AS user_name,
+#            b.msg AS msg,
+#            b.face_type AS face_type,
+#            b.hair_type AS hair_type,
+#            s.a_max_hp AS max_hp,
+#            s.rp AS rp,
+#            s.a_agl AS a_agl,
+#            s.a_kehai AS a_kehai,
+#            s.a_chikaku AS a_chikaku,
+#            s.a_luck AS a_luck,
+#            s.a_kikyou AS a_kikyou,
+#            s.a_chrm   AS a_chrm,
+#            s.node_id AS node_id,
+#            s.a_hp AS hp,n.node_name
+#        FROM
+#            t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
+#    my $sth  = $class->getDbHandler()->prepare($get_base_sql);
+#    my $stat = $sth->execute(($user_id));
+#    my $row  = $sth->fetchrow_hashref();
+#
+#    $class->getPageUtil()->output_log(qq["CHECK: " ], sprintf("carrier: %s, uid: %s, target_user_id: %s,row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $user_id, $sth->rows() ));
+#
+#    if ( $sth->rows() == 0 )
+#    {
+#        return $result;
+#    }
+
+    my $char = $class->getCharacterByUserId($user_id);
+    if ( not $char )
+    {
+        return $result;
+    }
+
+    $result = 1;
+    $class->{out}->{NAME} = sprintf("(%s)%s", $user_id, $char->getUserName());
+    $class->{out}->{V_HP} =  $char->getHp()->current();
+    $class->{out}->{V_MHP} = $char->getHp()->max();
+    $class->{out}->{MSG}   = $char->getMsg();
+    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$char->getFaceType()};
+    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$char->getHairType()};
+    $class->{out}->{PLACE} = $char->getNodeName();
+    $class->{out}->{NODE_ID} = $char->getNodeId();
+    $class->{out}->{USER_ID} = $user_id;
+
+    $class->{out}->{V_CON} = $char->getConcentration()->current();
+    $class->{out}->{V_ATK} = $char->getAtack()->current();
+    $class->{out}->{V_MAG} = $char->getMagic()->current();
+    $class->{out}->{V_DEF} = $char->getDefence()->current();
+    $class->{out}->{V_AGL} = $char->getAgility()->current();
+    $class->{out}->{V_KHI} = $char->getKehai()->current();
+    $class->{out}->{V_SNC} = $char->getChikaku()->current();
+    $class->{out}->{V_LUK} = $char->getLuck()->current();
+    $class->{out}->{V_HMT} = $char->getKikyou()->current();
+    $class->{out}->{V_CHR} = $char->getChrm()->current();
+
+    return $result;
+}
+
+
+sub getCharacterByUserId
+{
+    my $class = shift;
+    my $user_id = shift;
     my $get_base_sql = "
         SELECT
             b.user_id AS user_id,
@@ -311,7 +391,8 @@ sub getBaseDataByUserId
             s.a_kikyou AS a_kikyou,
             s.a_chrm   AS a_chrm,
             s.node_id AS node_id,
-            s.a_hp AS hp,n.node_name
+            s.a_hp AS hp,
+            n.node_name
         FROM
             t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
     my $sth  = $class->getDbHandler()->prepare($get_base_sql);
@@ -322,34 +403,31 @@ sub getBaseDataByUserId
 
     if ( $sth->rows() == 0 )
     {
-        $class->getDbHandler()->disconnect();
-        return $result;
+        return undef;
     }
+    my $char = new Anothark::Character();
 
-    $result = 1;
-    $class->{out}->{NAME} = sprintf("(%s)%s", $row->{user_id},$row->{user_name});
-    $class->{out}->{V_HP} =  $row->{hp};
-    $class->{out}->{V_MHP} = $row->{max_hp};
-    $class->{out}->{MSG}   = $row->{msg};
-    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
-    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
-    $class->{out}->{PLACE} = $row->{node_name};
-    $class->{out}->{NODE_ID} = $row->{node_id};
-    $class->{out}->{USER_ID} = $row->{user_id};
+    $char->setName($row->{user_name});
+    $char->getHp()->setCurrentValue($row->{hp});
+    $char->getHp()->setMaxValue($row->{max_hp});
+    $char->setMsg($row->{msg});
+    $char->setFaceType($row->{face_type});
+    $char->setHairType($row->{hair_type});
+    $char->setId($row->{user_id});
+    $char->setNodeName(  $row->{node_name} );
+    $char->setNodeId(  $row->{node_id} );
+    $char->getConcentration()->setBothValue($row->{rp});
+    $char->getAtack()->setBothValue(0);
+    $char->getMagic()->setBothValue(0);
+    $char->getDefence()->setBothValue(0);
+    $char->getAgility()->setBothValue($row->{a_agl});
+    $char->getKehai()->setBothValue($row->{a_kehai});
+    $char->getChikaku()->setBothValue($row->{a_chikaku});
+    $char->getLuck()->setBothValue($row->{a_luck});
+    $char->getKikyou()->setBothValue($row->{a_kikyou});
+    $char->getCharm()->setBothValue($row->{a_chrm});
 
-    $class->{out}->{V_CON} = $row->{rp};
-    $class->{out}->{V_ATK} = 0;
-    $class->{out}->{V_MAG} = 0;
-    $class->{out}->{V_DEF} = 0;
-    $class->{out}->{V_AGL} = $row->{a_agl};
-    $class->{out}->{V_KHI} = $row->{a_kehai};
-    $class->{out}->{V_SNC} = $row->{a_chikaku};
-    $class->{out}->{V_LUK} = $row->{a_luck};
-    $class->{out}->{V_HMT} = $row->{a_kikyou};
-    $class->{out}->{V_CHR} = $row->{a_chrm};
-
-    $class->getDbHandler()->disconnect();
-    return $result;
+    return $char;
 }
 
 1;
