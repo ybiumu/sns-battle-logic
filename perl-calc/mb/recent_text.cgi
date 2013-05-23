@@ -53,11 +53,11 @@ our $out = $at->setOut( {
 #$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
 
 
-$at->setBase("template.html");
+#$at->setBase("template.html");
 $at->setBody("body_resultview.html");
 
-$pu->setSystemLog( "aa_calc.log" );
-$pu->setAccessLog( "aa_access.log" );
+#$pu->setSystemLog( "aa_calc.log" );
+#$pu->setAccessLog( "aa_access.log" );
 
 $at->setPageName("ƒŠƒUƒ‹ƒg");
 my $version = "0.1a20120328";
@@ -85,15 +85,18 @@ if( $offset !~ /^[1-9]\d*$/ )
 }
 
 ## get recent result_id
-my $get_recent_result_id_sql = "SELECT MAX(result_log_id) AS result_log_id FROM t_user AS b JOIN t_result_log AS r USING( user_id )  WHERE b.carrier_id = ? AND b.uid = ?;";
+#my $get_recent_result_id_sql = "SELECT MAX(result_log_id) AS result_log_id, COUNT(result_log_id) AS number FROM t_user AS b JOIN t_result_log AS r USING( user_id )  WHERE b.carrier_id = ? AND b.uid = ? AND r.sequence_id <> 0;";
+my $get_recent_result_id_sql = "SELECT MAX(result_log_id) AS result_log_id, MAX(sequence_id) AS number FROM t_user AS b JOIN t_result_log AS r USING( user_id )  WHERE b.carrier_id = ? AND b.uid = ? AND r.sequence_id <> 0 GROUP BY result_log_id desc HAVING result_log_id = MAX(result_log_id) LIMIT 1";
 my $pre_sth = $db->prepare($get_recent_result_id_sql);
 my $pre_stat = $pre_sth->execute(($carrier_id, $mob_uid));
 my $recent_result_log_id = 0;
+my $total_numnber = 0;
 
 if ( $pre_sth->rows() > 0 )
 {
     my $pre_row = $pre_sth->fetchrow_hashref();
     $rid = $pre_row->{result_log_id};
+    $total_number = $pre_row->{number};
 }
 $pre_sth->finish();
 
@@ -112,7 +115,7 @@ my $get_result_sql = "
         JOIN
         t_result_log r USING( user_id )
         JOIN
-        t_result_text m USING(result_id)
+        t_result_text m USING(result_id,sequence_id)
         JOIN
         t_gender_map g USING( gender )
     WHERE
@@ -142,6 +145,15 @@ if ( $sth->rows() > 0 )
         $out->{RESULT_TITLE} = $row->{result_title};
     }
     $pu->output_log("passed find result row. count[$lines]");
+    # Append next link;
+    if ( $total_number > $offset + 1 )
+    {
+        $out->{RESULT} .= sprintf("<hr /><a href=\"recent_text.cgi?guid=ON&offset=%s\">1.‘±‚«‚Ö</a><br />", ++$offset);
+    }
+    else
+    {
+        $out->{RESULT} .= sprintf("<br />\n--End of Scene--<br />\n");
+    }
 }
 #else
 #{

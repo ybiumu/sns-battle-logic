@@ -5,70 +5,45 @@ use CGI;
 use DbUtil;
 use MobileUtil;
 use GoogleAdSence;
-use Avatar;
 use PageUtil;
 use AaTemplate;
 use Anothark::Battle;
+use Anothark::Character;
+use Anothark::Skill;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
 $at->setPageUtil($pu);
 
-my $ad_str = "";
 
 my $db = DbUtil::getDbHandler();
+my $mu = new MobileUtil();
 
-our $out = $at->setOut( {
-    NAME  => "ゲスト",
-    MSG   => "よろしくおねがいします",
-    BRD   => "",
-    PLACE => "彼の庭",
-    GOLD  => 120327,
-    FACE  => 0,
-    HAIR  => 0,
-    V_HP  => 100,
-    V_MHP => 100,
-    V_CON => "0&nbsp;&nbsp;",
-    V_ATK => "89&nbsp;",
-    V_MAG => "0&nbsp;&nbsp;",
-    V_DEF => "60&nbsp;",
-    V_AGL => "55&nbsp;",
-    V_KHI => "100",
-    V_SNC => "100",
-    V_LUK => "100",
-    V_HMT => "100",
-    V_CHR => "100",
-});
+$at->setDbHandler($db);
+$at->setMobileUtil($mu);
+
+my $ad_str = "";
 
 
 
 
-#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-#my $dp = "$base_dir/data";
-#my $t  = "$dp/anothark";
-#
-#$at->setBase("$t/template.html");
-#$at->setBody("$t/body_result.html");
-#
-#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
 
-$at->setBase("template.html");
+#$at->setBase("template.html");
 $at->setBody("body_result.html");
 
-$pu->setSystemLog( "aa_calc.log" );
-$pu->setAccessLog( "aa_access.log" );
+#$pu->setSystemLog( "aa_calc.log" );
+#$pu->setAccessLog( "aa_access.log" );
+
 $at->setPageName("DEBUG:処理実行");
 my $version = "0.1a20120328";
 
-my $mu = new MobileUtil();
 
-my $content_type = $mu->getContentType();
 my $browser      = $mu->getBrowser();
 my $carrier_id   = $mu->getCarrierId();
 
 $pu->output_log("Start que.");
 
+our $out = $at->getOut();
 
 
 
@@ -78,6 +53,24 @@ my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
 
+
+
+# Init
+my $result = $at->setupBaseData();
+
+if ( ! $result )
+{
+    $db->disconnect();
+    print $c->redirect("setup.cgi?guid=ON");    
+    exit;
+}
+
+
+
+
+############
+### Main ###
+############
 
 my $select_result_summary = "
 SELECT
@@ -125,8 +118,24 @@ WHERE
 $pu->output_log("SQL [$bookin_log_id]");
 my $booking_sth = $db->prepare( $bookin_log_id );
 $pu->output_log(sprintf "Value [%s]",join("/",($seq_id,$carrier_id, $mob_uid)));
-$pu->output_log($booking_sth->execute(($seq_id++, $carrier_id, $mob_uid)));
+my $booking_result = $booking_sth->execute(($seq_id++, $carrier_id, $mob_uid));
+$pu->output_log(sprintf("Booking result [%s]",$booking_result));
 my $log_id = $db->{'mysql_insertid'};
+
+$booking_sth->finish();
+
+if (! $booking_result )
+{
+
+    $at->Error();
+    $at->{out}->{RESULT} = "結果処理出来ません。<br />結果処理は1時間に1回です";
+    $db->disconnect();
+
+    $at->setup();
+    $at->output();
+}
+else
+{
 
 # 本当はnodeに紐付いたイベントも結合して、優先順位の高いイベントから処理するようにしないといけない
 # insert result;
@@ -154,9 +163,9 @@ my $log_id = $db->{'mysql_insertid'};
 #ORDER BY priority LIMIT 1;
 
 
-my $ins_pre = "";
-my $ins_post = "";
-my $insert_prepost = "
+    my $ins_pre = "";
+    my $ins_post = "";
+    my $insert_prepost = "
 INSERT INTO t_result_log (result_log_id,user_id,result_id,wday,hour,sequence_id,result_text)
 SELECT
     ?,
@@ -172,37 +181,108 @@ FROM
     JOIN t_result_master AS r ON ( r.node_id = ? )
     JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
 
-my $result_sth = $db->prepare( $insert_prepost );
-my $affected = "";
+    my $result_sth = $db->prepare( $insert_prepost );
+    my $affected = "";
 
-$pu->output_log("SQL [$insert_prepost]");
-$pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'pre',$carrier_id, $mob_uid)));
-$affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'pre',$carrier_id, $mob_uid));
-$pu->output_log("insert result[$affected]");
-$seq_id++ if ( $affected && $affected ne "0E0" );
-$pu->output_log("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" );
-
-
-my $battle = new Anothark::Battle();
-$battle->setCharacter();
-$battle->doBattle();
-
-my $battle_html = $battle->getBattleText();
+    $pu->output_log("SQL [$insert_prepost]");
+    $pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'pre',$carrier_id, $mob_uid)));
+    $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'pre',$carrier_id, $mob_uid));
+    $pu->output_log("insert result[$affected]");
+    $seq_id++ if ( $affected && $affected ne "0E0" );
+    $pu->output_log("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" );
 
 
-$ins_pre = $battle->getResultText();
 
 
-$pu->output_log("SQL [$insert_prepost]");
-$pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'post',$carrier_id, $mob_uid)));
-$affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'post',$carrier_id, $mob_uid));
-$pu->output_log("insert result[$affected]");
-$seq_id++ if ( $affected && $affected ne "0E0" );
-$pu->output_log("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" );
 
 
-$result_sth->finish();
 
+
+
+##############
+### Battle ###
+##############
+    my $battle = new Anothark::Battle( $pu );
+#    $battle->setCharacter();
+#    my $me = new Anothark::Character();
+    my $me = $at->getCharacterByUserId($out->{USER_ID});
+#    $me->setId( $out->{USER_ID} );
+    $me->setSide("p");
+    $battle->appendCharacter( $me );
+
+    my $enemy = new Anothark::Character();
+    $enemy->setId("load_king");
+    $enemy->setName("ﾛｰﾄﾞ･ｵｳﾞ･ｼﾞｪﾑｽﾄｰﾝ");
+    $enemy->getHp()->setBothValue(999);
+    $enemy->setCmd([
+        [],
+        new Anothark::Skill( 'ﾑｰﾝｽﾄｰﾝﾗｲﾄ' ),
+        new Anothark::Skill( 'ｴﾒﾗﾙﾄﾞｽﾌﾟﾗｯｼｭ' ),
+        new Anothark::Skill( 'ﾙﾋﾞｰｽﾍﾟｸﾄﾙ' ),
+        new Anothark::Skill( 'ﾀﾞｲﾔﾓﾝﾄﾞｸﾗｯｼｭ' ),
+        new Anothark::Skill( 'ﾒﾃｵﾆｯｸ･ｼﾞｪﾑｽﾄｰﾑ' ),
+    ]);
+    $enemy->setSide("e");
+    $battle->appendCharacter( $enemy );
+
+    $battle->doBattle();
+
+    my $battle_html = $battle->getBattleText();
+
+
+
+
+
+
+
+
+
+    my $insert_battle = "
+INSERT INTO t_result_log (result_log_id,user_id,result_id,wday,hour,sequence_id,result_text)
+SELECT
+    ?,
+    u.user_id ,
+    r.result_id,
+    WEEKDAY(NOW()),
+    HOUR(NOW()),
+    ?,
+    ? AS result_text
+FROM
+    t_user AS u
+    JOIN t_user_status AS s USING(user_id)
+    JOIN t_result_master AS r ON ( r.node_id = ? )
+    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
+
+    my $result_sth_b = $db->prepare( $insert_battle );
+    my $affected_b = "";
+
+    $pu->output_log("SQL [$insert_battle]");
+    $pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id, $battle_html, ,$nnid,'battle',$carrier_id, $mob_uid)));
+    $affected_b = $result_sth_b->execute(($log_id,$seq_id, $battle_html ,$nnid,'battle',$carrier_id, $mob_uid));
+    $pu->output_log("insert result[$affected_b]");
+    $seq_id++ if ( $affected_b && $affected_b ne "0E0" );
+    $pu->output_log("SQL error[" . $result_sth_b->errstr . "]") if ( $affected_b eq "" );
+
+
+
+
+
+
+###################
+### Post Result ###
+###################
+    $ins_pre = $battle->getResultText();
+
+
+    $pu->output_log("SQL [$insert_prepost]");
+    $pu->output_log(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'post',$carrier_id, $mob_uid)));
+    $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$nnid,'post',$carrier_id, $mob_uid));
+    $pu->output_log("insert result[$affected]");
+    $seq_id++ if ( $affected && $affected ne "0E0" );
+    $pu->output_log("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" );
+
+
+    $result_sth->finish();
 ## Main
 
 
@@ -246,15 +326,15 @@ $result_sth->finish();
 
 
 # change user_status for flag;
-my $up_sth = $db->prepare("UPDATE t_user AS u JOIN t_user_status AS s USING(user_id) JOIN  t_selection_que AS q  USING(user_id) JOIN t_selection AS sel USING(selection_id)  SET s.node_id = sel.next_node_id, s.next_queing_hour = date_format( CONCAT('1970-01-01 ',q.queing_hour,':00:00') + interval 8 hour, '\%H' )  WHERE u.carrier_id = ? AND u.uid = ? ");
-$pu->output_log($up_sth->execute(($carrier_id, $mob_uid)));
-$up_sth->finish();
+    my $up_sth = $db->prepare("UPDATE t_user AS u JOIN t_user_status AS s USING(user_id) JOIN  t_selection_que AS q  USING(user_id) JOIN t_selection AS sel USING(selection_id)  SET s.node_id = sel.next_node_id, s.next_queing_hour = date_format( CONCAT('1970-01-01 ',q.queing_hour,':00:00') + interval 8 hour, '\%H' )  WHERE u.carrier_id = ? AND u.uid = ? ");
+    $pu->output_log($up_sth->execute(($carrier_id, $mob_uid)));
+    $up_sth->finish();
 
 
 
 
 
-my $flag_update = "
+    my $flag_update = "
 INSERT INTO t_user_flagment(user_id,flag_id,enable)
 VALUES
     SELECT
@@ -272,20 +352,17 @@ VALUES
 ";
 
 
+    $db->disconnect();
 
-$db->disconnect();
+    $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
+    print $c->redirect("recent_text.cgi?guid=ON");    
 
-$pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
-print $c->redirect("recent_text.cgi?guid=ON");    
+    $pu->output_log("End que.");
 
-$pu->output_log("End que.");
+}
 
 
 
 
 exit;
 
-sub doBattle
-{
-    return "UNDER CONSTRUCTION!";
-}

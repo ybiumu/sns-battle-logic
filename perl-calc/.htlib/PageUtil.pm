@@ -11,8 +11,8 @@ use base qw( ObjMethod );
 #my $LOG_DIR = $BASE_DIR . "/.htlog";
 #my $access_log = $LOG_DIR . "/access_log";
 #my $system_log = $LOG_DIR . "/system_log";
-my $access_log = "access_log";
-my $system_log = "system_log";
+my $access_log = "aa_access_log";
+my $system_log = "aa_system.log";
 my $content_type = "text/html";
 my $selected_str = 'selected="true"';
 
