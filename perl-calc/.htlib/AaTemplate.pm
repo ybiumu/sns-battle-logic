@@ -1,4 +1,9 @@
 package AaTemplate;
+
+#
+# ˆ¤
+#
+
 $|=1;
 use strict;
 
@@ -11,9 +16,11 @@ use base qw( ObjMethod );
 
 
 my $base = "template.html";
+my $css = "template.css";
 my $body = undef;
 my $base_html = undef;
 my $body_html = undef;
+my $base_css = undef;
 
 my $page_util = undef;
 my $mobile_util = undef;
@@ -24,6 +31,7 @@ my $out = {};
 my $ad_str = undef;
 my $page_name = "No Name";
 
+my $gm_img = '<img src="img/icon/ico_gm.gif" />';
 
 
 
@@ -33,6 +41,7 @@ sub init
     $class->setOut($out);
     $class->setPageName($page_name);
     $class->setBase($base);
+    $class->setCss($css);
 }
 
 
@@ -127,6 +136,28 @@ sub getBase
 }
 
 
+sub setCss
+{
+    my $class = shift;
+    return $class->setAttribute( 'css', getTemplatePath(shift) );
+}
+
+sub getCss
+{
+    return $_[0]->getAttribute( 'css' );
+}
+
+sub setBaseCss
+{
+    my $class = shift;
+    return $class->setAttribute( 'base_css', shift );
+}
+
+sub getBaseCss
+{
+    return $_[0]->getAttribute( 'base_css' );
+}
+
 
 sub getTemplatePath
 {
@@ -167,6 +198,7 @@ sub setup
 {
     my $class = shift;
     $class->loadBaseHtml();
+    $class->loadBaseCss();
     $class->loadBodyHtml();
 
 
@@ -178,16 +210,49 @@ eval(
 $class->{body_html}
 _HERE_"
 );
+
+    if( $@ )
+    {
+        $tmp_html = sprintf "Template failure.<br />%s\n",$@;
+    }
+
+    my $base_css  = $class->{base_css};
     my $page_name = $class->getPageName();
     my $ad_str    = $class->getAdStr();
 
     $class->{base_html} =~ s/__TITLE__/$page_name/g;
     $class->{base_html} =~ s/__PAGE_TITLE__/$page_name/g;
+    $class->{base_html} =~ s/__BASE_CSS__/$base_css/g;
     $class->{base_html} =~ s/__MESSAGE_BODY__/$tmp_html/g;
     $class->{base_html} =~ s/__ADD_SPACE__/$ad_str/g;
 }
 
 sub output
+{
+    my $class = shift;
+#    my $ct = $class->getPageUtil()->getContentType();
+#    print <<_HEADER_;
+#Content-type: $ct;
+#
+#<?xml version="1.0" encoding="Shift_JIS"?>
+#<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
+# "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
+#_HEADER_
+    if ($class->getMobileUtil()->getCarrierId())
+    {
+        $class->printFpHeader();
+    }
+    else
+    {
+        $class->printSpHeader();
+    }
+
+    print $class->getBaseHtml();
+}
+
+
+
+sub printFpHeader
 {
     my $class = shift;
     my $ct = $class->getPageUtil()->getContentType();
@@ -198,8 +263,18 @@ Content-type: $ct;
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
  "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
 _HEADER_
+}
 
-    print $class->getBaseHtml();
+
+sub printSpHeader
+{
+    my $class = shift;
+    my $ct = $class->getPageUtil()->getContentType();
+    print <<_HEADER_;
+Content-type: $ct;
+
+<!DOCTYPE html>
+_HEADER_
 }
 
 sub loadBaseHtml
@@ -207,6 +282,15 @@ sub loadBaseHtml
     my $class = shift;
     open(TEMP, $class->getBase()) || ( $class->getPageUtil()->printError("Can't open template 1") && exit);
     $class->setBaseHtml( join("",<TEMP>) );
+    close(TEMP);
+}
+
+
+sub loadBaseCss
+{
+    my $class = shift;
+    open(TEMP, $class->getCss()) || ( $class->getPageUtil()->printError("Can't open template 3") && exit);
+    $class->setBaseCss( join("",<TEMP>) );
     close(TEMP);
 }
 
@@ -233,6 +317,7 @@ sub setupBaseData
             b.msg AS msg,
             b.face_type AS face_type,
             b.hair_type AS hair_type,
+            b.is_gm AS is_gm,
             s.a_max_hp AS max_hp,
             s.rp AS rp,
             s.a_agl AS a_agl,
@@ -257,13 +342,15 @@ sub setupBaseData
     }
 
     $result = 1;
-    $class->{out}->{NAME} = sprintf("(%s)%s", $row->{user_id},$row->{user_name});
+    $class->{out}->{NAME} = sprintf("(%s)%s%s",$row->{user_id} , $row->{is_gm} ? $gm_img : "", $row->{user_name});
+
     $class->{out}->{V_HP} =  $row->{hp};
     $class->{out}->{V_MHP} = $row->{max_hp};
     $class->{out}->{MSG}   = $row->{msg};
     $class->{out}->{PLACE} = $row->{node_name};
     $class->{out}->{NODE_ID} = $row->{node_id};
     $class->{out}->{USER_ID} = $row->{user_id};
+    $class->{out}->{GM}      = $row->{is_gm};
 
 
 
@@ -345,8 +432,10 @@ sub getBaseDataByUserId
         return $result;
     }
 
+
+
     $result = 1;
-    $class->{out}->{NAME} = sprintf("(%s)%s", $user_id, $char->getUserName());
+    $class->{out}->{NAME} = sprintf("(%s)%s%s", $user_id, $char->getIsGm() ? $gm_img : "", $char->getName());
     $class->{out}->{V_HP} =  $char->getHp()->current();
     $class->{out}->{V_MHP} = $char->getHp()->max();
     $class->{out}->{MSG}   = $char->getMsg();
@@ -365,7 +454,7 @@ sub getBaseDataByUserId
     $class->{out}->{V_SNC} = $char->getChikaku()->current();
     $class->{out}->{V_LUK} = $char->getLuck()->current();
     $class->{out}->{V_HMT} = $char->getKikyou()->current();
-    $class->{out}->{V_CHR} = $char->getChrm()->current();
+    $class->{out}->{V_CHR} = $char->getCharm()->current();
 
     return $result;
 }
@@ -382,6 +471,7 @@ sub getCharacterByUserId
             b.msg AS msg,
             b.face_type AS face_type,
             b.hair_type AS hair_type,
+            b.is_gm AS is_gm,
             s.a_max_hp AS max_hp,
             s.rp AS rp,
             s.a_agl AS a_agl,
@@ -426,6 +516,8 @@ sub getCharacterByUserId
     $char->getLuck()->setBothValue($row->{a_luck});
     $char->getKikyou()->setBothValue($row->{a_kikyou});
     $char->getCharm()->setBothValue($row->{a_chrm});
+
+    $char->setIsGm( $row->{is_gm} );
 
     return $char;
 }

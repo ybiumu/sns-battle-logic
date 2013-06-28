@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+############
+### LOAD ###
+############
 use lib qw( .htlib ../.htlib );
 use CGI;
 use DbUtil;
@@ -13,39 +16,49 @@ my $pu = new PageUtil();
 my $at = new AaTemplate();
 $at->setPageUtil($pu);
 
-my $ad_str = "";
-
-#my $db = DbUtil::getDbHandler();
-
-
-
-
-#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-#my $dp = "$base_dir/data";
-#my $t  = "$dp/anothark";
- 
-
-#$pu->setSystemLog( "aa_calc.log" );
-#$pu->setAccessLog( "aa_access.log" );
-#$at->setBase("template.html");
-$at->setBody("body_debug_order.html");
-
-my $version = "0.1a20120328";
-
+my $db = DbUtil::getDbHandler();
 my $mu = new MobileUtil();
 
-my $content_type = $mu->getContentType();
+$at->setDbHandler($db);
+$at->setMobileUtil($mu);
+
+my $ad_str = "";
+
+
 my $browser      = $mu->getBrowser();
-my $carrier_id   = $mu->getCarrierId();
-
-
-
-
+#my $carrier_id   = $mu->getCarrierId();
 $pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
 my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
-my $mob_uid = $mu->get_muid();
+#my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
+##################
+### init check ###
+##################
+my $result = $at->setupBaseData();
+if ( ! $result )
+{
+    $db->disconnect();
+    print $c->redirect("setup.cgi?guid=ON");    
+    exit;
+}
+
+
+##############
+### depend ###
+##############
+$at->setBody("body_debug_order.html");
+my $version = "0.1a20120328";
+$at->setPageName("フラグ確認");
+
+
+
+
+
+
+############
+### Main ###
+############
 our $names = {
     p1 => "味方1",
     p2 => "味方2",
@@ -85,7 +98,6 @@ sub genObject
 }
 
 our $out = $at->setOut( { map { (genObject($c,$_,"e" ) , genObject($c,$_,"p")) } ( 1 .. 4) } ); 
-$at->setPageName("フラグ確認");
 
 ## Main
 
@@ -140,13 +152,6 @@ $at->setPageName("フラグ確認");
 
 
 
-
-$pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
-
-
-
-
-
 #my $result = $out->{RESULT};
 if ( $c->param("exec") )
 {
@@ -163,10 +168,19 @@ if ( $c->param("exec") )
     $out->{RESULT} .= "</div>";
 }
 
+##############
+### output ###
+##############
+$pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
 
+
+
+
+
+
+
+$db->disconnect();
 $at->setup();
-
-
 $at->output();
 
 

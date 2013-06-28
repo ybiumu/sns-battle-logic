@@ -1,4 +1,9 @@
 package Anothark::Character;
+
+#
+# ˆ¤
+#
+
 $|=1;
 use strict;
 
@@ -43,19 +48,29 @@ sub init
     $class->setKikyou( new Anothark::ValueObject());
     $class->setCharm( new Anothark::ValueObject());
 
+    $class->setPosition( new Anothark::ValueObject());
 
     $class->setCmd([
         [],
-        new Anothark::Skill( 'ÊßÝÁ' ),
-        new Anothark::Skill( 'ÊßÝÁ' ),
-        new Anothark::Skill( 'ÊßÝÁ' ),
-        new Anothark::Skill( 'ÊßÝÁ' ),
-        new Anothark::Skill( 'ÊßÝÁ' ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
     ]);
 
     $class->getHp()->setBothValue( 100 );
     $class->getStamina()->setBothValue( 100 );
     $class->getAgility()->setBothValue( 100 );
+
+    $class->getChikaku()->setBothValue( 100 );
+    $class->getKikyou()->setBothValue( 100 );
+    $class->getCharm()->setBothValue( 100 );
+    $class->getKehai()->setBothValue( 100 );
+
+    $class->getDefence()->setBothValue( 0 );
+
+    $class->getPosition()->setBothValue( "f" );
 }
 
 my $hp = undef;
@@ -85,6 +100,32 @@ my $cmd = undef;
 
 my $node_name = undef;
 my $node_id = undef;
+my $is_gm = undef;
+
+
+my $position = undef;
+
+my $point_map = {
+    e => { b => 3, f => 2, },
+    p => { b => 0, f => 1, },
+};
+
+my $point_str = {
+    f => "‘O‰q",
+    b => "Œã‰q",
+};
+
+sub setIsGm
+{
+    my $class = shift;
+    return $class->setAttribute( 'is_gm', shift );
+}
+
+sub getIsGm
+{
+    return $_[0]->getAttribute( 'is_gm' );
+}
+
 
 sub setMagic
 {
@@ -119,6 +160,11 @@ sub getKikyou
     return $_[0]->getAttribute( 'kikyou' );
 }
 
+sub gKky
+{
+    return $_[0]->getKikyou();
+}
+
 sub setChikaku
 {
     my $class = shift;
@@ -128,6 +174,11 @@ sub setChikaku
 sub getChikaku
 {
     return $_[0]->getAttribute( 'chikaku' );
+}
+
+sub gCkk
+{
+    return $_[0]->getChikaku();
 }
 
 sub setKehai
@@ -256,6 +307,30 @@ sub getSide
 }
 
 
+sub getReverseSide
+{
+    return ($_[0]->getSide() eq "p" ? "e" : "p");
+}
+
+
+sub setPosition
+{
+    my $class = shift;
+    return $class->setAttribute( 'position', shift );
+}
+
+sub getPosition
+{
+    return $_[0]->getAttribute( 'position' );
+}
+
+
+sub gPos
+{
+    return $_[0]->getPosition();
+}
+
+
 sub setHp
 {
     my $class = shift;
@@ -301,6 +376,11 @@ sub setDefence
 sub getDefence
 {
     return $_[0]->getAttribute( 'defence' );
+}
+
+sub gDef
+{
+    return $_[0]->getDefence();
 }
 
 sub setAtack
@@ -362,4 +442,59 @@ sub getCurrentAgility
     my $real_speed = $speed * ($rate > 1 ? 1 : $rate);
     return $real_speed;
 }
+
+sub getTargetingValue
+{
+    my $class = shift;
+    my $damage = shift;
+    my $p_sence = shift;
+    my $p_odd  = shift;
+    my $t_charm = $class->getCharm()->current();
+    my $t_hp    = $class->getHp()->current();
+    my $t_kehai = $class->getKehai()->current();
+
+    my $dv =  int( (
+                    ( ( $p_odd > 100 ? $p_odd : 0 ) / 100 )
+                    * ( $t_charm / 100 )
+                    - 1
+              ) / 2 );
+    my $tv = (
+        ( ( $damage / $t_hp ) * ( 0.1 + $p_sence / 100 ) )
+            + ( ( $t_kehai / 100 ) + ( $dv < 0 ? 0: $dv ) )
+    );
+
+#    warn sprintf("[%s ‚Ì À°¹Þ¯Ä’l: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_charm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv);
+
+    return $tv;
+}
+
+
+sub getPoint
+{
+    my $class = shift;
+    return $point_map->{$class->getSide()}->{$class->getPosition()->cv()}
+}
+
+sub getPointStr
+{
+    my $class = shift;
+    return $point_str->{$class->getPosition()->cv()};
+}
+
+sub isLiving
+{
+    my $class = shift;
+#    warn sprintf("%s is living.", $class->getName());
+    return ( $class->getHp()->cv() > 0 );
+}
+
+sub Damage
+{
+    my $class = shift;
+    my $dmg   = shift;
+    my $remain = $class->getHp()->cv() - $dmg;
+    return $class->getHp->setCurrentValue( $remain > 0 ? $remain : 0 );
+}
+
 1;
+

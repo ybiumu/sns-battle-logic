@@ -13,57 +13,35 @@ my $pu = new PageUtil();
 my $at = new AaTemplate();
 $at->setPageUtil($pu);
 
+my $db = DbUtil::getDbHandler();
+my $mu = new MobileUtil();
+
+$at->setDbHandler($db);
+$at->setMobileUtil($mu);
+
 my $ad_str = "";
 
-my $db = DbUtil::getDbHandler();
+# init check
+my $result = $at->setupBaseData();
 
-our $out = $at->setOut( {
-    NAME  => "ゲスト",
-    MSG   => "よろしくおねがいします",
-    BRD   => "",
-    PLACE => "彼の庭",
-    GOLD  => 120327,
-    FACE  => 0,
-    HAIR  => 0,
-    V_HP  => 100,
-    V_MHP => 100,
-    V_CON => "0&nbsp;&nbsp;",
-    V_ATK => "89&nbsp;",
-    V_MAG => "0&nbsp;&nbsp;",
-    V_DEF => "60&nbsp;",
-    V_AGL => "55&nbsp;",
-    V_KHI => "100",
-    V_SNC => "100",
-    V_LUK => "100",
-    V_HMT => "100",
-    V_CHR => "100",
-});
+if ( ! $result )
+{
+    $db->disconnect();
+    print $c->redirect("setup.cgi?guid=ON");    
+    exit;
+}
+
+our $out = $at->getOut();
 
 
 
 
-#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-#my $dp = "$base_dir/data";
-#my $t  = "$dp/anothark";
-#
-#$at->setBase("$t/template.html");
-#$at->setBody("$t/body_debug_room.html");
-#
-#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
-
-#$at->setBase("template.html");
+# depend
 $at->setBody("body_debug_room.html");
-
-#$pu->setSystemLog( "aa_calc.log" );
-#$pu->setAccessLog( "aa_access.log" );
-
 $at->setPageName("リザルト");
 my $version = "0.1a20120328";
 
-my $mu = new MobileUtil();
 
-my $content_type = $mu->getContentType();
 my $browser      = $mu->getBrowser();
 my $carrier_id   = $mu->getCarrierId();
 

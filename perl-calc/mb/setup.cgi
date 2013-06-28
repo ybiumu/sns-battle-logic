@@ -1,5 +1,7 @@
 #!/usr/bin/perl
-
+############
+### LOAD ###
+############
 use lib qw( .htlib ../.htlib );
 use CGI;
 use DbUtil;
@@ -15,10 +17,16 @@ my $at = new AaTemplate();
 $at->setPageUtil($pu);
 
 
+my $db = DbUtil::getDbHandler();
+my $mu = new MobileUtil();
+
+$at->setDbHandler($db);
+$at->setMobileUtil($mu);
+
 my $ad_str = "";
 
-my $db = DbUtil::getDbHandler();
 
+$pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ("test 1")) .'"');
 our $out = $at->setOut({
     name   => "",
     face   => 0,
@@ -26,48 +34,26 @@ our $out = $at->setOut({
     gendar => 0,
 });
 
-#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-#my $dp = "$base_dir/data";
-#my $t  = "$dp/anothark";
-#$at->setBase("$t/template.html");
-#$at->setBody("$t/body_setup.html");
-#
-#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
-
-#$at->setBase("template.html");
-$at->setBody("body_setup.html");
-
-#$pu->setSystemLog( "aa_calc.log" );
-#$pu->setAccessLog( "aa_access.log" );
-
-
-$at->setPageName("ƒ†[ƒU[“o˜^");
-
-my $version = "0.1a20120328";
-
-my $mu = new MobileUtil();
 
 $pu->setContentType( $mu->getContentType() );
 my $browser      = $mu->getBrowser();
 my $carrier_id   = $mu->getCarrierId();
+$pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
+my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
+my $mob_uid = $mu->get_muid();
+my $c = new CGI();
+
+##############
+### depend ###
+##############
+$at->setBody("body_setup.html");
+$at->setPageName("ƒ†[ƒU[“o˜^");
+my $version = "0.1a20120328";
 
 my $debug_str = "";
 
 
 
-
-#$debug_str .= "CT: $content_type <br />\n";
-#$debug_str .= "BW: $browser <br />\n";
-#$debug_str .= "CI: $carrier_id <br />\n";
-
-
-$pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
-my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
-my $mob_uid = $mu->get_muid();
-
-#$debug_str .= "UI: $mob_uid <br />\n";
-my $c = new CGI();
 $out->{_face} = Avatar::Face::TYPE();
 $out->{_hair} = Avatar::Hair::TYPE();
 $out->{_gender} = Avatar::Gender::TYPE();
@@ -107,11 +93,11 @@ my $sth  = $db->prepare("SELECT user_id, user_name FROM t_user WHERE carrier_id 
 my $stat = $sth->execute(($carrier_id, $mob_uid));
 my $row  = $sth->fetchrow_arrayref();
 my $rownum = $sth->rows();
+$sth->finish();
 $pu->output_log(qq[row: $rownum,] . sprintf(" findrow: %s %s",$row->[0], $row->[1]));
 if ( $rownum > 0 )
 {
     # Redirect event mapper
-    $db->disconnect();
 }
 elsif ( $c->param("commit") eq "OK" )
 {
@@ -127,23 +113,20 @@ elsif ( $c->param("commit") eq "OK" )
 
     # Check.
     # Redirect event mapper
-    $db->disconnect();
-#    $at->setBody("$t/body_setup_ok.html");
     $at->setBody("body_setup_ok.html");
 }
 
+$db->disconnect();
 
 
 # progress status
 my $st = $c->param("st") || 0;
 if ( $st == 1 )
 {
-#    $at->setBody("$t/body_setup_chk.html");
     $at->setBody("body_setup_chk.html");
 }
 
 
-#$debug_str .= "RN: $rownum <br />\n";
 
 
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');

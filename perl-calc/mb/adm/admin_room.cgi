@@ -1,6 +1,8 @@
 #!/usr/bin/perl
-
-use lib qw( .htlib ../.htlib );
+############
+### LOAD ###
+############
+use lib qw( .htlib ../../.htlib );
 use CGI;
 use DbUtil;
 use MobileUtil;
@@ -32,10 +34,6 @@ my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
 my $c = new CGI();
 
 
-#
-# Players in Same Place.
-# 
-
 ##################
 ### init check ###
 ##################
@@ -55,44 +53,32 @@ our $out = $at->getOut();
 ##############
 ### depend ###
 ##############
-$at->setBody("body_any.html");
-$at->setPageName("ãﬂÇ≠ÇÃêl");
-my $version = "0.1a20120328";
+$at->setBase("adm_template.html");
+$at->setBody("body_admin_room.html");
+$at->setPageName("ä«óùÕﬂ∞ºﬁ");
+my $version = "0.1a20130415";
 
 
 
 ############
 ### Main ###
 ############
-my $php_sql = "SELECT u.user_name AS user_name ,u.user_id AS user_id FROM t_user_status AS s JOIN t_user AS u USING(user_id) WHERE s.node_id = ? AND u.user_id <> ?";
-
-my $sth  = $db->prepare($php_sql);
-my $stat = $sth->execute(($at->{out}->{NODE_ID}, $at->{out}->{USER_ID}));
-my $row;
-my $lines = 0;
 
 
 
-if ( $sth->rows > 0 )
-{
-    $at->{out}->{RESULT} = "";
-    while( $row  = $sth->fetchrow_hashref() )
-    {
-        $lines++;
-        $at->{out}->{RESULT} .= sprintf("<a href=\"mypage.cgi?guid=ON&user_id=%s\">%s</a><br />\n", $row->{user_id}, $row->{user_name});
-    }
-    $at->{out}->{RESULT} .= "<hr />";
-}
+
+
+##############
+### output ###
+##############
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
 
 
 
-
+$db->disconnect();
 $at->setup();
-
 $at->output();
 
-$db->disconnect();
 
 
 

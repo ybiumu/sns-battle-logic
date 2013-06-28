@@ -1,4 +1,7 @@
 package Anothark::ValueObject;
+#
+# ˆ¤
+#
 $|=1;
 use strict;
 
@@ -62,9 +65,19 @@ sub current
     return $_[0]->getCurrentValue();
 }
 
+sub cv
+{
+    return $_[0]->current();
+}
+
 sub max
 {
     return $_[0]->getMaxValue();
+}
+
+sub mv
+{
+    return $_[0]->max();
 }
 
 1;

@@ -1,4 +1,7 @@
 package PageUtil;
+#
+# ˆ¤
+#
 $|=1;
 use strict;
 
