@@ -1,0 +1,171 @@
+<div class="contents2">管理 - ｽｷﾙ設定</div>
+<form action="edit_skill.cgi?guid=ON" method="post">
+<input type="hidden" name="guid" value="ON" />
+
+<a href="#a" accesskey="4">A</a>/<a href="#b" accesskey="5">B</a>/<a href="#c" accesskey="6">C</a>/<a href="#d" accesskey="7">D</a>
+<a name="a"><div class="contents">-A-&nbsp;基本情報</div></a>
+ｽｷﾙID　：<input type="hidden" size="4" maxlength="4" name="skill_id" value="$out->{skill_id}" />$out->{skill_id}<br />
+ｽｷﾙ名　：<input type="text" size="20" name="skill_name" value="$out->{skill_name}" /><br />
+効果　&nbsp;：<span style="font-size:medium"><select name="effect_type">
+<option value="0"$out->{_effect_type}->{0}>攻撃</option>
+<option value="1"$out->{_effect_type}->{1}>回復</option>
+<option value="2"$out->{_effect_type}->{2}>付与</option>
+<option value="3"$out->{_effect_type}->{3}>罠</option>
+<option value="4"$out->{_effect_type}->{4}>呪詛</option>
+<option value="5"$out->{_effect_type}->{5}>ｼﾘｰｽﾞ</option>
+<option value="6"$out->{_effect_type}->{6}>ﾗﾝﾀﾞﾑ</option>
+</select></span><br />
+親ｽｷﾙID：<input type="text" size="4" maxlength="4" name="parent_skill_id" value="$out->{parent_skill_id}" istyle="4" mode="numeric" />/処理順<input type="text" size="5" maxlength="5" name="sequence_id" value="$out->{sequence_id}" istyle="4" mode="numeric" /><br />
+説明文 ：<textarea name="skill_descr" >$out->{skill_descr}</textarea><br />
+
+
+
+<a name="b"><div class="contents">-B-&nbsp;習得関連</div></a>
+習得法 ：<span style="font-size:medium"><select name="learn_type_id">
+<option value="0"$out->{_learn_type_id}->{0}>不可</option>
+<option value="1"$out->{_learn_type_id}->{1}>熟練</option>
+<option value="2"$out->{_learn_type_id}->{2}>ｱｲﾃﾑ</option>
+</select></span><br />
+
+主熟練 ：<span style="font-size:medium"><select name="type_id">
+<option value="0"$out->{_type_id}->{0}>----</option>
+<option value="1"$out->{_type_id}->{1}>剣</option>
+<option value="2"$out->{_type_id}->{2}>槌</option>
+<option value="3"$out->{_type_id}->{3}>手甲</option>
+<option value="4"$out->{_type_id}->{4}>槍</option>
+<option value="5"$out->{_type_id}->{5}>鞭</option>
+<option value="6"$out->{_type_id}->{6}>弓</option>
+<option value="7"$out->{_type_id}->{7}>銃</option>
+<option value="11"$out->{_type_id}->{11}>炎</option>
+<option value="12"$out->{_type_id}->{12}>冷</option>
+<option value="13"$out->{_type_id}->{13}>光</option>
+<option value="14"$out->{_type_id}->{14}>闇</option>
+<option value="15"$out->{_type_id}->{15}>楽器</option>
+<option value="20"$out->{_type_id}->{20}>盾</option>
+</select></span>&nbsp;Lv<input type="text" size="3" maxlength="3" name="enable_level" value="$out->{enable_level}" istyle="4" mode="numeric" /><br />
+
+副熟練 ：<span style="font-size:medium"><select name="sub_type_id">
+<option value="0"$out->{_sub_type_id}->{0}>----</option>
+<option value="1"$out->{_sub_type_id}->{1}>剣</option>
+<option value="2"$out->{_sub_type_id}->{2}>槌</option>
+<option value="3"$out->{_sub_type_id}->{3}>手甲</option>
+<option value="4"$out->{_sub_type_id}->{4}>槍</option>
+<option value="5"$out->{_sub_type_id}->{5}>鞭</option>
+<option value="6"$out->{_sub_type_id}->{6}>弓</option>
+<option value="7"$out->{_sub_type_id}->{7}>銃</option>
+<option value="11"$out->{_sub_type_id}->{11}>炎</option>
+<option value="12"$out->{_sub_type_id}->{12}>冷</option>
+<option value="13"$out->{_sub_type_id}->{13}>光</option>
+<option value="14"$out->{_sub_type_id}->{14}>闇</option>
+<option value="15"$out->{_sub_type_id}->{15}>楽器</option>
+<option value="20"$out->{_sub_type_id}->{20}>盾</option>
+</select></span>&nbsp;Lv<input type="text" size="3" maxlength="3" name="sub_enable_level" value="$out->{sub_enable_level}" istyle="4" mode="numeric" /><br />
+
+<a name="c"><div class="contents">-C-&nbsp;ﾊﾟﾗﾒｰﾀ</div></a>
+係数　　：<input type="text" name="skill_rate" size="5" maxlength="5" value="$out->{skill_rate}" istyle="4" mode="numeric"/><br />
+ﾀｲﾌﾟ　　：<span style="font-size:medium"><select name="skill_type">
+<option value="1"$out->{_skill_type}->{1}>ｱｸﾃｨﾌﾞ</option>
+<option value="2"$out->{_skill_type}->{2}>ﾊﾟｯｼｳﾞ</option>
+<option value="3"$out->{_skill_type}->{3}>ﾌﾟﾘﾍﾟｱ</option>
+<option value="4"$out->{_skill_type}->{4}>ﾌｧｲﾅﾙ</option>
+</select></span><br />
+ＰＳ　　：<span style="font-size:medium"><select name="power_source">
+<option value="0"$out->{_power_source}->{0}>攻撃</option>
+<option value="1"$out->{_power_source}->{1}>魔法</option>
+<option value="2"$out->{_power_source}->{2}>体力</option>
+</select></span><br />
+集中型　：<span style="font-size:medium"><select name="concent_type">
+<option value="0"$out->{_concent_type}->{0}>影響しない</option>
+<option value="1"$out->{_concent_type}->{1}>通常</option>
+<option value="2"$out->{_concent_type}->{2}>集束1</option>
+<option value="3"$out->{_concent_type}->{3}>集束2</option>
+<option value="4"$out->{_concent_type}->{4}>大術式</option>
+</select></span><br />
+適用式　：<span style="font-size:medium"><select name="formula_type">
+<option value="0"$out->{_power_source}->{0}>一般</option>
+<option value="1"$out->{_power_source}->{1}>耐性攻撃</option>
+</select></span><br />
+触れ幅　：<span style="font-size:medium"><select name="random_type">
+<option value="0"$out->{_random_type}->{0}>0%</option>
+<option value="1"$out->{_random_type}->{1}>5%</option>
+<option value="2"$out->{_random_type}->{2}>10%</option>
+<option value="3"$out->{_random_type}->{3}>20%</option>
+<option value="4"$out->{_random_type}->{4}>25%</option>
+<option value="5"$out->{_random_type}->{5}>50%</option>
+<option value="6"$out->{_random_type}->{6}>100%</option>
+</select></span><br />
+親主属性：<span style="font-size:medium"><select name="base_type">
+<option value="1"$out->{_base_type}->{1}>物理</option>
+<option value="2"$out->{_base_type}->{2}>魔法</option>
+<option value="3"$out->{_base_type}->{3}>精神</option>
+<option value="4"$out->{_base_type}->{4}>上位</option>
+</select></span><br />
+子主属性：<span style="font-size:medium"><select name="base_element">
+<option  value="0"$out->{_base_element}->{0}>貫通</option>
+<option  value="1"$out->{_base_element}->{1}>斬撃</option>
+<option  value="2"$out->{_base_element}->{2}>衝撃</option>
+<option  value="3"$out->{_base_element}->{3}>分解</option>
+<option  value="4"$out->{_base_element}->{4}>消去</option>
+<option value="-1"$out->{_base_element}->{-1}>精神</option>
+<option value="11"$out->{_base_element}->{11}>炎熱</option>
+<option value="12"$out->{_base_element}->{12}>冷気</option>
+<option value="13"$out->{_base_element}->{13}>正電磁</option>
+<option value="14"$out->{_base_element}->{14}>負電磁</option>
+</select></span><br />
+親副属性：<span style="font-size:medium"><select name="sub_base_type">
+<option value="0"$out->{_sub_base_type}->{0}>なし</option>
+<option value="1"$out->{_sub_base_type}->{1}>物理</option>
+<option value="2"$out->{_sub_base_type}->{2}>魔法</option>
+<option value="3"$out->{_sub_base_type}->{3}>精神</option>
+<option value="4"$out->{_sub_base_type}->{4}>上位</option>
+</select></span><br />
+子副属性：<span style="font-size:medium"><select name="sub_base_element">
+<option  value="0"$out->{_sub_base_element}->{0}>貫通</option>
+<option  value="1"$out->{_sub_base_element}->{1}>斬撃</option>
+<option  value="2"$out->{_sub_base_element}->{2}>衝撃</option>
+<option  value="3"$out->{_sub_base_element}->{3}>分解</option>
+<option  value="4"$out->{_sub_base_element}->{4}>消去</option>
+<option value="-1"$out->{_sub_base_element}->{-1}>精神</option>
+<option value="11"$out->{_sub_base_element}->{11}>炎熱</option>
+<option value="12"$out->{_sub_base_element}->{12}>冷気</option>
+<option value="13"$out->{_sub_base_element}->{13}>正電磁</option>
+<option value="14"$out->{_sub_base_element}->{14}>負電磁</option>
+</select></span><br />
+<a name="d"><div class="contents">-D-&nbsp;対象</div></a>
+射程：<span style="font-size:medium"><select name="length_type">
+<option value="1"$out->{_length_type}->{1}>近接</option>
+<option value="2"$out->{_length_type}->{2}>中距離</option>
+<option value="3"$out->{_length_type}->{3}>遠隔/投射</option>
+</select></span><br />
+範囲：<span style="font-size:medium"><select name="range_type">
+<option value="1"$out->{_range_type}->{1}>単体</option>
+<option value="2"$out->{_range_type}->{2}>同配置</option>
+<option value="3"$out->{_range_type}->{3}>全体</option>
+</select></span><br />
+対象：<span style="font-size:medium"><select name="target_type">
+<option value="1"$out->{_target_type}->{1}>敵</option>
+<option value="2"$out->{_target_type}->{2}>味方</option>
+<option value="3"$out->{_target_type}->{3}>敵味方</option>
+</select></span><br />
+Ｘ軸：<span style="font-size:medium"><select name="position_limit_type">
+<option value="0"$out->{_position_limit_type}->{0}>限定なし</option>
+<option value="1"$out->{_position_limit_type}->{1}>前衛限定</option>
+<option value="2"$out->{_position_limit_type}->{2}>後衛限定</option>
+</select></span><br />
+Ｙ軸：<span style="font-size:medium"><select name="flying_limit_type">
+<option value="0"$out->{_flying_limit_type}->{0}>限定なし</option>
+<option value="1"$out->{_flying_limit_type}->{1}>地上限定</option>
+<option value="2"$out->{_flying_limit_type}->{2}>飛行限定</option>
+</select></span><br />
+Ｚ軸：<span style="font-size:medium"><select name="phaseout_limit_type">
+<option value="0"$out->{_phaseout_limit_type}->{0}>限定なし</option>
+<option value="1"$out->{_phaseout_limit_type}->{1}>離脱以外</option>
+<option value="2"$out->{_phaseout_limit_type}->{2}>離脱限定</option>
+</select></span><br />
+
+
+<input type="hidden" name="act" value="save" />
+<input type="submit" name="calc" value="8.保存"  accesskey="8" />
+</form>
+<div class="contents">version</div>
+

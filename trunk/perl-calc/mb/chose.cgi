@@ -15,52 +15,43 @@ my $at = new AaTemplate();
 $at->setPageUtil($pu);
 
 
+my $db = DbUtil::getDbHandler();
+my $mu = new MobileUtil();
+
+$at->setDbHandler($db);
+$at->setMobileUtil($mu);
+
 my $ad_str = "";
 
-my $db = DbUtil::getDbHandler();
+#$pu->setContentType( $mu->getContentType() );
+my $browser      = $mu->getBrowser();
+my $carrier_id   = $mu->getCarrierId();
+$pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
+my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
+my $mob_uid = $mu->get_muid();
+my $c = new CGI();
 
-our $out = $at->setOut({
-    name   => "",
-    face   => 0,
-    hair   => 0,
-    gendar => 0,
-});
+# init check
+my $result = $at->setupBaseData();
 
-#my $base_dir = "/home/users/2/ciao.jp-anothark/web";
-#my $dp = "$base_dir/data";
-#my $t  = "$dp/anothark";
-#$at->setBase("$t/template.html");
-#$at->setBody("$t/body_chose.html");
-#
-#$pu->setSystemLog( "$base_dir/.htlog/aa_calc.log" );
-#$pu->setAccessLog( "$base_dir/.htlog/aa_access.log" );
+if ( ! $result )
+{
+    $db->disconnect();
+    print $c->redirect("setup.cgi?guid=ON");    
+    exit;
+}
 
-#$at->setBase("template.html");
+our $out = $at->getOut();
+
+
+# depend
 $at->setBody("body_chose.html");
-
-#$pu->setSystemLog( "aa_calc.log" );
-#$pu->setAccessLog( "aa_access.log" );
-
 $at->setPageName("s“®‘I‘ð");
 
 my $version = "0.1a20120328";
 
-my $mu = new MobileUtil();
-
-$pu->setContentType( $mu->getContentType() );
-my $browser      = $mu->getBrowser();
-my $carrier_id   = $mu->getCarrierId();
 
 my $debug_str = "";
-
-
-
-$pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
-my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
-my $mob_uid = $mu->get_muid();
-
-#$debug_str .= "UI: $mob_uid <br />\n";
-my $c = new CGI();
 
 
 # param parse.
@@ -72,8 +63,18 @@ if ( $out->{CHOSED} == 1 )
 #    "REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued) SELECT user_id, ? AS selection_id,'00', 0 FROM t_user AS u WHERE u.carrier_id = ? AND u.uid = ? ";
 #    my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued) SELECT user_id, ? AS selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) WHERE u.carrier_id = ? AND u.uid = ? ");
     # Request forgery
-    my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.carrier_id = ? AND u.uid = ? AND sel.visible = 1 ");
-    $up_sth->execute(($c->param("sel"),$carrier_id, $mob_uid));
+    if ( $c->param("sel") )
+    {
+        my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.carrier_id = ? AND u.uid = ? AND sel.visible = 1 ");
+        $up_sth->execute(($c->param("sel"),$carrier_id, $mob_uid));
+        $up_sth->finish();
+    }
+    else
+    {
+        my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, 0, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) WHERE u.carrier_id = ? AND u.uid = ? ");
+        $up_sth->execute($carrier_id, $mob_uid);
+        $up_sth->finish();
+    }
 }
 
 

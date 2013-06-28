@@ -1,0 +1,21 @@
+<div class="contents2">ﾃﾞﾊﾞｯｸﾞ項目</div>
+<form method="get" action="debug_target.cgi">
+<input type="hidden" name="guid" value="ON" />
+<div class="contents3">味方</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:与ﾀﾞﾒ/知覚/奇矯<br />
+自分&nbsp;&nbsp;:<input type="text" name="p1_d" value="$out->{p1_d}" maxlength="4" size="4" />/<input type="text" name="p1_ck" value="$out->{p1_ck}" maxlength="3" size="3"/>/<input type="text" name="p1_kk" value="$out->{p1_kk}" maxlength="3" size="3"/><br />
+<div class="contents3">敵</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:ＨＰ/防御/気配/魅力<br />
+１人目:<input type="text" name="e1_hp" value="$out->{e1_hp}" maxlength="3" size="3" />/<input type="text" name="e1_df" value="$out->{e1_df}" maxlength="3" size="3"/>/<input type="text" name="e1_kh" value="$out->{e1_kh}" maxlength="3" size="3"/>/<input type="text" name="e1_ch" value="$out->{e1_ch}" maxlength="3" size="3"/><br />
+２人目:<input type="text" name="e2_hp" value="$out->{e2_hp}" maxlength="3" size="3" />/<input type="text" name="e2_df" value="$out->{e2_df}" maxlength="3" size="3"/>/<input type="text" name="e2_kh" value="$out->{e2_kh}" maxlength="3" size="3"/>/<input type="text" name="e2_ch" value="$out->{e2_ch}" maxlength="3" size="3"/><br />
+３人目:<input type="text" name="e3_hp" value="$out->{e3_hp}" maxlength="3" size="3" />/<input type="text" name="e3_df" value="$out->{e3_df}" maxlength="3" size="3"/>/<input type="text" name="e3_kh" value="$out->{e3_kh}" maxlength="3" size="3"/>/<input type="text" name="e3_ch" value="$out->{e3_ch}" maxlength="3" size="3"/><br />
+４人目:<input type="text" name="e4_hp" value="$out->{e4_hp}" maxlength="3" size="3" />/<input type="text" name="e4_df" value="$out->{e4_df}" maxlength="3" size="3"/>/<input type="text" name="e4_kh" value="$out->{e4_kh}" maxlength="3" size="3"/>/<input type="text" name="e4_ch" value="$out->{e4_ch}" maxlength="3" size="3"/><br />
+<input type="submit" name="exec" value="実行">
+<br />
+※個体毎のﾀﾞﾒｰｼﾞ差は防御で調整して下さい。
+</form>
+<br />
+<br />
+<div class="contents2">結果</div>
+$out->{RESULT}
+<br />
