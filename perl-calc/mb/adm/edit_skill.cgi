@@ -89,22 +89,23 @@ my $version = "0.1a20130415";
 
 my $skill_id = $c->param("skill_id") || 0;
 
-my $sql = "SELECT * FROM t_skill_master WHERE skill_id = ?";
-my $sth  = $db->prepare($sql);
-my $stat = $sth->execute(($skill_id));
+#my $sql = "SELECT * FROM t_skill_master WHERE skill_id = ?";
+#my $sth  = $db->prepare($sql);
+#my $stat = $sth->execute(($skill_id));
 
+my $sl = new Anothark::SkillLoader( $db );
 
-
+my $skill = $sl->loadSkill($skill_id);
 
 $out->{RESULT_TITLE} = "ŠÇ— - ½·ÙŠÇ—";
 my $lines = 0;
 
-if ( $sth->rows > 0 )
+if ( $skill->getSkillId() > 0 )
 {
     $out->{RESULT} = "<form name=\"skill\" method=\"get\" action=\"edit_skill.cgi\">\n";
-    my $row  = $sth->fetchrow_hashref();
-    my $names = $sth->{'NAME'};
-    map { $out->{$_} = $row->{$_};} @{$names};
+#    my $row  = $sth->fetchrow_hashref();
+#    my $names = $sth->{'NAME'};
+    map { $out->{$_} = $skill->{$_};} @{$skill->getFieldNames()};
 
     if ( $c->param("act") eq "saveconfirm" )
     {
@@ -114,13 +115,13 @@ if ( $sth->rows > 0 )
         {
             $out->{ "_".$select_element } = { map { ( $_ => ( $c->param($select_element) eq $_ ? $pu->getSelectedStr() : "" ) ) } @{$selects->{$select_element}}};
         }
-        foreach my $key ( @{$names} )
+        foreach my $key ( @{$skill->getFieldNames()} )
         {
             if ( $c->param($key) ne undef )
             {
-                if ( $row->{$key} ne $c->param($key) )
+                if ( $skill->{$key} ne $c->param($key) )
                 {
-                    $out->{"difference"} .= sprintf("%s:%s->%s<br />\n", $key,$row->{$key},$c->param($key));
+                    $out->{"difference"} .= sprintf("%s:%s->%s<br />\n", $key,$skill->{$key},$c->param($key));
                 }
             }
         }
@@ -144,12 +145,13 @@ if ( $sth->rows > 0 )
         $out->{"save_form"}  = "";
         foreach my $select_element (keys %{$selects})
         {
+#            $out->{ "_".$select_element } = { map { warn sprintf("[%s] map[%s] [%s]",$select_element , $_ , $out->{$select_element});( $_ => ( $out->{$select_element} eq $_ ? ( warn " ->") && $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
             $out->{ "_".$select_element } = { map { ( $_ => ( $out->{$select_element} eq $_ ? $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
         }
     }
 }
 
-$sth->finish();
+#$sth->finish();
 
 ##############
 ### output ###
