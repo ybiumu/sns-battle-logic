@@ -49,6 +49,8 @@ sub init
     $class->setCharm( new Anothark::ValueObject());
 
     $class->setPosition( new Anothark::ValueObject());
+    $class->setRel(0);
+    $class->setVel(0);
 
     $class->setCmd([
         [],
@@ -104,6 +106,8 @@ my $is_gm = undef;
 
 
 my $position = undef;
+my $vel = undef;
+my $rel = undef;
 
 my $point_map = {
     e => { b => 3, f => 2, },
@@ -406,6 +410,28 @@ sub getCharm
     return $_[0]->getAttribute( 'charm' );
 }
 
+
+sub setVel
+{
+    my $class = shift;
+    return $class->setAttribute( 'vel', shift );
+}
+
+sub getVel
+{
+    return $_[0]->getAttribute( 'vel' );
+}
+
+sub setRel
+{
+    my $class = shift;
+    return $class->setAttribute( 'rel', shift );
+}
+
+sub getRel
+{
+    return $_[0]->getAttribute( 'rel' );
+}
 
 
 

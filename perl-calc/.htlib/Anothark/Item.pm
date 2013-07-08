@@ -6,6 +6,29 @@ $|=1;
 use strict;
 
 
+use ObjMethod;
+use base qw( ObjMethod );
+sub new
+{
+    my $class   = shift;
+    my $options = shift;
+    my $self = $class->SUPER::new();
+    bless $self, $class;
+
+
+    if( ref( $options ) eq "HASH" )
+    {
+        foreach my $key ( keys %{$options})
+        {
+            $self->{$key} = $options->{$key};
+        }
+    }
+
+
+    return $self;
+}
+
+
 sub FigmentParts
 {
     my $at = shift;

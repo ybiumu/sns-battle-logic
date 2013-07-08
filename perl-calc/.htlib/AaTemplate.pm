@@ -314,6 +314,8 @@ sub setupBaseData
         SELECT
             b.user_id AS user_id,
             b.user_name AS user_name,
+            mn.rel AS rel,
+            mn.vel AS vel,
             b.msg AS msg,
             b.face_type AS face_type,
             b.hair_type AS hair_type,
@@ -329,7 +331,7 @@ sub setupBaseData
             s.node_id AS node_id,
             s.a_hp AS hp,n.node_name
         FROM
-            t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
+            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
     my $sth  = $class->getDbHandler()->prepare($get_base_sql);
     my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
     my $row  = $sth->fetchrow_hashref();
@@ -350,6 +352,8 @@ sub setupBaseData
     $class->{out}->{PLACE} = $row->{node_name};
     $class->{out}->{NODE_ID} = $row->{node_id};
     $class->{out}->{USER_ID} = $row->{user_id};
+    $class->{out}->{VEL}     = $row->{vel};
+    $class->{out}->{REL}     = $row->{rel};
     $class->{out}->{GM}      = $row->{is_gm};
 
 
@@ -371,6 +375,15 @@ sub setupBaseData
 
     return $result;
 }
+
+
+
+
+sub commitCharctorStatus
+{
+}
+
+
 
 
 sub Error
@@ -444,6 +457,8 @@ sub getBaseDataByUserId
     $class->{out}->{PLACE} = $char->getNodeName();
     $class->{out}->{NODE_ID} = $char->getNodeId();
     $class->{out}->{USER_ID} = $user_id;
+    $class->{out}->{VEL}     = $char->getVel();
+    $class->{out}->{REL}     = $char->getRel();
 
     $class->{out}->{V_CON} = $char->getConcentration()->current();
     $class->{out}->{V_ATK} = $char->getAtack()->current();
@@ -468,6 +483,8 @@ sub getCharacterByUserId
         SELECT
             b.user_id AS user_id,
             b.user_name AS user_name,
+            mn.rel AS rel,
+            mn.vel AS vel,
             b.msg AS msg,
             b.face_type AS face_type,
             b.hair_type AS hair_type,
@@ -484,7 +501,7 @@ sub getCharacterByUserId
             s.a_hp AS hp,
             n.node_name
         FROM
-            t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
+            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
     my $sth  = $class->getDbHandler()->prepare($get_base_sql);
     my $stat = $sth->execute(($user_id));
     my $row  = $sth->fetchrow_hashref();
@@ -518,6 +535,9 @@ sub getCharacterByUserId
     $char->getCharm()->setBothValue($row->{a_chrm});
 
     $char->setIsGm( $row->{is_gm} );
+
+    $char->setVel( $row->{vel} );
+    $char->setRel( $row->{rel} );
 
     return $char;
 }
