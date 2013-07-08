@@ -106,6 +106,10 @@ elsif ( $c->param("commit") eq "OK" )
     my $id = $db->{'mysql_insertid'};
     my $sth2 = $db->prepare("INSERT INTO t_user_status(user_id,node_id) VALUES(?,1);");
     $stat = $sth2->execute($id);
+    $sth2->finish();
+    my $sth3 = $db->prepare("INSERT INTO t_user_money(user_id,vel,rel) VALUES(?,0,0);");
+    $stat = $sth3->execute($id);
+    $sth3->finish();
 
 
     my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.carrier_id = ? AND u.uid = ? ");
