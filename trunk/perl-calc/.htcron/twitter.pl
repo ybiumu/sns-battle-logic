@@ -44,7 +44,9 @@ use strict;
 use warnings;
 use Encode;
 
+#my $yaml = (YAML::Tiny->read('/home/users/2/ciao.jp-anothark/web/.htlib/twconf.yml'));
 my $config = ( YAML::Tiny->read('twconf.yml') )->[0];
+#my $config = $yaml->[0];
 my $twit = Net::Twitter::Lite->new( consumer_key => $config->{'cs_key'}, consumer_secret => $config->{'cs_secret'}, legacy_lists_api => 1 );
 $twit->access_token( $config->{'ac_token'} );
 $twit->access_token_secret( $config->{'ac_secret'} );

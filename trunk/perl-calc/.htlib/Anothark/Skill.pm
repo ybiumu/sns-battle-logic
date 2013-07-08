@@ -11,8 +11,8 @@ use ObjMethod;
 use base qw( ObjMethod );
 sub new
 {
-    my $class = shift;
-    my $name = shift || "ÊßÝÁ";
+    my $class   = shift;
+    my $name    = shift || "ÊßÝÁ";
     my $options = shift;
     my $self = $class->SUPER::new();
     bless $self, $class;
@@ -28,9 +28,10 @@ sub new
 
     if( ref( $options ) eq "HASH" )
     {
-        foreach my $key ( %{$options})
+        foreach my $key ( keys %{$options})
         {
             $self->{$key} = $options->{$key};
+#            warn sprintf("[LIB] %s: %s",$key, $options->{$key});
         }
     }
 
@@ -95,7 +96,8 @@ my $available_value = {
     'phaseout_limit_type' => [0,1,2],
 };
 
-my $name = undef;
+
+
 my $skill_id = undef;
 my $parent_skill_id = undef;
 my $sequence_id = undef;
@@ -118,16 +120,94 @@ my $position_limit_type = undef;
 my $phaseout_limit_type = undef;
 my $effect_type = undef;
 my $random_type = undef;
+my $learn_type_id = undef;
+my $skill_descr = undef;
+my $sub_base_type = undef;
+my $sub_base_element = undef;
+my $formula_type = undef;
+
+my $field_names = undef;
+
+
+
+
+sub setFieldNames
+{
+    my $class = shift;
+    return $class->setAttribute( 'field_names', shift );
+}
+
+sub getFieldNames
+{
+    return $_[0]->getAttribute( 'field_names' );
+}
+
+
+sub setLearnTypeId
+{
+    my $class = shift;
+    return $class->setAttribute( 'learn_type_id', shift );
+}
+
+sub getLearnTypeId
+{
+    return $_[0]->getAttribute( 'learn_type_id' );
+}
+
+sub setSkillDescr
+{
+    my $class = shift;
+    return $class->setAttribute( 'skill_descr', shift );
+}
+
+sub getSkillDescr
+{
+    return $_[0]->getAttribute( 'skill_descr' );
+}
+
+sub setSubBaseType
+{
+    my $class = shift;
+    return $class->setAttribute( 'sub_base_type', shift );
+}
+
+sub getSubBaseType
+{
+    return $_[0]->getAttribute( 'sub_base_type' );
+}
+
+sub setSubBaseElement
+{
+    my $class = shift;
+    return $class->setAttribute( 'sub_base_element', shift );
+}
+
+sub getSubBaseElement
+{
+    return $_[0]->getAttribute( 'sub_base_element' );
+}
+
+sub setFormulaType
+{
+    my $class = shift;
+    return $class->setAttribute( 'formula_type', shift );
+}
+
+sub getFormulaType
+{
+    return $_[0]->getAttribute( 'formula_type' );
+}
+
 
 sub setName
 {
     my $class = shift;
-    return $class->setAttribute( 'name', shift );
+    return $class->setAttribute( 'skill_name', shift );
 }
 
 sub getName
 {
-    return $_[0]->getAttribute( 'name' );
+    return $_[0]->getAttribute( 'skill_name' );
 }
 
 

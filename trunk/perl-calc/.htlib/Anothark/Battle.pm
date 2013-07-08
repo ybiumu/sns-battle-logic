@@ -515,21 +515,63 @@ sub resultCheck
     if ( $class->getBeatFlag()->{"e"} eq "1" && $class->getBeatFlag()->{"p"})
     {
         #DRAW
+        $class->draw();
     }
     elsif( $class->getBeatFlag()->{"e"} eq "1" )
     {
         #WIN
+        $class->win();
     }
     elsif( $class->getBeatFlag()->{"p"} eq "1" )
     {
         #LOSE
+        $class->lose();
     }
     else
     {
         #DRAW
+        $class->draw();
     }
 }
 
+
+
+sub draw
+{
+    return $_[0]->setResultFlag(-1);
+}
+
+sub lose
+{
+    return $_[0]->setResultFlag(0);
+}
+
+sub win
+{
+    return $_[0]->setResultFlag(1);
+}
+
+sub isWin
+{
+    return ( $_[0]->getResultFlag() == 1 ? 1 : 0 );
+}
+
+sub isDraw
+{
+    return ( $_[0]->getResultFlag() == -1 ? 1 : 0 );
+}
+
+my $result_flag = undef;
+sub setResultFlag
+{
+    my $class = shift;
+    return $class->setAttribute( 'result_flag', shift );
+}
+
+sub getResultFlag
+{
+    return $_[0]->getAttribute( 'result_flag' );
+}
 
 
 
