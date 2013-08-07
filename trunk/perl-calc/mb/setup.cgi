@@ -25,6 +25,7 @@ $at->setMobileUtil($mu);
 
 my $ad_str = "";
 
+my $disable = 1;
 
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ("test 1")) .'"');
 our $out = $at->setOut({
@@ -46,6 +47,19 @@ my $c = new CGI();
 ##############
 ### depend ###
 ##############
+
+if ( $disable )
+{
+    $at->setBody("body_disable.html");
+    $at->setPageName("ユーザー登録");
+    $at->setBase("small_template.html");
+    $pu->notice(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
+    $at->setup();
+    $at->output();
+    $db->disconnect();
+    exit;
+}
+
 $at->setBody("body_setup.html");
 $at->setPageName("ユーザー登録");
 my $version = "0.1a20120328";

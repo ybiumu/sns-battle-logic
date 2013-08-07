@@ -78,7 +78,7 @@ our $target_template = '<div style="text-align:%s">-&gt;%s</div>';
 our $dmg_template = '<div style="text-align:%s">%sÀŞÒ°¼Ş!</div>';
 our $players = {};
 
-my $battle = new Anothark::Battle( $pu );
+my $battle = new Anothark::Battle( $at );
 
 
 sub genObject

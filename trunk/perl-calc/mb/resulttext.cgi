@@ -86,7 +86,7 @@ $pu->output_log("total_number [$total_number]");
 
 my $get_result_sql = "
     SELECT
-        m.result_title AS result_title,
+        NULLIF(m.result_title, \"\") AS result_title,
         REPLACE(REPLACE(r.result_text,'<_NAME_>',b.user_name),'<_SELF_CALL_>',g.self_call) AS result
     FROM
         t_user AS b
@@ -94,7 +94,7 @@ my $get_result_sql = "
         t_user_status s USING( user_id )
         JOIN
         t_result_log r USING( user_id )
-        JOIN
+        LEFT JOIN
         t_result_text m USING(result_id,sequence_id)
         JOIN
         t_gender_map g USING( gender )
@@ -104,6 +104,8 @@ my $get_result_sql = "
         b.uid = ?
         AND
         r.result_log_id = ?
+        AND
+        r.sequence_id <> 0
     ORDER BY r.sequence_id LIMIT 1 OFFSET $offset
     ";
 
@@ -111,6 +113,7 @@ my $sth  = $db->prepare($get_result_sql);
 my $stat = $sth->execute(($carrier_id, $mob_uid, $rid));
 my $row ;
 
+$pu->output_log("($carrier_id, $mob_uid, $rid)");
 
 
 if ( $sth->rows() > 0 )
@@ -128,7 +131,7 @@ if ( $sth->rows() > 0 )
     # Append next link;
     if ( $total_number > $offset + 1 )
     {
-        $out->{RESULT} .= sprintf("<hr /><a href=\"recent_text.cgi?guid=ON&offset=%s\">1.‘±‚«‚Ö</a><br />", ++$offset);
+        $out->{RESULT} .= sprintf("<hr /><a href=\"resulttext.cgi?guid=ON&result_log_id=%s&offset=%s\">1.‘±‚«‚Ö</a><br />", $rid, ++$offset);
     }
     else
     {

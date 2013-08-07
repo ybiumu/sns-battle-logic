@@ -199,9 +199,9 @@ my $mob_uid = $mu->get_muid();
 ##############
 ### Battle ###
 ##############
-    my $battle = new Anothark::Battle( $pu );
+    my $battle = new Anothark::Battle( $at );
     my $me = $at->getCharacterByUserId($out->{USER_ID});
-    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me );
+    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me ,2,2);
 #    my $battle_html = $battle->getBattleText();
 
 

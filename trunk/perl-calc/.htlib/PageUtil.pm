@@ -18,6 +18,7 @@ my $access_log = "aa_access_log";
 my $system_log = "aa_system.log";
 my $content_type = "text/html";
 my $selected_str = 'selected="true"';
+my $both = 0;
 
 sub new
 {
@@ -37,7 +38,19 @@ sub init
     $class->setSystemLog($system_log);
     $class->setContentType($content_type);
     $class->setSelectedStr($selected_str);
+    $class->setBoth($both);
 
+}
+
+sub setBoth
+{
+    my $class = shift;
+    return $class->setAttribute( 'both', shift );
+}
+
+sub getBoth
+{
+    return $_[0]->getAttribute( 'both' );
 }
 
 
@@ -104,6 +117,7 @@ sub output_log
     my $class = shift;
     open LOG, ">>", $class->getSystemLog || ( printError("Can't open log 2") && exit );
     printf LOG "[%s] %s\r\n", scalar(localtime()), join("",@_);
+    printf "[%s] %s\r\n", scalar(localtime()), join("",@_) if $class->getBoth();
     close LOG;
 }
 

@@ -33,6 +33,7 @@ sub new
 sub init
 {
     my $class = shift;
+    $class->setRawData( new Anothark::ValueObject() );
     $class->setHp( new Anothark::ValueObject() );
     $class->setStamina( new Anothark::ValueObject());
     $class->setConcentration( new Anothark::ValueObject());
@@ -54,12 +55,14 @@ sub init
 
     $class->setCmd([
         [],
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , {skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
     ]);
+
+    $class->getRawData()->setBothValue(1);
 
     $class->getHp()->setBothValue( 100 );
     $class->getStamina()->setBothValue( 100 );
@@ -74,6 +77,8 @@ sub init
 
     $class->getPosition()->setBothValue( "f" );
 }
+
+my $raw_data = undef;
 
 my $hp = undef;
 my $stamina = undef;
@@ -449,6 +454,19 @@ sub getCmd
 }
 
 
+sub setRawData
+{
+    my $class = shift;
+    return $class->setAttribute( 'raw_data', shift );
+}
+
+sub getRawData
+{
+    return $_[0]->getAttribute( 'raw_data' );
+}
+
+
+
 sub getTotalAgility
 {
     my $class = shift;
@@ -517,10 +535,25 @@ sub isLiving
 sub Damage
 {
     my $class = shift;
+    my $skill = shift;
     my $dmg   = shift;
-    my $remain = $class->getHp()->cv() - $dmg;
-    return $class->getHp->setCurrentValue( $remain > 0 ? $remain : 0 );
+    my $effect_target = $skill->getEffectTargetTypeByKey();
+
+    my $remain = $class->getAttribute($effect_target)->cv() - ( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
+    return $class->getAttribute($effect_target)->setCurrentValue( $remain > 0 ? $remain : 0 );
+#    my $remain = $class->getHp()->cv() - $dmg;
+#    return $class->getHp->setCurrentValue( $remain > 0 ? $remain : 0 );
 }
+
+
+#sub GenericDamage
+#{
+#    my $class = shift;
+#    my $effect_target = shift;
+#    my $dmg   = shift;
+#    my $remain = $class->getAttribute($effect_target)->cv() - $dmg;
+#    return $class->getAttribute($effect_target)->setCurrentValue( $remain > 0 ? $remain : 0 );
+#}
 
 1;
 

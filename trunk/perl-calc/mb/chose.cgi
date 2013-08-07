@@ -109,7 +109,7 @@ if ( $rownum == 1 )
         $r_sel->{0} = $checked_str;
     }
 
-    my $sth2  = $db->prepare("SELECT selection_id, label  FROM t_selection AS s LEFT JOIN ( SELECT flag_id FROM t_user JOIN t_user_flagment USING(user_id) WHERE carrier_id = ? AND uid = ? AND enable = 1 ) AS flg USING(flag_id) WHERE s.node_id = ? AND s.visible = 1 AND ( s.flag_id = 0 OR ( s.flag_id <> 0 AND flg.flag_id IS NOT NULL ))");
+    my $sth2  = $db->prepare("SELECT selection_id, label,s.next_node_id  FROM t_selection AS s LEFT JOIN ( SELECT flag_id FROM t_user JOIN t_user_flagment USING(user_id) WHERE carrier_id = ? AND uid = ? AND enable = 1 ) AS flg USING(flag_id) WHERE s.node_id = ? AND s.visible = 1 AND ( s.flag_id = 0 OR ( s.flag_id <> 0 AND flg.flag_id IS NOT NULL ))");
     my $stat2 = $sth2->execute(($carrier_id, $mob_uid,$out->{NODE_ID}));
     my $rownum2 = $sth2->rows();
     $out->{SELECTION_STR} = "";
@@ -122,7 +122,7 @@ if ( $rownum == 1 )
         my @sels = (sprintf('<input type="radio" name="sel" value="0" %s/>‚Ü‚¾Œˆ‚ß‚Ä‚È‚¢',$r_sel->{0}));
         while (my $sel_row = $sth2->fetchrow_hashref() )
         {
-            push(@sels, sprintf( "<input type=\"radio\" name=\"sel\" value=\"%s\"%s />%s", $sel_row->{selection_id}, $r_sel->{$sel_row->{selection_id}}, $sel_row->{label}) );
+            push(@sels, sprintf( "<input type=\"radio\" name=\"sel\" value=\"%s\"%s />%s(<a href=\"debug_node_view.cgi?nnid=%s\">%s</a>)", $sel_row->{selection_id}, $r_sel->{$sel_row->{selection_id}}, $sel_row->{label}, $sel_row->{next_node_id}, $sel_row->{next_node_id}) );
         }
         $out->{SELECTION_STR} = join( "<br />\n", @sels);
     }

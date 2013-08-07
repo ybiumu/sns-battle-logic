@@ -1,4 +1,4 @@
-package Anothark::SkillLoader;
+package Anothark::ItemLoader;
 #
 # ˆ¤
 #
@@ -7,7 +7,7 @@ use strict;
 
 
 use ObjMethod;
-use Anothark::Skill;
+use Anothark::Item;
 use base qw( ObjMethod );
 sub new
 {
@@ -22,49 +22,49 @@ sub new
 
 my $db_handler = undef;
 
-sub loadSkill
+sub loadItem
 {
     my $class = shift;
-    my $skill_id = shift;
+    my $item_id = shift;
 
-    my $skill = {};
+    my $item = {};
 
-    my $sql = "SELECT * FROM t_skill_master WHERE skill_id = ?";
+    my $sql = "SELECT * FROM t_item_master WHERE item_master_id = ?";
     my $sth  = $class->getDbHandler()->prepare($sql);
-    my $stat = $sth->execute(($skill_id));
+    my $stat = $sth->execute(($item_id));
     if ( $sth->rows > 0 )
     {
-#        warn "Find record for $skill_id";
-        $skill  = new Anothark::Skill( "", $sth->fetchrow_hashref());
-        $skill->setFieldNames( $sth->{"NAME"}  );
+        warn "Find record for $item_id";
+        $item  = new Anothark::Item( $sth->fetchrow_hashref());
+        $item->setFieldNames( $sth->{"NAME"}  );
     }
     else
     {
-#        warn "No record for $skill_id";
-        $skill = new Anothark::Skill();
+        warn "No record for $item_id";
+        $item = new Anothark::Item();
     }
     $sth->finish();
 
-    return $skill; 
+    return $item; 
 }
 
-sub getSkillList
+sub getItemList
 {
     my $class = shift;
     my $offset = shift || 0;
 
-    my $sql = "SELECT skill_id,skill_name FROM t_skill_master LIMIT ?,20";
+    my $sql = "SELECT item_master_id,item_label FROM t_item_master LIMIT ?,20";
     my $sth  = $class->getDbHandler()->prepare($sql);
     my $stat = $sth->execute(($offset));
 
-    my $skill_list = [];
+    my $item_list = [];
 
     if ( $sth->rows > 0 )
     {
-        $skill_list = $sth->fetchall_hashref(("skill_id"));
+        $item_list = $sth->fetchall_hashref(("item_master_id"));
     }
     $sth->finish();
-    return $skill_list;
+    return $item_list;
 }
 
 sub setDbHandler

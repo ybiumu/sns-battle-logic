@@ -75,15 +75,28 @@ my $effect_str = {
     6 => {0 => "", 1 => ""} 
 };
 
+my $iv_map = {
+    0 => "raw_data",
+    1 => "atack",
+    2 => "magic",
+    3 => "hp",
+    4 => "agility",
+    5 => "chikaku",
+};
+
+
+
 sub new
 {
     my $class = shift;
-    my $logger = shift;
+    my $at = shift;
+    my $logger = $at->getPageUtil();
     my $self = $class->SUPER::new();
     bless $self, $class;
 
     $self->init();
     $self->setLogger($logger);
+    $self->setAt($at);
     return $self;
 }
 
@@ -105,6 +118,20 @@ sub init
 #    $class->setExprType(0);
 #    $class->setRange(1.0);
 #    $class->setRand(0);
+}
+
+
+
+my $at = undef;
+sub setAt
+{
+    my $class = shift;
+    return $class->setAttribute( 'at', shift );
+}
+
+sub getAt
+{
+    return $_[0]->getAttribute( 'at' );
 }
 
 sub setCharacter
@@ -227,11 +254,22 @@ sub getLivingTargetsWithState
     my $from   = shift;
     my $skill  = shift;
     my $char = $class->getCharacter();
-    $class->setLivingOrder([ grep{ ( isReach( $from, $char->{$_}, $skill->getLengthType() , $class) ) } grep {
-        ($skill->getTargetType() == 3 ? 1 : ( $skill->getTargetType() == 1 ?
-            $char->{$_}->getSide() eq $from->getReverseSide() : $char->{$_}->getSide() eq $from->getSide())
-        )
-    } grep { $char->{$_}->getHp()->current() > 0 } keys %{$char} ]);
+    $class->setLivingOrder(
+        [
+            grep {
+                ( isReach( $from, $char->{$_}, $skill->getLengthType() , $class) )
+            }
+            grep {
+                ($skill->getTargetType() == 3 ? 1 : ( $skill->getTargetType() == 1 ?
+                    $char->{$_}->getSide() eq $from->getReverseSide() : $char->{$_}->getSide() eq $from->getSide())
+                )
+            }
+            grep {
+                $char->{$_}->getHp()->current() > 0
+            }
+            keys %{$char}
+        ]
+    );
 }
 
 
@@ -307,7 +345,8 @@ sub resolveDamages
                                                 sprintf($dmg_str_template, $skill->getBaseElementName(), ( $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } ))
                                           );
     }
-    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
+#    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
+    $target->Damage( $skill,$dmg );
     if( not $target->isLiving() )
     {
         $class->getTurnText()->[$turn] .= sprintf(
@@ -675,20 +714,39 @@ sub doCmd
     {
         # Targeting
 
-        my @target_order = (
-            sort {
-                $chars->{$b}->getTargetingValue(
-                    $class->damageExec( $char, $chars->{$b} ), $char->gCkk()->cv(), $char->gKky()->cv()
+        my @target_order = ();
+        if ( $char->getCmd()->[$turn]->getRangeType() eq "1" )
+        {
+            # for single taggeting.
+            @target_order = (
+                sort {
+                    $chars->{$b}->getTargetingValue(
+                        $class->damageExec( $char, $chars->{$b} ), $char->gCkk()->cv(), $char->gKky()->cv()
 #                    getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$b}->gDef()->cv()), $char->gCkk()->cv(), $char->gKky()->cv()
-                )
-                <=>
-                $chars->{$a}->getTargetingValue(
-                    $class->damageExec( $char, $chars->{$a} ) , $char->gCkk()->cv(), $char->gKky()->cv()
+                    )
+                    <=>
+                    $chars->{$a}->getTargetingValue(
+                        $class->damageExec( $char, $chars->{$a} ) , $char->gCkk()->cv(), $char->gKky()->cv()
 #                    getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$a}->gDef()->cv() ) , $char->gCkk()->cv(), $char->gKky()->cv()
-                )
-                or $chars->{$a}->getId() <=> $chars->{$b}->getId()
-            } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
-        );
+                    )
+                    or $chars->{$a}->getId() <=> $chars->{$b}->getId()
+                } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
+            );
+        }
+        elsif( $char->getCmd()->[$turn]->getRangeType() eq "2" )
+        {
+            my $td = { f => 0, b => 0};
+            map {
+                $td->{$chars->{$_}->getPoint()} +=  $class->damageExec( $char, $chars->{$_} ), $char->gCkk()->cv(), $char->gKky()->cv()
+            } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
+            my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
+            @target_order = (
+                grep {
+                    $chars->{$_}->getPoint() eq $point
+                }
+                @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
+            );
+        }
 
 
         if (scalar(@target_order))
@@ -855,7 +913,9 @@ sub damageExec
     my $turn  = $class->getCurrentTurn();
     my $skill = $from->getCmd()->[$turn];
 
-    $base->setPs(1);
+#    $base->setPs(1);
+warn "PS is [".$skill->getPowerSourceByKey()."]";
+    $base->setPs( $from->getAttribute($skill->getPowerSourceByKey())->cv() );
     $base->setSr( $skill->getSkillRate() );
     $base->setMainExpr(0);
     $base->setSubExpr(0);
@@ -883,7 +943,7 @@ sub damageExec
     my $tmp_value = $base->calc() * $status->calc() * $target_value->calc();
 #    warn sprintf "Damage [%s/%s/%s]",$base->calc(), $status->calc(), $target_value->calc();
 
-    return getRealDamage( $tmp_value, $to->gDef()->cv(), 1 );
+    return getRealDamage( $tmp_value, ( $skill->getEffectTargetType() == 3 ? $to->gDef()->cv()  : 0 ), 1 );
 #    return getRealDamage( $skill->getSkillRate(), $to->gDef()->cv(), 0 ); ‘Ï«‚Í‰¼‚Ì’l
 }
 

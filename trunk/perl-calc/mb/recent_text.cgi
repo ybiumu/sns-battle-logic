@@ -30,6 +30,8 @@ my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
 my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
+$pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" "call:recent_text.cgi" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
+
 ##################
 ### init check ###
 ##################
@@ -89,7 +91,7 @@ $pu->output_log("find result_log_id [$rid]");
 
 my $get_result_sql = "
     SELECT
-        m.result_title AS result_title,
+        NULLIF(m.result_title, \"\") AS result_title,
         REPLACE(REPLACE(r.result_text,'<_NAME_>',b.user_name),'<_SELF_CALL_>',g.self_call) AS result
     FROM
         t_user AS b
@@ -97,7 +99,7 @@ my $get_result_sql = "
         t_user_status s USING( user_id )
         JOIN
         t_result_log r USING( user_id )
-        JOIN
+        LEFT JOIN
         t_result_text m USING(result_id,sequence_id)
         JOIN
         t_gender_map g USING( gender )
@@ -107,6 +109,8 @@ my $get_result_sql = "
         b.uid = ?
         AND
         r.result_log_id = ?
+        AND
+        r.sequence_id <> 0
     ORDER BY r.sequence_id LIMIT 1 OFFSET $offset
     ";
 
