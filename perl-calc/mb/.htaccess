@@ -1,10 +1,10 @@
-AuthType Basic
-AuthName "Please wait..."
-#AuthName "maintenance"
-AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
-AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
-require valid-user
-#require group admin
+#OPEN#AuthType Basic
+#OPEN#AuthName "Please wait..."
+#OPEN##AuthName "maintenance"
+#OPEN#AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
+#OPEN#AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
+#OPEN#require valid-user
+#OPEN##require group admin
 
 
 ErrorDocument 403 /.hterror/notmobile.html

@@ -171,12 +171,12 @@ SELECT
     WEEKDAY(NOW()),
     HOUR(NOW()),
     ?,
-    CONCAT(?,t.result_text,?) AS result_text
+    CONCAT(?,IFNULL(t.result_text,\"\"),?) AS result_text
 FROM
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_result_master AS r ON ( r.node_id = ? )
-    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
+    LEFT JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
 
     my $result_sth = $db->prepare( $insert_prepost );
     my $affected = "";
@@ -199,9 +199,9 @@ FROM
 ##############
 ### Battle ###
 ##############
-    my $battle = new Anothark::Battle( $pu );
+    my $battle = new Anothark::Battle( $at );
     my $me = $at->getCharacterByUserId($out->{USER_ID});
-    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me );
+    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me, $nnid );
 
 
 
@@ -225,7 +225,7 @@ FROM
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_result_master AS r ON ( r.node_id = ? )
-    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
+    LEFT JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
 
     my $result_sth_b = $db->prepare( $insert_battle );
     my $affected_b = "";

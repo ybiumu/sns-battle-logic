@@ -2,7 +2,7 @@
 ############
 ### LOAD ###
 ############
-use lib qw( .htlib ../../.htlib );
+use lib qw( .htlib ../.htlib );
 use CGI;
 use DbUtil;
 use MobileUtil;
@@ -10,7 +10,6 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
-use Anothark::SkillLoader();
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -25,7 +24,7 @@ $at->setMobileUtil($mu);
 
 my $ad_str = "";
 
-my $loader = new Anothark::SkillLoader( $db );
+
 
 my $browser      = $mu->getBrowser();
 #my $carrier_id   = $mu->getCarrierId();
@@ -54,10 +53,9 @@ our $out = $at->getOut();
 ##############
 ### depend ###
 ##############
-$at->setBase("adm_template.html");
-$at->setBody("body_any2.html");
-$at->setPageName("管理 - ｽｷﾙ編集");
-my $version = "0.1a20130415";
+$at->setBody("body_bs.html");
+$at->setPageName("戦闘設定");
+my $version = "0.1a20130803";
 
 
 
@@ -66,34 +64,8 @@ my $version = "0.1a20130415";
 ############
 
 
-my $skill_list = $loader->getSkillList();
 
-my @oddeven = ( "odd", "even" );
 
-$out->{RESULT_TITLE} = "管理 - ｽｷﾙ編集";
-my $lines = 0;
-
-if ( scalar((keys%{$skill_list})) > 0 )
-{
-    $out->{RESULT} = "<form name=\"skill\" method=\"get\" action=\"edit_skill.cgi\">\n";
-    $out->{RESULT} .= "<input type=\"hidden\" name=\"guid\" value=\"ON\"/>";
-    foreach my $row ( map { $skill_list->{$_} } sort { $a <=> $b } keys %{$skill_list} )
-    {
-        $lines++;
-        $out->{RESULT} .= sprintf("<div class=\"item_%s\"><input type=\"radio\" name=\"skill_id\" value=\"%s\" />&nbsp;%s</div>\n",$oddeven[$lines%2], $row->{skill_id}, $row->{skill_name})
-    }
-    $out->{RESULT} .= <<_HERE_
-<select name="act">
-<option value="descr">詳しく見る</option>
-<option value="edit">編集する</option>
-<option value="new">新規作成</option>
-</select><input type="submit" value="5.実行" accesskey="5" />
-</form>
-
-_HERE_
-}
-
-#$sth->finish();
 
 ##############
 ### output ###

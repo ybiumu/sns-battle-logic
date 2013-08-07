@@ -23,6 +23,8 @@ sub new
     $self->setBaseElement(2);
     $self->setRangeType(1);
     $self->setEffectType(0);
+    $self->setEffectTargetType(3);
+    $self->setPowerSource(1);
     $self->setTargetType(1);
 
 
@@ -75,19 +77,20 @@ my $element_name =
 };
 
 my $available_value = {
-    'effect_type'      => [0,1,2,3,4,5,6],
-    'learn_type_id'    => [0,1,2],
-    'type_id'          => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
-    'sub_type_id'      => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
-    'skill_type'       => [1,2,3,4],
-    'power_source'     => [0,1,2],
-    'concent_type'     => [0,1,2,3,4],
-    'random_type'      => [0,1,2,3,4,5,6],
-    'formula_type'     => [0,1],
-    'base_type'        => [1,2,3,4],
-    'base_element'     => [0,1,2,3,4,-1,11,12,13,14],
-    'sub_base_type'    => [0,1,2,3,4],
-    'sub_base_element' => [0,1,2,3,4,-1,11,12,13,14],
+    'effect_type'        => [0,1,2,3,4,5,6],
+    'learn_type_id'      => [0,1,2],
+    'type_id'            => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
+    'sub_type_id'        => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
+    'skill_type'         => [1,2,3,4],
+    'power_source'       => [0,1,2,3,4,5],
+    'effect_target_type' => [0,1,2,3,4,5],
+    'concent_type'       => [0,1,2,3,4],
+    'random_type'        => [0,1,2,3,4,5,6],
+    'formula_type'       => [0,1],
+    'base_type'          => [1,2,3,4],
+    'base_element'       => [0,1,2,3,4,-1,11,12,13,14],
+    'sub_base_type'      => [0,1,2,3,4],
+    'sub_base_element'   => [0,1,2,3,4,-1,11,12,13,14],
     'length_type'         => [1,2,3],
     'range_type'          => [1,2,3],
     'target_type'         => [1,2,3],
@@ -96,6 +99,15 @@ my $available_value = {
     'phaseout_limit_type' => [0,1,2],
 };
 
+
+my $iv_map = {
+    0 => "raw_data",
+    1 => "atack",
+    2 => "magic",
+    3 => "hp",
+    4 => "agility",
+    5 => "chikaku",
+};
 
 
 my $skill_id = undef;
@@ -119,6 +131,7 @@ my $flying_limit_type = undef;
 my $position_limit_type = undef;
 my $phaseout_limit_type = undef;
 my $effect_type = undef;
+my $effect_target_type = undef;
 my $random_type = undef;
 my $learn_type_id = undef;
 my $skill_descr = undef;
@@ -348,6 +361,15 @@ sub getPowerSource
     return $_[0]->getAttribute( 'power_source' );
 }
 
+
+sub getPowerSourceByKey
+{
+    return $iv_map->{$_[0]->getPowerSource()};
+}
+
+
+
+
 sub setConcentType
 {
     my $class = shift;
@@ -484,6 +506,24 @@ sub getRandomType
 sub getRandomAlias
 {
     return RAND_ALIAS->{$_[0]->getRandomType()};
+}
+
+
+sub setEffectTargetType
+{
+    my $class = shift;
+    return $class->setAttribute( 'effect_target_type', shift );
+}
+
+sub getEffectTargetType
+{
+    return $_[0]->getAttribute( 'effect_target_type' );
+}
+
+
+sub getEffectTargetTypeByKey
+{
+    return $iv_map->{$_[0]->getEffectTargetType()};
 }
 
 

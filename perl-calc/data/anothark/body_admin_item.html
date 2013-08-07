@@ -1,0 +1,88 @@
+<div class="contents2">$out->{RESULT_TITLE}</div>
+<form action="edit_item.cgi?guid=ON" method="post">
+<input type="hidden" name="guid" value="ON" />
+<input type="hidden" name="act" value="save" />
+</form>
+
+<form action="edit_item.cgi?guid=ON" method="post">
+<input type="hidden" name="guid" value="ON" />
+<a href="#a" accesskey="4">A</a>/<a href="#b" accesskey="5">B</a>/<a href="#c" accesskey="6">C</a>/<a href="#d" accesskey="7">D</a>
+<a name="a"><div class="contents">-A-&nbsp;基本情報</div></a>
+ｱｲﾃﾑID　：<input type="hidden" size="4" maxlength="4" name="item_id" value="$out->{item_id}" />$out->{item_id}<br />
+ｱｲﾃﾑ名　：<input type="text" size="20" name="item_label" value="$out->{item_label}" /><br />
+説明文 ：<textarea name="item_descr" >$out->{item_descr}</textarea><br />
+主ﾀｲﾌﾟ ：<span style="font-size:medium"><select name="item_type_id">
+<option value="0"$out->{_item_type_id}->{0}>----</option>
+<option value="1"$out->{_item_type_id}->{1}>剣</option>
+<option value="2"$out->{_item_type_id}->{2}>槌</option>
+<option value="3"$out->{_item_type_id}->{3}>手甲</option>
+<option value="4"$out->{_item_type_id}->{4}>槍</option>
+<option value="5"$out->{_item_type_id}->{5}>鞭</option>
+<option value="6"$out->{_item_type_id}->{6}>弓</option>
+<option value="7"$out->{_item_type_id}->{7}>銃</option>
+<option value="11"$out->{_item_type_id}->{11}>炎</option>
+<option value="12"$out->{_item_type_id}->{12}>冷</option>
+<option value="13"$out->{_item_type_id}->{13}>光</option>
+<option value="14"$out->{_item_type_id}->{14}>闇</option>
+<option value="15"$out->{_item_type_id}->{15}>楽器</option>
+<option value="20"$out->{_item_type_id}->{20}>盾</option>
+</select></span><br />
+
+副ﾀｲﾌﾟ ：<span style="font-size:medium"><select name="item_sub_type_id">
+<option value="0"$out->{_item_sub_type_id}->{0}>----</option>
+<option value="1"$out->{_item_sub_type_id}->{1}>剣</option>
+<option value="2"$out->{_item_sub_type_id}->{2}>槌</option>
+<option value="3"$out->{_item_sub_type_id}->{3}>手甲</option>
+<option value="4"$out->{_item_sub_type_id}->{4}>槍</option>
+<option value="5"$out->{_item_sub_type_id}->{5}>鞭</option>
+<option value="6"$out->{_item_sub_type_id}->{6}>弓</option>
+<option value="7"$out->{_item_sub_type_id}->{7}>銃</option>
+<option value="11"$out->{_item_sub_type_id}->{11}>炎</option>
+<option value="12"$out->{_item_sub_type_id}->{12}>冷</option>
+<option value="13"$out->{_item_sub_type_id}->{13}>光</option>
+<option value="14"$out->{_item_sub_type_id}->{14}>闇</option>
+<option value="15"$out->{_item_sub_type_id}->{15}>楽器</option>
+<option value="20"$out->{_item_sub_type_id}->{20}>盾</option>
+</select></span><br />
+まとめ：<input type="text" name="merge_number" size="3" maxlength="3" value="$out->{merge_number}" istyle="4" mode="numeric"/><br />
+売価　：<input type="text" name="item_selling_price" size="3" maxlength="3" value="$out->{item_selling_price}" istyle="4" mode="numeric"/><br />
+
+劣化進行：<span style="font-size:medium"><select name="item_broken_range">
+<option value="1"$out->{_item_broken_range}->{1}>1</option>
+<option value="2"$out->{_item_broken_range}->{2}>2</option>
+<option value="3"$out->{_item_broken_range}->{3}>5</option>
+<option value="4"$out->{_item_broken_range}->{4}>10</option>
+</select></span><br />
+劣化確率：<span style="font-size:medium"><select name="item_broken_rate">
+<option value="0"$out->{_item_broken_rate}->{0}>普通</option>
+<option value="1"$out->{_item_broken_rate}->{1}>低い</option>
+<option value="2"$out->{_item_broken_rate}->{2}>高い</option>
+</select></span><br />
+
+<a name="c"><div class="contents">-C-&nbsp;使用時</div></a>
+値　：<input type="text" name="use_effect_value" size="3" maxlength="3" value="$out->{use_effect_value}" istyle="4" mode="numeric"/><br />
+対象：<span style="font-size:medium"><select name="use_effect_target">
+<option value="0"$out->{_use_effect_target}->{0}>影響しない</option>
+<option value="1"$out->{_use_effect_target}->{1}>通常</option>
+<option value="2"$out->{_use_effect_target}->{2}>集束1</option>
+<option value="3"$out->{_use_effect_target}->{3}>集束2</option>
+<option value="4"$out->{_use_effect_target}->{4}>大術式</option>
+</select></span><br />
+
+範囲:<span style="font-size:medium"><select name="use_effect_range">
+<option value="0"$out->{_use_effect_range}->{0}>影響しない</option>
+<option value="1"$out->{_use_effect_range}->{1}>通常</option>
+<option value="2"$out->{_use_effect_range}->{2}>集束1</option>
+<option value="3"$out->{_use_effect_range}->{3}>集束2</option>
+<option value="4"$out->{_use_effect_range}->{4}>大術式</option>
+</select></span><br />
+
+
+関数使用：<input type="text" name="use_effect_value" size="3" maxlength="3" value="$out->{use_effect_value}" istyle="4" mode="numeric"/><br />
+関数名：<input type="text" name="use_effect_value" size="3" maxlength="3" value="$out->{use_effect_value}" istyle="4" mode="numeric"/><br />
+
+<input type="hidden" name="act" value="saveconfirm" />
+<input type="submit" name="calc" value="8.保存"  accesskey="8" />
+</form>
+<div class="contents">version</div>
+
