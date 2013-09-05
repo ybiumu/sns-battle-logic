@@ -4,8 +4,10 @@ use strict;
 
 use Anothark::Battle;
 use Anothark::Character;
+use Anothark::Character::Enemy;
 use Anothark::Skill;
 use Anothark::SkillLoader;
+use Anothark::ItemLoader;
 
 sub doExhibitionMatch
 {
@@ -15,10 +17,20 @@ sub doExhibitionMatch
     my $force_node = shift;
     my $db       = $battle->getAt()->getDbHandler();
     $me->setSide("p");
+#warn "Append user.";
     $battle->appendCharacter( $me );
-    my $sl = new Anothark::SkillLoader($db);
 
+    my $p1 = $battle->getAt()->getPlayerByUserId(2);
+    $p1->setSide("p");
+    $battle->appendCharacter( $p1 );
+
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+
+
+#warn "Append hagis1.";
     my $npc1 = new Anothark::Character();
+#warn "Append hagis1 done.";
     $npc1->setId("hagis1");
     $npc1->setName("ímÊ·Ş½");
     $npc1->getHp()->setBothValue(50);
@@ -26,30 +38,32 @@ sub doExhibitionMatch
     $npc1->gDef()->setBothValue(10);
     $npc1->setCmd([
         [],
-        $sl->loadSkill(10),
-        $sl->loadSkill(10),
-        $sl->loadSkill(10),
-        $sl->loadSkill(10),
-        $sl->loadSkill(10),
+        $sl->loadSkill(1010),
+        $sl->loadSkill(1010),
+        $sl->loadSkill(1010),
+        $sl->loadSkill(1010),
+        $sl->loadSkill(1010),
     ]);
     $npc1->setSide("p");
     $npc1->getPosition()->setBothValue("f");
     $battle->appendCharacter( $npc1 );
 
+#warn "Append hagis2.";
     my $npc2 = new Anothark::Character();
+#warn "Append hagis2 done.";
     $npc2->setId("hagis2");
     $npc2->setName("‰°•aÊ·Ş½");
     $npc2->getHp()->setBothValue(25);
     $npc2->gDef()->setBothValue(5);
     $npc2->setCmd([
         [],
-        $sl->loadSkill(9),
-        $sl->loadSkill(9),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
 #        new Anothark::Skill( '’´’áü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
 #        new Anothark::Skill( '’´’áü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
         new Anothark::Skill( '¾ÙÌ¸¯·İ¸Ş' ,{ skill_rate => 10,length_type => 1, range_type => 1,target_type => 2, effect_type => 1 } ),
-        $sl->loadSkill(9),
-        $sl->loadSkill(9),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
 #        new Anothark::Skill( '’´’áü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
 #        new Anothark::Skill( '’´’áü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
     ]);
@@ -82,8 +96,8 @@ sub doExhibitionMatch
 
     my $node_append = {
        2 => [ sub { zwei(@_) } ],
-       4 => [ sub { golem(@_) } ],
-       6 => [ sub { gemStone(@_) } ],
+       4 => [ sub { golem(@_) }, sub { enemy001( @_ )} ],
+       6 => [ sub { gemStone(@_) }, sub { enemy001( @_ )} ],
     };
 
 
@@ -104,6 +118,7 @@ sub doExhibitionMatch
     }
 
     my $rnd = int(rand(scalar(@{$encounts})));
+#warn "Do encount.";
     &{$encounts->[$rnd]}( $battle );
 
     $battle->doBattle();
@@ -120,9 +135,11 @@ sub gemStone
     my $battle = shift;
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $enemy = new Anothark::Character();
+    my $il = new Anothark::ItemLoader($db);
+    my $enemy = new Anothark::Character::Enemy();
     $battle->setPartyName("“¹’[‚Ì•óÎ");
     $battle->setPartyImg("load_king");
+    $battle->setPartyLevel(20);
     $enemy->setId("load_king");
     $enemy->setName("Û°ÄŞ¥µ³Ş¥¼ŞªÑ½Ä°İ");
     $enemy->getHp()->setBothValue(150);
@@ -131,11 +148,11 @@ sub gemStone
     $enemy->getMagic()->setBothValue(50);
     $enemy->setCmd([
         [],
-        $sl->loadSkill(3),
-        $sl->loadSkill(4),
-        $sl->loadSkill(5),
-        $sl->loadSkill(6),
-        $sl->loadSkill(7),
+        $sl->loadSkill(1003),
+        $sl->loadSkill(1004),
+        $sl->loadSkill(1005),
+        $sl->loadSkill(1006),
+        $sl->loadSkill(1007),
 #        new Anothark::Skill( 'Ñ°İ½Ä°İ×²Ä'     , {skill_rate => 7  ,length_type => 3 } ),
 #        new Anothark::Skill( '¼ŞªÀŞ²Ä½Ìß×¯¼­' , {skill_rate => 5  ,length_type => 2, range_type => 2 } ),
 #        new Anothark::Skill( 'ÙËŞ°½Íß¸ÄÙ'     , {skill_rate => 10 ,length_type => 3 }),
@@ -144,6 +161,10 @@ sub gemStone
     ]);
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");
+    push(
+        @{$enemy->getDropItems()},
+        ($il->loadItem( 10, 10), $il->loadItem( 10, 10),)
+    );
     $battle->appendCharacter( $enemy );
 }
 
@@ -153,20 +174,22 @@ sub zwei
     my $battle = shift;
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
     $battle->setPartyName("ŒJ‚è•Ô‚·ˆ«–²");
     $battle->setPartyImg("endless_nightmare");
+    $battle->setPartyLevel(35);
 
-    my $enemy1 = new Anothark::Character();
+    my $enemy1 = new Anothark::Character::Enemy();
     $enemy1->setId("zwei");
     $enemy1->setName("Â³Ş§²");
     $enemy1->getHp()->setBothValue(666);
     $enemy1->setCmd([
         [],
-        $sl->loadSkill(11),
-        $sl->loadSkill(12),
-        $sl->loadSkill(13),
-        $sl->loadSkill(14),
-        $sl->loadSkill(15),
+        $sl->loadSkill(1011),
+        $sl->loadSkill(1012),
+        $sl->loadSkill(1013),
+        $sl->loadSkill(1014),
+        $sl->loadSkill(1015),
 #        new Anothark::Skill( 'ÌŞ¯¸½Ï¯¼­'    , {skill_rate => 7 ,length_type => 1 }),
 #        new Anothark::Skill( '²İ»°ÄÏ°¶°'    , {skill_rate => 7 ,length_type => 1, base_element => 0 }),
 #        new Anothark::Skill( 'ÌŞ¯¸Ø¯Ëßİ¸Ş'  , {skill_rate => 7 ,length_type => 3, range_type => 2, base_element => 1 }),
@@ -175,19 +198,23 @@ sub zwei
     ]);
     $enemy1->setSide("e");
     $enemy1->getPosition->setBothValue("f");
+    push(@{$enemy1->getDropItems()},
+        ($il->loadItem( 11, 10),
+        $il->loadItem( 11, 10),)
+    );
 
 
-    my $enemy2 = new Anothark::Character();
+    my $enemy2 = new Anothark::Character::Enemy();
     $enemy2->setId("ein");
     $enemy2->setName("±²İ");
     $enemy2->getHp()->setBothValue(666);
     $enemy2->setCmd([
         [],
-        $sl->loadSkill(16),
-        $sl->loadSkill(17),
-        $sl->loadSkill(16),
-        $sl->loadSkill(17),
-        $sl->loadSkill(15),
+        $sl->loadSkill(1016),
+        $sl->loadSkill(1017),
+        $sl->loadSkill(1016),
+        $sl->loadSkill(1017),
+        $sl->loadSkill(1015),
 #        new Anothark::Skill( 'Ã¨°Ì×¯ÄŞ'    , {skill_rate => 4  ,length_type => 2, range_type => 2, base_element => 12 }),
 #        new Anothark::Skill( 'Êß°Ìª¸Ä½Ï²Ù' , {skill_rate => 10 ,length_type => 3, base_element => -1 }),
 #        new Anothark::Skill( 'Ã¨°Ì×¯ÄŞ'    , {skill_rate => 4  ,length_type => 2, range_type => 2, base_element => 12 }),
@@ -198,17 +225,17 @@ sub zwei
     $enemy2->getPosition()->setBothValue("b");
 
 
-    my $enemy3 = new Anothark::Character();
+    my $enemy3 = new Anothark::Character::Enemy();
     $enemy3->setId("drei");
     $enemy3->setName("ÄŞ×²");
     $enemy3->getHp()->setBothValue(666);
     $enemy3->setCmd([
         [],
-        $sl->loadSkill(17),
-        $sl->loadSkill(16),
-        $sl->loadSkill(17),
-        $sl->loadSkill(16),
-        $sl->loadSkill(15),
+        $sl->loadSkill(1017),
+        $sl->loadSkill(1016),
+        $sl->loadSkill(1017),
+        $sl->loadSkill(1016),
+        $sl->loadSkill(1015),
 #        new Anothark::Skill( 'Êß°Ìª¸Ä½Ï²Ù' , {skill_rate => 10 ,length_type => 3, base_element => -1 }),
 #        new Anothark::Skill( 'Ã¨°Ì×¯ÄŞ'    , {skill_rate => 4  ,length_type => 2, range_type => 2, base_element => 12 }),
 #        new Anothark::Skill( 'Êß°Ìª¸Ä½Ï²Ù' , {skill_rate => 10 ,length_type => 3, base_element => -1 }),
@@ -229,20 +256,26 @@ sub hagis
     my $battle = shift;
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $enemy = new Anothark::Character();
-    $battle->setPartyName("’‡ŠÔ‚ğ’T‚µ‚Ä");
+    my $il = new Anothark::ItemLoader($db);
+    my $enemy = new Anothark::Character::Enemy();
+    $battle->setPartyName('’‡ŠÔ‚ğ’T‚µ‚Ä');
     $battle->setPartyImg("hagis");
+    $battle->setPartyLevel(5);
     $enemy->setId("e_hagis");
-    $enemy->setName("•ú˜QÊ·Ş½");
+    $enemy->setName('•ú˜QÊ·Ş½');
     $enemy->getHp()->setBothValue(90);
     $enemy->gDef()->setBothValue(5);
+    push(@{$enemy->getDropItems()}, 
+       ( $il->loadItem( 9, 20),
+        $il->loadItem( 1, 80),)
+    );
     $enemy->setCmd([
         [],
-        $sl->loadSkill(9),
-        $sl->loadSkill(9),
-        $sl->loadSkill(9),
-        $sl->loadSkill(9),
-        $sl->loadSkill(9),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
 #        new Anothark::Skill( '’´’áü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
 #        new Anothark::Skill( '’´’áü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
 #        new Anothark::Skill( '’´’áü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
@@ -261,21 +294,23 @@ sub golem
     my $battle = shift;
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $enemy = new Anothark::Character();
-    $battle->setPartyName("œfœr‚¤“ylŒ`");
+    my $il = new Anothark::ItemLoader($db);
+    my $enemy = new Anothark::Character::Enemy();
+    $battle->setPartyName('œfœr‚¤“ylŒ`');
     $battle->setPartyImg("golem");
+    $battle->setPartyLevel(15);
     $enemy->setId("e_golem");
-    $enemy->setName("±İÀÚ½ƒÀ");
+    $enemy->setName('±İÀÚ½ƒÀ');
     $enemy->getHp()->setBothValue(500);
     $enemy->getAgility()->setBothValue(20);
     $enemy->gDef()->setBothValue(5);
     $enemy->setCmd([
         [],
-        $sl->loadSkill(18),
-        $sl->loadSkill(18),
-        $sl->loadSkill(18),
-        $sl->loadSkill(18),
-        $sl->loadSkill(19),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1019),
 #        new Anothark::Skill( '’´‚ü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
 #        new Anothark::Skill( '’´‚ü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
 #        new Anothark::Skill( '’´‚ü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
@@ -284,7 +319,51 @@ sub golem
     ]);
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");
+    push(
+        @{$enemy->getDropItems()},
+        ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
+    );
     $battle->appendCharacter( $enemy );
 }
 
+
+
+sub enemy001
+{
+#    warn "Call hhagis";
+    my $battle = shift;
+    my $db       = $battle->getAt()->getDbHandler();
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+    my $enemy = new Anothark::Character::Enemy();
+    $battle->setPartyName('•s‰Â‹‚È–ì—ÇŒ¢');
+    $battle->setPartyImg("noimage");
+    $battle->setPartyLevel(6);
+    $enemy->setId("enemy001");
+    $enemy->setName('²İËŞ¼ŞÌŞÙÊ³İÄŞ');
+    $enemy->getHp()->setBothValue(80);
+    $enemy->gDef()->setBothValue(10);
+    $enemy->getAtack()->setBothValue(10);
+    push(@{$enemy->getDropItems()}, 
+       ( $il->loadItem( 2, 5),
+        $il->loadItem( 1, 30),)
+    );
+    $enemy->setCmd([
+        [],
+#        $sl->loadSkill(1009),
+#        $sl->loadSkill(1009),
+#        $sl->loadSkill(1009),
+#        $sl->loadSkill(1009),
+#        $sl->loadSkill(1009),
+        new Anothark::Skill( 'Šš‚İ‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+        new Anothark::Skill( 'Šš‚İ‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+        new Anothark::Skill( 'Šš‚İ‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+        new Anothark::Skill( 'Šš‚İ‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+        new Anothark::Skill( 'Šš‚İ‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+    ]);
+    $enemy->setSide("e");
+    $enemy->getPosition()->setBothValue("f");
+    $battle->appendCharacter( $enemy );
+}
 1;
+

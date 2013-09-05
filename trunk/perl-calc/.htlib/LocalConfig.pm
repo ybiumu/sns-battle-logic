@@ -12,7 +12,7 @@ $LocalConfig::DBNAME = 'LAA0195285-anothark';
 $LocalConfig::SERVER = 'localhost';
 
 #$LocalConfg::USER   = 'LAA0195285';
-#$LocalConfg::PASSWD = 'krahtona';
+#$LocalConfg::PASSWD = 'krah_tona';
 #$LocalConfg::DBNAME = 'LAA0195285-anothark';
 #$LocalConfg::SERVER = 'mysql567.phy.lolipop.jp';
 

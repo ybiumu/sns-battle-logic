@@ -303,7 +303,7 @@ foreach my $user_id ( @{$rs_row} )
         if ( $egid > 0 )
         {
             my $battle = new Anothark::Battle( $at );
-            my $me = $at->getCharacterByUserId($user_id->[0]);
+            my $me = $at->getPlayerByUserId($user_id->[0]);
             my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me, $nnid );
 
 
@@ -331,6 +331,20 @@ foreach my $user_id ( @{$rs_row} )
             {
                 $ins_pre = $battle->getResultText();
 
+                my $drops   = $battle->checkDropItems();
+                my $chk_exp = $battle->checkExperiment();
+                my $party   = $battle->getPartyMember();
+
+
+                $ins_pre .= $chk_exp;
+                foreach my $items ( @{$drops} )
+                {
+                    my $target = $party->[int(rand(scalar(@{$party})))];
+#        warn sprintf( "[DROP R] %s", $items->getItemLabel());
+                    $ins_pre .= sprintf('<br />™%s‚Í%s‚ðŽè‚É“ü‚ê‚½!', $target->getName(),$items->getItemLabel());
+                    $target->getStatusIo()->getItem( $target->getId(), $items->getItemMasterId() );
+                }
+                $ins_pre .= "<br /><br />" if(scalar(@{$drops}));
 
                 $pu->notice("SQL [$insert_prepost]");
                 $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));

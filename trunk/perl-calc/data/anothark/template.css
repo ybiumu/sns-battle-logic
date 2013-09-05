@@ -75,6 +75,27 @@ div.contents_e2 {
     clear:both;
 }
 
+div.smallheader {
+    background-color:#ffffff;
+    text-align:left;
+    color:#000000;
+    width:100%;
+    padding:1px;
+    border-top:solid 1px #afafaf;
+    border-bottom:solid 1px #afafaf;
+    clear:both;
+}
+
+div.smalldescr {
+    text-align:left;
+    color:#000000;
+    width:100%;
+    padding:1px;
+    border-top:solid 1px #afafaf;
+    border-bottom:solid 1px #afafaf;
+    clear:both;
+}
+
 div.howtouse {
     text-align:right;
 }

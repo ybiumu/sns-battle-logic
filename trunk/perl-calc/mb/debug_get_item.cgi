@@ -8,6 +8,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
+use Anothark::Character::StatusIO;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -74,26 +75,29 @@ $sth->finish();
 my $user_id = $row->{user_id};
 my $num = $c->param("n") || 0;
 my $item_id = $c->param("imi") || 0;
+my $s_io = new Anothark::Character::StatusIO($db);
 
-my $get_item_sql = "
-INSERT INTO t_user_item (user_id, item_master_id)
-SELECT
-    ? AS user_id,
-    item_master_id
-FROM
-    t_item_master
-WHERE
-    item_master_id = ?
-";
-my $get_sth  = $db->prepare($get_item_sql);
-for ( my $i = 0 ; $i < $num ; $i++)
-{
-    my $get_stat = $get_sth->execute(($user_id, $item_id));
-}
-
-
-
-$get_sth->finish();
+$s_io->getItem($user_id, $item_id, $num);
+#my $get_item_sql = "
+#INSERT INTO t_user_item (user_id, item_master_id)
+#SELECT
+#    ? AS user_id,
+#    item_master_id
+#FROM
+#    t_item_master
+#WHERE
+#    item_master_id = ?
+#";
+#my $get_sth  = $db->prepare($get_item_sql);
+#for ( my $i = 0 ; $i < $num ; $i++)
+#{
+#    my $get_stat = $get_sth->execute(($user_id, $item_id));
+#}
+#
+#
+#
+#
+#$get_sth->finish();
 
 $db->disconnect();
 

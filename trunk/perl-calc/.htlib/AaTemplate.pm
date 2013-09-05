@@ -12,6 +12,8 @@ use ObjMethod;
 use Avatar;
 use LocalConfig;
 use Anothark::Character;
+use Anothark::Character::Player;
+use Anothark::Character::StatusIO;
 use base qw( ObjMethod );
 
 
@@ -21,6 +23,7 @@ my $body = undef;
 my $base_html = undef;
 my $body_html = undef;
 my $base_css = undef;
+my $status_io = undef;
 
 my $page_util = undef;
 my $mobile_util = undef;
@@ -34,6 +37,7 @@ my $page_name = "No Name";
 my $gm_img = '<img src="img/icon/ico_gm.gif" />';
 
 
+my $task_str = '<br />&gt;<a href="/mb/viewtasks.cgi">Ç‚ÇÈÇ±Ç∆“”</a>';
 
 sub init
 {
@@ -42,6 +46,7 @@ sub init
     $class->setPageName($page_name);
     $class->setBase($base);
     $class->setCss($css);
+    $class->setTaskStr($task_str);
 }
 
 
@@ -189,6 +194,17 @@ sub getMobileUtil
 }
 
 
+sub setTaskStr
+{
+    my $class = shift;
+    return $class->setAttribute( 'task_str', shift );
+}
+
+sub getTaskStr
+{
+    return $_[0]->getAttribute( 'task_str' );
+}
+
 
 
 
@@ -219,11 +235,13 @@ _HERE_"
     my $base_css  = $class->{base_css};
     my $page_name = $class->getPageName();
     my $ad_str    = $class->getAdStr();
+    my $task_html = $class->getTaskStr();
 
     $class->{base_html} =~ s/__TITLE__/$page_name/g;
     $class->{base_html} =~ s/__PAGE_TITLE__/$page_name/g;
     $class->{base_html} =~ s/__BASE_CSS__/$base_css/g;
     $class->{base_html} =~ s/__MESSAGE_BODY__/$tmp_html/g;
+    $class->{base_html} =~ s/__LINK_TASKS__/$task_html/g;
     $class->{base_html} =~ s/__ADD_SPACE__/$ad_str/g;
 }
 
@@ -373,9 +391,23 @@ sub setupBaseData
     $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
     $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
 
+    $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+
     return $result;
 }
 
+
+
+sub setStatusIo
+{
+    my $class = shift;
+    return $class->setAttribute( 'status_io', shift );
+}
+
+sub getStatusIo
+{
+    return $_[0]->getAttribute( 'status_io' );
+}
 
 
 
@@ -404,40 +436,22 @@ sub Critical
 }
 
 
+sub getPlayerByUserId
+{
+    my $class   = shift;
+    my $user_id = shift;
+    my $template = new Anothark::Character::Player();
+    my $char = $class->getCharacterByUserId($user_id,$template);
+    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+
+    return $char;
+}
+
 sub getBaseDataByUserId
 {
     my $class = shift;
     my $user_id = shift;
     my $result = 0;
-#    my $get_base_sql = "
-#        SELECT
-#            b.user_id AS user_id,
-#            b.user_name AS user_name,
-#            b.msg AS msg,
-#            b.face_type AS face_type,
-#            b.hair_type AS hair_type,
-#            s.a_max_hp AS max_hp,
-#            s.rp AS rp,
-#            s.a_agl AS a_agl,
-#            s.a_kehai AS a_kehai,
-#            s.a_chikaku AS a_chikaku,
-#            s.a_luck AS a_luck,
-#            s.a_kikyou AS a_kikyou,
-#            s.a_chrm   AS a_chrm,
-#            s.node_id AS node_id,
-#            s.a_hp AS hp,n.node_name
-#        FROM
-#            t_user AS b JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
-#    my $sth  = $class->getDbHandler()->prepare($get_base_sql);
-#    my $stat = $sth->execute(($user_id));
-#    my $row  = $sth->fetchrow_hashref();
-#
-#    $class->getPageUtil()->output_log(qq["CHECK: " ], sprintf("carrier: %s, uid: %s, target_user_id: %s,row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $user_id, $sth->rows() ));
-#
-#    if ( $sth->rows() == 0 )
-#    {
-#        return $result;
-#    }
 
     my $char = $class->getCharacterByUserId($user_id);
     if ( not $char )
@@ -477,8 +491,9 @@ sub getBaseDataByUserId
 
 sub getCharacterByUserId
 {
-    my $class = shift;
+    my $class   = shift;
     my $user_id = shift;
+    my $char    = shift || new Anothark::Character();
     my $get_base_sql = "
         SELECT
             b.user_id AS user_id,
@@ -512,7 +527,6 @@ sub getCharacterByUserId
     {
         return undef;
     }
-    my $char = new Anothark::Character();
 
     $char->setName($row->{user_name});
     $char->getHp()->setCurrentValue($row->{hp});
