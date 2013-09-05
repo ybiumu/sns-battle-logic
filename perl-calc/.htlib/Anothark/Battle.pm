@@ -12,6 +12,7 @@ use base qw( ObjMethod );
 use Anothark::Battle::BaseValue;
 use Anothark::Battle::TargetValue;
 use Anothark::Battle::StatusValue;
+use Anothark::Skill;
 
 our $base   = new Anothark::Battle::BaseValue();
 our $status = new Anothark::Battle::StatusValue();
@@ -35,6 +36,7 @@ my $target_template = '<div style="text-align:%s">Ë%s</div>';
 my $effect_template = '<div style="text-align:%s">%s</div>';
 my $dmg_str_template = '[%s]%s!';
 my $effect_str_template = '%s!';
+my $party_level = undef;
 
 my $symbol = {
     e => {
@@ -109,6 +111,7 @@ sub init
     $class->setBeatFlag( { p => 0, e => 0 } );
     $class->setPartyName("‚È‚È‚µ");
     $class->setPartyImg("load_king");
+    $class->setPartyLevel("3");
     $class->setCurrentTurn(0);
     $class->initCurrentActor();
 #    $class->setPs(0);
@@ -185,7 +188,8 @@ sub appendCharacter
     my $class = shift;
     my $char = $class->getCharacter();
     my $obj = shift;
-    if ( ref $obj eq "Anothark::Character" )
+    my $ref = ref $obj;
+    if ( $ref =~ /^Anothark::Character(|::.+)$/ )
     {
         $char->{$obj->getId()} = $obj;
     }
@@ -274,21 +278,32 @@ sub getLivingTargetsWithState
 
 
 
-sub getLivingPlayers
+sub getPlayers
 {
     my $class  = shift;
     my $char = $class->getCharacter();
-    $class->setLivingOrder([ grep { $char->{$_}->getSide() eq "p" } grep { $char->{$_}->isLiving() } keys %{$char} ]);
+    return [ map {$char->{$_} } grep { $char->{$_}->isPlayer() } keys %{$char} ];
 }
-
-
-sub getLivingFrontPlayers
+sub getPartyMember
 {
-    my $class  = shift;
-    my $char = $class->getCharacter();
-    $class->setLivingOrder([ map { $char->{$_}->getPosition()->cv() eq "f" } @{$class->getLivingPlayers()} ]);
+    return $_[0]->getPlayers();
 }
 
+#sub getLivingPlayers
+#{
+#    my $class  = shift;
+#    my $char = $class->getCharacter();
+#    $class->setLivingOrder([ grep { $char->{$_}->getSide() eq "p" } grep { $char->{$_}->isLiving() } keys %{$char} ]);
+#}
+#
+#
+#sub getLivingFrontPlayers
+#{
+#    my $class  = shift;
+#    my $char = $class->getCharacter();
+#    $class->setLivingOrder([ map { $char->{$_}->getPosition()->cv() eq "f" } @{$class->getLivingPlayers()} ]);
+#}
+#
 
 
 sub getLivingCharactersBySide
@@ -297,6 +312,15 @@ sub getLivingCharactersBySide
     my $side   = shift;
     my $char   = $class->getCharacter();
     $class->setLivingOrder([ grep { $char->{$_}->getSide() eq $side } grep { $char->{$_}->isLiving() } keys %{$char} ]);
+}
+
+
+sub getBeatCharactersBySide
+{
+    my $class  = shift;
+    my $side   = shift;
+    my $char   = $class->getCharacter();
+    return [ grep { $char->{$_}->getSide() eq $side } grep { ! $char->{$_}->isLiving() } keys %{$char} ];
 }
 
 
@@ -347,6 +371,13 @@ sub resolveDamages
     }
 #    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
     $target->Damage( $skill,$dmg );
+
+    if ( $dmg )
+    {
+        $char->countupElementCount($skill->getTypeId());
+        $char->countupElementCount($skill->getSubTypeId());
+    }
+
     if( not $target->isLiving() )
     {
         $class->getTurnText()->[$turn] .= sprintf(
@@ -417,128 +448,6 @@ sub doBattle
 
         #doTurn
         $class->doTurn($turn);
-#{
-#        $class->setCurrentTurn($turn);
-#        $class->getTurnText()->[$turn] .= "<hr /><div style=\"text-align:center;color:#ff0000;\">Turn $turn</div>";
-#        warn "[$turn]";
-#        foreach my $cs ( @{$class->getLiving()} )
-#        {
-#            # status
-#            $class->getTurnText()->[$turn] .= sprintf(
-#                $stat_template,
-#                $symbol->{$chars->{$cs}->getSide()}->{color},
-#                $symbol->{$chars->{$cs}->getSide()}->{head},
-#                $chars->{$cs}->getName(), $chars->{$cs}->getPointStr(), "",
-#                $chars->{$cs}->getHp()->current(),
-#                $chars->{$cs}->getHp()->max(),
-#            )
-#        }
-#
-#        my $order = $class->execActOrder($turn);
-#        foreach my $char ( @{$order}  )
-#        {
-#            # Name
-#            next if ( not $char->isLiving() );
-#            $class->getTurnText()->[$turn] .= sprintf(
-#                $act_template,
-#                $symbol->{$char->getSide()}->{align},
-#                $symbol->{$char->getSide()}->{head},
-#                $char->getName(),
-#            );
-#warn "Name: [".$char->getName()."] ‚Ì À°¹Ş¯Ã¨İ¸Ş";
-## cmd start
-#            # Cmd
-#            $class->getTurnText()->[$turn] .= sprintf(
-#                $cmd_template,
-#                $symbol->{$char->getSide()}->{align},
-#                $symbol->{$char->getSide()}->{head_nml},
-#                $char->getCmd()->[$turn]->getName(),
-#            );
-#if ($char->getCmd()->[$turn]->getRangeTypw() eq "3" )
-#{
-#}
-#else
-#{
-#            # Targeting
-#
-#            my @target_order = (
-#                sort {
-#                    $chars->{$b}->getTargetingValue(
-#                        getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$b}->gDef()->cv()), $char->gCkk()->cv(), $char->gKky()->cv()
-#                    )
-#                    <=>
-#                    $chars->{$a}->getTargetingValue(
-#                        getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$a}->gDef()->cv() ) , $char->gCkk()->cv(), $char->gKky()->cv()
-#                    )
-#                    or $chars->{$a}->getId() <=> $chars->{$b}->getId()
-#                } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
-#            );
-#
-#
-#            if (scalar(@target_order))
-#            {
-#                my $target = $chars->{$target_order[0]};
-#                # Target
-#                $class->getTurnText()->[$turn] .= sprintf($target_template, $symbol->{$char->getSide()}->{align},$target->getName());
-#
-#
-#                # Interlapt Check
-#                # Interlapt cmd
-#
-#
-#                ##  Do Damages ##
-#                # Search effect range.
-#                # Dmg
-#                my $dmg = getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $target->gDef()->cv() );
-#                $class->getTurnText()->[$turn] .= sprintf(
-#                                                        $effect_template,
-#                                                        $symbol->{$char->getSide()}->{align},
-#                                                        sprintf($effect_str_template, $char->getCmd()->[$turn]->getBaseElementName(), ( $dmg . "ÀŞÒ°¼Ş"))
-#                                                  );
-#                $target->Damage( $dmg );
-#                if( not $target->isLiving() )
-#                {
-#                    $class->getTurnText()->[$turn] .= sprintf(
-#                                                        $effect_template,
-#                                                        $symbol->{$char->getSide()}->{align}, "@ËË“|‚ê‚½")
-#                }
-#
-#            }
-#            else
-#            {
-#                $class->getTurnText()->[$turn] .= sprintf($effect_template, $symbol->{$char->getSide()}->{align},sprintf( $effect_str_template, "“Í‚©‚È‚¢"));
-#            }
-#
-#}
-#            # Post Effect Check
-#            # Post Effect cmd
-#
-#            # Win Lose check
-#            # last if end;
-#
-#
-#            foreach my $side ( sort{ $side_value->{$b} <=> $side_value->{$a} } keys %{$side_value} )
-#            {
-#                # Point Check
-#                if ( not scalar($class->getLivingCharactersBySide($side)) )
-#                {
-#                    map { $chars->{$_}->setPosition("f") } $class->getLivingFrontCharactersBySide($side);
-#                }
-#            }
-##            if( $char->getSide() eq "p" )
-##            {
-##                # Point Check
-##                if ( not scalar($class->getLivingFrontPlayers()) )
-##                {
-##                    map { $chars->{$_}->setPosition("f") } $class->getLivingPlayers();
-##                }
-##            }
-#
-## cmd end
-#
-#
-#        }
-#}
         last if $class->battleEnd();
     }
 
@@ -546,6 +455,40 @@ sub doBattle
 
 }
 
+
+sub checkDropItems
+{
+    warn "[CHECK]";
+    my $class = shift;
+    my $beats = $class->getBeatCharactersBySide("e");
+    return [ grep { $_->isDroped() } ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )];
+#    my $drops = [];
+#    foreach my $item ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )
+#    {
+#        warn sprintf "[ITEMS] %s",$item->getItemLabel();
+#        if ( $item->isDroped() )
+#        {
+#            warn sprintf "[DROP] %s",$item->getItemLabel();
+#            push( @{$drops}, $item);
+#        }
+#    }
+#    return $drops;
+}
+
+sub checkExperiment
+{
+    my $class = shift;
+    my $chk_str = "";
+    foreach my $c ( @{$class->getPlayers()} )
+    {
+        my $cnts = $c->getUseElementCount();
+        foreach my $type ( sort keys %{$cnts})
+        {
+            $chk_str .= sprintf '%s‚Í%s‚Ìn—û‚ª%.2fã‚ª‚Á‚½<br />', $c->getName(), Anothark::Skill::typeId2typeName($type),( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
+        }
+    }
+    return $chk_str;
+}
 
 sub resultCheck
 {
@@ -749,6 +692,8 @@ sub doCmd
         }
 
 
+        # Resolve Damages.
+
         if (scalar(@target_order))
         {
             # each targets
@@ -854,6 +799,19 @@ sub setPartyName
 sub getPartyName
 {
     return $_[0]->getAttribute( 'party_name' );
+}
+
+
+
+sub setPartyLevel
+{
+    my $class = shift;
+    return $class->setAttribute( 'party_level', shift );
+}
+
+sub getPartyLevel
+{
+    return $_[0]->getAttribute( 'party_level' );
 }
 
 

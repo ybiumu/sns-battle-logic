@@ -28,18 +28,26 @@ sub new
     $self->setTargetType(1);
 
 
+
+    $self->setup_options($options);
+
+    return $self;
+}
+
+sub setup_options
+{
+    my $class = shift;
+    my $options = shift;
     if( ref( $options ) eq "HASH" )
     {
         foreach my $key ( keys %{$options})
         {
-            $self->{$key} = $options->{$key};
+            $class->{$key} = $options->{$key};
 #            warn sprintf("[LIB] %s: %s",$key, $options->{$key});
         }
     }
-
-
-    return $self;
 }
+
 
 #my $element_name =
 #{
@@ -64,21 +72,42 @@ my $range_str = {
 
 my $element_name =
 {
-    0 => "ŠÑ",
-    1 => "Ža",
-    2 => "Õ",
-    3 => "•ª",
-    4 => "Á",
-    -1 => "¸",
-    11 => "‰Š",
-    12 => "—â",
-    13 => "³",
-    14 => "•‰",
+    0  => 'ŠÑ',
+    1  => 'Ža',
+    2  => 'Õ',
+    3  => '•ª',
+    4  => 'Á',
+    -1 => '¸',
+    11 => '‰Š',
+    12 => '—â',
+    13 => '³',
+    14 => '•‰',
 };
 
+my $type_name = {
+    1  => 'Œ•',
+    2  => '’Æ',
+    3  => 'Žèb',
+    4  => '‘„',
+    5  => '•Ú',
+    6  => '‹|',
+    7  => 'e',
+    11 => '‰Š',
+    12 => '—â',
+    13 => 'Œõ',
+    14 => 'ˆÅ',
+    15 => 'ŠyŠí',
+    20 => '‚'
+};
+
+sub typeId2typeName
+{
+    return $type_name->{$_[0]};
+}
 my $available_value = {
     'effect_type'        => [0,1,2,3,4,5,6],
     'learn_type_id'      => [0,1,2],
+# 1:Œ•,2:’Æ,3:Žèb,4:‘„,5:•Ú,6:‹|,7:e,11:‰Š,12:—â,13:Œõ,14:ˆÅ,15:ŠyŠí,20:‚
     'type_id'            => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
     'sub_type_id'        => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
     'skill_type'         => [1,2,3,4],

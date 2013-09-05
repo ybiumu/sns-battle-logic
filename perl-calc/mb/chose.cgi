@@ -42,7 +42,7 @@ if ( ! $result )
 }
 
 our $out = $at->getOut();
-
+my $user_id = $out->{USER_ID};
 
 # depend
 $at->setBody("body_chose.html");
@@ -53,6 +53,7 @@ my $version = "0.1a20120328";
 
 my $debug_str = "";
 
+$pu->output_log(sprintf( "UserId: ", $user_id ));
 
 # param parse.
 $out->{NAME}   = $c->param("name") || $out->{name};
@@ -65,14 +66,14 @@ if ( $out->{CHOSED} == 1 )
     # Request forgery
     if ( $c->param("sel") )
     {
-        my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.carrier_id = ? AND u.uid = ? AND sel.visible = 1 ");
-        $up_sth->execute(($c->param("sel"),$carrier_id, $mob_uid));
+        my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.user_id = ? AND sel.visible = 1 ");
+        $up_sth->execute(($c->param("sel"),$user_id));
         $up_sth->finish();
     }
     else
     {
-        my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, 0, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) WHERE u.carrier_id = ? AND u.uid = ? ");
-        $up_sth->execute($carrier_id, $mob_uid);
+        my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, 0, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) WHERE u.user_id = ? ");
+        $up_sth->execute($user_id);
         $up_sth->finish();
     }
 }
@@ -81,10 +82,38 @@ if ( $out->{CHOSED} == 1 )
 
 
 
+my $select_list_sql = "
+SELECT
+    selection_id,
+    label,
+    s.next_node_id
+FROM
+    t_selection AS s
+    LEFT JOIN
+    (
+        SELECT flag_id FROM t_user JOIN t_user_flagment USING(user_id) WHERE user_id = ? AND enable = 1
+    ) AS flg USING(flag_id)
+WHERE
+    s.node_id = ?
+    AND
+    s.visible = 1
+    AND
+    (
+        s.flag_id = 0
+        OR
+        (
+            s.flag_id <> 0
+            AND
+            flg.flag_id IS NOT NULL
+        )
+    )";
+
+
+
 
 # Check record exists.
-my $sth  = $db->prepare("SELECT u.user_id, u.user_name, s.next_queing_hour, s.node_id, n.node_name, n.node_descr, n.node_img, q.selection_id FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_node_master AS n USING(node_id) LEFT JOIN t_selection_que q USING( user_id ) WHERE carrier_id = ? AND uid = ?");
-my $stat = $sth->execute(($carrier_id, $mob_uid));
+my $sth  = $db->prepare("SELECT u.user_id, u.user_name, s.next_queing_hour, s.node_id, n.node_name, n.node_descr, n.node_img, q.selection_id FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_node_master AS n USING(node_id) LEFT JOIN t_selection_que q USING( user_id ) WHERE user_id = ?");
+my $stat = $sth->execute(($user_id));
 $pu->output_log(sprintf( "c: %s u:%s ", $carrier_id, $mob_uid));
 my $row  = $sth->fetchrow_hashref();
 my $rownum = $sth->rows();
@@ -109,8 +138,8 @@ if ( $rownum == 1 )
         $r_sel->{0} = $checked_str;
     }
 
-    my $sth2  = $db->prepare("SELECT selection_id, label,s.next_node_id  FROM t_selection AS s LEFT JOIN ( SELECT flag_id FROM t_user JOIN t_user_flagment USING(user_id) WHERE carrier_id = ? AND uid = ? AND enable = 1 ) AS flg USING(flag_id) WHERE s.node_id = ? AND s.visible = 1 AND ( s.flag_id = 0 OR ( s.flag_id <> 0 AND flg.flag_id IS NOT NULL ))");
-    my $stat2 = $sth2->execute(($carrier_id, $mob_uid,$out->{NODE_ID}));
+    my $sth2  = $db->prepare( $select_list_sql );
+    my $stat2 = $sth2->execute(($user_id,$out->{NODE_ID}));
     my $rownum2 = $sth2->rows();
     $out->{SELECTION_STR} = "";
     if ( $rownum2 == 0 )

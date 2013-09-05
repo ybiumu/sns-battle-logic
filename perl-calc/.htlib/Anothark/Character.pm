@@ -13,6 +13,7 @@ use base qw( ObjMethod );
 
 use Anothark::ValueObject;
 use Anothark::Skill;
+use Anothark::Skill::Exhibition;
 
 use Anothark::Battle::BaseValue;
 use Anothark::Battle::StatusValue;
@@ -25,14 +26,18 @@ sub new
     bless $self, $class;
 
 
-    $self->init();
+#warn "new init";
+#    $self->init();
+#warn "new init done";
     return $self;
 }
 
 
 sub init
 {
+    warn "Call init";
     my $class = shift;
+    $class->setUseElementCount({});
     $class->setRawData( new Anothark::ValueObject() );
     $class->setHp( new Anothark::ValueObject() );
     $class->setStamina( new Anothark::ValueObject());
@@ -55,11 +60,16 @@ sub init
 
     $class->setCmd([
         [],
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+        new Anothark::Skill::Exhibition("zoom_punch"),
+        new Anothark::Skill::Exhibition("zoom_punch"),
+        new Anothark::Skill::Exhibition("lost_memorys"),
+        new Anothark::Skill::Exhibition("zoom_punch"),
+        new Anothark::Skill::Exhibition("zoom_punch"),
+#        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
     ]);
 
     $class->getRawData()->setBothValue(1);
@@ -92,6 +102,7 @@ my $id = undef;
 my $name = undef;
 my $msg = undef;
 
+my $use_elelment_count = undef;
 
 my $face_type = undef;
 my $hair_type = undef;
@@ -441,6 +452,34 @@ sub getRel
 
 
 
+#my $type_experiment = undef;
+sub setTypeExperiment
+{
+    my $class = shift;
+    return $class->setAttribute( 'type_experiment', shift );
+}
+
+sub getTypeExperiment
+{
+    return $_[0]->getAttribute( 'type_experiment' );
+}
+
+my $type_level = undef;
+sub setTypeLevel
+{
+    my $class = shift;
+    return $class->setAttribute( 'type_level', shift );
+}
+
+sub getTypeLevel
+{
+#    return $_[0]->getAttribute( 'type_level' );
+    return 0;
+}
+
+
+
+
 
 sub setCmd
 {
@@ -453,6 +492,22 @@ sub getCmd
     return $_[0]->getAttribute( 'cmd' );
 }
 
+
+sub setUseElementCount
+{
+    my $class = shift;
+    return $class->setAttribute( 'use_elelment_count', shift );
+}
+
+sub getUseElementCount
+{
+    return $_[0]->getAttribute( 'use_elelment_count' );
+}
+
+sub countupElementCount
+{
+    return 0;
+}
 
 sub setRawData
 {
@@ -512,6 +567,10 @@ sub getTargetingValue
     return $tv;
 }
 
+sub isPlayer
+{
+    return 0;
+}
 
 sub getPoint
 {

@@ -11,7 +11,9 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
+use Anothark::ItemLoader;
 use Anothark::Item;
+use Anothark::Character::StatusIO;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -59,6 +61,7 @@ our $out = $at->getOut();
 ### depend ###
 ##############
 our $depth = 0;
+our $il = undef;
 our $pre_sth;
 our $post_sth;
 
@@ -132,9 +135,9 @@ my $act = $c->param("act") || "";
 $out->{"PRE_RESULT"} = "";
 if ( $act && exists $ITEM_ACTIONS{$act} ) 
 {
-    $out->{"PRE_RESULT"} .= &{$PRE_ITEM_ACTIONS{$act}}($at,$c);
+    $out->{"PRE_RESULT"} .= &{$PRE_ITEM_ACTIONS{$act}}($at,$c) . "<br />\n";
     $out->{"PRE_RESULT"} .= join("<br />\n", map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid")) );
-    $out->{"PRE_RESULT"} .= &{$POST_ITEM_ACTIONS{$act}}($at,$c);
+    $out->{"PRE_RESULT"} .=  "<br />\n" . &{$POST_ITEM_ACTIONS{$act}}($at,$c);
 }
 
 
@@ -142,11 +145,11 @@ if ( $act && exists $ITEM_ACTIONS{$act} )
 
 if ( $depth > 0 )
 {
-
+    $out->{"RESULT"} =  $out->{"PRE_RESULT"};
 }
 else
 {
-    my $having_item_sql = "SELECT i.item_label, u.item_id FROM t_user_item AS u JOIN t_item_master AS i USING( item_master_id ) WHERE u.user_id = ? ORDER BY item_master_id,item_id";
+    my $having_item_sql = "SELECT i.item_label, u.item_id FROM t_user_item AS u JOIN t_item_master AS i USING( item_master_id ) WHERE u.user_id = ? AND u.delete_flag = 0 ORDER BY item_master_id,item_id";
     my $item_sth = $db->prepare($having_item_sql);
     my $stat_item = $item_sth->execute(($user_id));
 
@@ -166,7 +169,7 @@ else
             $lines++;
             if ($lines > $max_item)
             {
-                $out->{RESULT} .= sprintf("<div style=\"text-align: center;\">--&nbsp;Ç±ÇÍà»è„ï\é¶Ç≈Ç´Ç‹ÇπÇÒ&nbsp;--</div>\n");
+                $out->{RESULT} .= sprintf("<div style=\"text-align: center;\">%s</div>\n", '--&nbsp;Ç±ÇÍà»è„ï\é¶Ç≈Ç´Ç‹ÇπÇÒ&nbsp;--');
                 last;
             }
 #        $out->{RESULT} .= sprintf("<input type=\"checkbox\" name=\"i_%s\" />&nbsp;%s<br />\n",$row->{item_id}, $row->{item_label})
@@ -228,8 +231,9 @@ sub use_item
 sub descr_item
 {
     my $at = shift;
-    my $iid = shift;
-    return "descr_item";
+    my $item_id = shift;
+    my $item = $il->loadUserItem($at->getOut()->{USER_ID}, $item_id);
+    return sprintf("<div class='smallheader'>%s</div>%s\n<div class='smalldescr'>%s</div>\n", $item->getItemLabel(), "NoData<br />",$item->getItemDescr());
 }
 
 sub pass_item
@@ -244,11 +248,19 @@ sub mart_item
 
 sub sell_item
 {
+    my $at = shift;
+    my $item_id = shift;
+
+    $at->getStatusIo()->sellItem( $at->getOut()->{USER_ID}, $item_id);
     return "sell_item";
 }
 
 sub reject_item
 {
+    my $at = shift;
+    my $item_id = shift;
+
+    $at->getStatusIo()->rejectItem( $at->getOut()->{USER_ID}, $item_id);
     return "reject_item";
 }
 
@@ -267,17 +279,8 @@ sub pre_descr_item
     $depth = 1;
     $at->setBody("body_any.html");
     $at->setPageName("±≤√—&gt;è⁄ç◊");
-    my $sql = "
-        SELECT
-        FROM
-            t_user_item AS ui
-            JOIN
-            t_item_master AS m
-            USING( item_master_id )
-        WHERE
-            ui.user_id = ? AND ui.item_id = ?
-    ";
-    $pre_sth = $at->getDbHandler()->prepare($sql);
+    $il = new Anothark::ItemLoader( $at->getDbHandler() );
+#    $pre_sth = $at->getDbHandler()->prepare($sql);
     return "pre_descr_item";
 }
 
