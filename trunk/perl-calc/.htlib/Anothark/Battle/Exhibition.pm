@@ -27,6 +27,8 @@ sub doExhibitionMatch
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
 
+    $me->getCmd()->[1] = $sl->loadSkill(1020);
+
 
 #warn "Append hagis1.";
     my $npc1 = new Anothark::Character();
@@ -166,6 +168,7 @@ sub gemStone
         ($il->loadItem( 10, 10), $il->loadItem( 10, 10),)
     );
     $battle->appendCharacter( $enemy );
+    $sl->finish();
 }
 
 sub zwei
@@ -248,6 +251,7 @@ sub zwei
     $battle->appendCharacter( $enemy1 );
     $battle->appendCharacter( $enemy2 );
     $battle->appendCharacter( $enemy3 );
+    $sl->finish();
 }
 
 sub hagis
@@ -285,6 +289,7 @@ sub hagis
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");
     $battle->appendCharacter( $enemy );
+    $sl->finish();
 }
 
 
@@ -324,6 +329,7 @@ sub golem
         ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
     );
     $battle->appendCharacter( $enemy );
+    $sl->finish();
 }
 
 
@@ -364,6 +370,7 @@ sub enemy001
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");
     $battle->appendCharacter( $enemy );
+    $sl->finish();
 }
 1;
 

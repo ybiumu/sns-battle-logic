@@ -17,6 +17,7 @@ sub new
     my $self = $class->SUPER::new();
     bless $self, $class;
     $self->setName($name);
+    $self->setChildren([]);
     $self->setSkillRate(5);
     $self->setRandomType(2);
     $self->setBaseType(1);
@@ -47,6 +48,9 @@ sub setup_options
         }
     }
 }
+
+
+
 
 
 #my $element_name =
@@ -105,6 +109,7 @@ sub typeId2typeName
     return $type_name->{$_[0]};
 }
 my $available_value = {
+#0:UŒ‚,1:‰ñ•œ,2:•t—^,3:ã©,4:ôæf,5:ƒVƒŠ[ƒY,6:ƒ‰ƒ“ƒ_ƒ€
     'effect_type'        => [0,1,2,3,4,5,6],
     'learn_type_id'      => [0,1,2],
 # 1:Œ•,2:’Æ,3:èb,4:‘„,5:•Ú,6:‹|,7:e,11:‰Š,12:—â,13:Œõ,14:ˆÅ,15:ŠyŠí,20:‚
@@ -112,6 +117,7 @@ my $available_value = {
     'sub_type_id'        => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
     'skill_type'         => [1,2,3,4],
     'power_source'       => [0,1,2,3,4,5],
+#a0:field,1:atc,2:magic,3:hp,4:agi,5:sence
     'effect_target_type' => [0,1,2,3,4,5],
     'concent_type'       => [0,1,2,3,4],
     'random_type'        => [0,1,2,3,4,5,6],
@@ -167,8 +173,10 @@ my $skill_descr = undef;
 my $sub_base_type = undef;
 my $sub_base_element = undef;
 my $formula_type = undef;
+my $children = undef;
 
 my $field_names = undef;
+my $skill_loader = undef;
 
 
 
@@ -557,5 +565,40 @@ sub getEffectTargetTypeByKey
 
 
 
+sub setSkillLoader
+{
+    my $class = shift;
+    return $class->setAttribute( 'skill_loader', shift );
+}
+
+sub getSkillLoader
+{
+    return $_[0]->getAttribute( 'skill_loader' );
+}
+
+
+#sub checkChild
+#{
+#    my $class = shift;
+#    my $sql =
+#}
+#
+
+
+sub setChildren
+{
+    my $class = shift;
+    return $class->setAttribute( 'children', shift );
+}
+
+sub getChildren
+{
+    return $_[0]->getAttribute( 'children' );
+}
+
+sub appendChild
+{
+    push(@{$_[0]->getChildren()},$_[1]);
+}
 
 1;
