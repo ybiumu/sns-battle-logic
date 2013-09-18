@@ -636,93 +636,139 @@ sub doCmd
 {
     my $class = shift;
     my $char  = shift;
-    my $turn  = $class->getCurrentTurn();
-    my $chars = $class->getCharacter();
+    my $stacks = [];
+    my $turn   = $class->getCurrentTurn();
+    my $chars  = $class->getCharacter();
 #    warn "Name: [".$char->getName()."] の ﾀｰｹﾞｯﾃｨﾝｸﾞ";
 # cmd start
     # Cmd
-    $class->getTurnText()->[$turn] .= sprintf(
-        $cmd_template,
-        $symbol->{$char->getSide()}->{align},
-        $symbol->{$char->getSide()}->{color},
-        $symbol->{$char->getSide()}->{head_nml},
-        $char->getCmd()->[$turn]->getName(),
-    );
-
-    if ($char->getCmd()->[$turn]->getRangeType() eq "3" )
-    {
-        map { $class->resolveDamages($chars->{ $_ }); } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
-    }
-    else
-    {
-        # Targeting
-
-        my @target_order = ();
-        if ( $char->getCmd()->[$turn]->getRangeType() eq "1" )
-        {
-            # for single taggeting.
-            @target_order = (
-                sort {
-                    $chars->{$b}->getTargetingValue(
-                        $class->damageExec( $char, $chars->{$b} ), $char->gCkk()->cv(), $char->gKky()->cv()
-#                    getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$b}->gDef()->cv()), $char->gCkk()->cv(), $char->gKky()->cv()
-                    )
-                    <=>
-                    $chars->{$a}->getTargetingValue(
-                        $class->damageExec( $char, $chars->{$a} ) , $char->gCkk()->cv(), $char->gKky()->cv()
-#                    getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$a}->gDef()->cv() ) , $char->gCkk()->cv(), $char->gKky()->cv()
-                    )
-                    or $chars->{$a}->getId() <=> $chars->{$b}->getId()
-                } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
-            );
-        }
-        elsif( $char->getCmd()->[$turn]->getRangeType() eq "2" )
-        {
-            my $td = { f => 0, b => 0};
-            map {
-                $td->{$chars->{$_}->getPoint()} +=  $class->damageExec( $char, $chars->{$_} ), $char->gCkk()->cv(), $char->gKky()->cv()
-            } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
-            my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
-            @target_order = (
-                grep {
-                    $chars->{$_}->getPoint() eq $point
-                }
-                @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
-            );
-        }
+#    $class->getTurnText()->[$turn] .= sprintf(
+#        $cmd_template,
+#        $symbol->{$char->getSide()}->{align},
+#        $symbol->{$char->getSide()}->{color},
+#        $symbol->{$char->getSide()}->{head_nml},
+#        $char->getCmd()->[$turn]->getName(),
+#    );
 
 
-        # Resolve Damages.
 
-        if (scalar(@target_order))
-        {
-            # each targets
-            if ( $char->getCmd()->[$turn]->getRangeType() eq "1" )
-            {
-#                warn "range type 1";
-                my $target = $chars->{$target_order[0]};
-                $class->resolveDamages($target);
-                # Target
-            }
-            elsif( $char->getCmd()->[$turn]->getRangeType() eq "2" )
-            {
-#                warn "range type 2";
-                my $target = $chars->{$target_order[0]};
-                map { $class->resolveDamages($chars->{ $_ }); } @{$class->getSameRangeTargets($target)};
-                
-            }
-            else
-            {
-                $class->getTurnText()->[$turn] .= sprintf("なんかエラー");
-            }
+    my $text_pointer = \$class->getTurnText()->[$turn];
+    my $cmd = $char->getCmd()->[$turn];
+    $class->doSkillUnit($char,$cmd,$text_pointer );
 
-        }
-        else
-        {
-            $class->getTurnText()->[$turn] .= sprintf($effect_template, $symbol->{$char->getSide()}->{align},sprintf( $effect_str_template, "届かない"));
-        }
 
-    }
+
+#    #　　- ｽｷﾙ発動準備
+#    #　　　　- 仮効果算出
+#    #　　　　- 仮効果をもとにﾀｰｹﾞｯﾃｨﾝｸﾞ決定
+#    #　　　　- 仮効果をもとに割り込み処理
+#    #　　　　　　- ﾌﾟﾘﾍﾟｱｶｯﾄ
+#    #　　　　　　　　- [object:skill_flow]
+#    #　　　　- 遅発処理
+#    #　　　　　　[object:skill_flow]
+#    #　　　　- 
+#    #　　　　　　[object:skill_flow]
+#    #　　　　- phase in
+#
+#
+#
+#    #　　- ｽｷﾙ発動
+#    #　　- ﾀｰｹﾞｯﾃｨﾝｸﾞ
+#
+#    # Targeting
+#
+#
+#    my @target_order = ();
+#
+#    # 全体攻撃
+#    if ($char->getCmd()->[$turn]->getRangeType() eq "3" )
+#    {
+##        map { $class->resolveDamages($chars->{ $_ }); } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
+#        # Do Not anything
+#    }
+#    # 単体・同列
+#    else
+#    {
+#
+#        if ( $char->getCmd()->[$turn]->getRangeType() eq "1" )
+#        {
+#            # for single taggeting.
+#            @target_order = (
+#                sort {
+#                    $chars->{$b}->getTargetingValue(
+#                        $class->damageExec( $char, $chars->{$b} ), $char->gCkk()->cv(), $char->gKky()->cv()
+##                    getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$b}->gDef()->cv()), $char->gCkk()->cv(), $char->gKky()->cv()
+#                    )
+#                    <=>
+#                    $chars->{$a}->getTargetingValue(
+#                        $class->damageExec( $char, $chars->{$a} ) , $char->gCkk()->cv(), $char->gKky()->cv()
+##                    getRealDamage($char->getCmd()->[$turn]->getSkillRate(), $chars->{$a}->gDef()->cv() ) , $char->gCkk()->cv(), $char->gKky()->cv()
+#                    )
+#                    or $chars->{$a}->getId() <=> $chars->{$b}->getId()
+#                } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
+#            );
+#        }
+#        elsif( $char->getCmd()->[$turn]->getRangeType() eq "2" )
+#        {
+#            my $td = { f => 0, b => 0};
+#            map {
+#                $td->{$chars->{$_}->getPoint()} +=  $class->damageExec( $char, $chars->{$_} ), $char->gCkk()->cv(), $char->gKky()->cv()
+#            } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
+#            my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
+#            @target_order = (
+#                grep {
+#                    $chars->{$_}->getPoint() eq $point
+#                }
+#                @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )}
+#            );
+#        }
+#
+#    }
+#
+#
+#    # Resolve Damages.
+#
+#    # 全体攻撃
+#    if ($char->getCmd()->[$turn]->getRangeType() eq "3" )
+#    {
+#        map { $class->resolveDamages($chars->{ $_ }); } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
+#    }
+#    # 単体・同列
+#    else
+#    {
+#
+#
+#
+#        if (scalar(@target_order))
+#        {
+#            # each targets
+#            if ( $char->getCmd()->[$turn]->getRangeType() eq "1" )
+#            {
+##                warn "range type 1";
+#                my $target = $chars->{$target_order[0]};
+#                $class->resolveDamages($target);
+#                # Target
+#            }
+#            elsif( $char->getCmd()->[$turn]->getRangeType() eq "2" )
+#            {
+##                warn "range type 2";
+#                my $target = $chars->{$target_order[0]};
+#                map { $class->resolveDamages($chars->{ $_ }); } @{$class->getSameRangeTargets($target)};
+#                
+#            }
+#            else
+#            {
+#                $class->getTurnText()->[$turn] .= sprintf("なんかエラー");
+#            }
+#
+#        }
+#        else
+#        {
+#            $class->getTurnText()->[$turn] .= sprintf($effect_template, $symbol->{$char->getSide()}->{align},sprintf( $effect_str_template, "届かない"));
+#        }
+#
+#    }
+
     # Post Effect Check
     # Post Effect cmd
 
@@ -747,6 +793,143 @@ sub doCmd
 }
 
 
+sub doSkillUnit
+{
+    my $class = shift;
+    my $char  = shift;
+    my $cmd   = shift;
+    my $text_pointer = shift;
+    my $chars  = $class->getCharacter();
+
+    #　　- ｽｷﾙ発動準備
+    #　　　　- 仮効果算出
+    #　　　　- 仮効果をもとにﾀｰｹﾞｯﾃｨﾝｸﾞ決定
+    #　　　　- 仮効果をもとに割り込み処理
+    #　　　　　　- ﾌﾟﾘﾍﾟｱｶｯﾄ
+    #　　　　　　　　- [object:skill_flow]
+    #　　　　- 遅発処理
+    #　　　　　　[object:skill_flow]
+    #　　　　- 
+    #　　　　　　[object:skill_flow]
+    #　　　　- phase in
+
+
+
+    #　　- ｽｷﾙ発動
+    #　　- ﾀｰｹﾞｯﾃｨﾝｸﾞ
+
+    # Targeting
+
+    $$text_pointer .= sprintf(
+        $cmd_template,
+        $symbol->{$char->getSide()}->{align},
+        $symbol->{$char->getSide()}->{color},
+        $symbol->{$char->getSide()}->{head_nml},
+        $cmd->getName(),
+    );
+
+    my @target_order = ();
+
+    # 全体攻撃
+    if ($cmd->getRangeType() eq "3" )
+    {
+#        map { $class->resolveDamages($chars->{ $_ }); } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
+        # Do Not anything
+    }
+    # 単体・同列
+    else
+    {
+
+        if ( $cmd->getRangeType() eq "1" )
+        {
+            # for single taggeting.
+            @target_order = (
+                sort {
+                    $chars->{$b}->getTargetingValue(
+                        $class->damageExec( $char, $chars->{$b} ), $char->gCkk()->cv(), $char->gKky()->cv()
+                    )
+                    <=>
+                    $chars->{$a}->getTargetingValue(
+                        $class->damageExec( $char, $chars->{$a} ) , $char->gCkk()->cv(), $char->gKky()->cv()
+                    )
+                    or $chars->{$a}->getId() <=> $chars->{$b}->getId()
+                } @{$class->getLivingTargetsWithState( $char,$cmd )}
+            );
+        }
+        elsif( $cmd->getRangeType() eq "2" )
+        {
+            my $td = { f => 0, b => 0};
+            map {
+                $td->{$chars->{$_}->getPoint()} +=  $class->damageExec( $char, $chars->{$_} ), $char->gCkk()->cv(), $char->gKky()->cv()
+            } @{$class->getLivingTargetsWithState( $char,$cmd )};
+            my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
+            @target_order = (
+                grep {
+                    $chars->{$_}->getPoint() eq $point
+                }
+                @{$class->getLivingTargetsWithState( $char,$cmd )}
+            );
+        }
+
+    }
+
+
+    # Resolve Damages.
+
+#    $$text_pointer .= sprintf("[DEBUG]%s<br/>\n",$cmd->getEffectType());
+
+
+    if ( $cmd->getEffectType() eq "5" )
+    {
+        foreach my $child ( @{ $cmd->getChildren()})
+        {
+            $class->doSkillUnit($char,$child,$text_pointer);
+        }
+    }
+    else
+    {
+        # 全体攻撃
+        if ($cmd->getRangeType() eq "3" )
+        {
+            map { $class->resolveDamages($chars->{ $_ }); } @{$class->getLivingTargetsWithState( $char,$cmd )};
+        }
+        # 単体・同列
+        else
+        {
+
+
+
+            if (scalar(@target_order))
+            {
+                # each targets
+                if ( $cmd->getRangeType() eq "1" )
+                {
+#                warn "range type 1";
+                    my $target = $chars->{$target_order[0]};
+                    $class->resolveDamages($target);
+                    # Target
+                }
+                elsif( $cmd->getRangeType() eq "2" )
+                {
+#                warn "range type 2";
+                    my $target = $chars->{$target_order[0]};
+                    map { $class->resolveDamages($chars->{ $_ }); } @{$class->getSameRangeTargets($target)};
+                    
+                }
+                else
+                {
+                    $$text_pointer .= sprintf("なんかエラー");
+                }
+
+            }
+            else
+            {
+                $$text_pointer .= sprintf($effect_template, $symbol->{$char->getSide()}->{align},sprintf( $effect_str_template, "届かない"));
+            }
+
+        }
+    }
+}
 
 
 sub setBeatFlag
@@ -864,6 +1047,8 @@ sub getResultText
 
 sub damageExec
 {
+    # 後解決の呪詛なども検討しないといけない
+    # シリーズも
     my $class = shift;
     my $from  = shift;
     my $to    = shift;
