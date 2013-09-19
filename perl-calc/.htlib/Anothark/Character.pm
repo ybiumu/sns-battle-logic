@@ -15,6 +15,8 @@ use Anothark::ValueObject;
 use Anothark::Skill;
 use Anothark::Skill::Exhibition;
 
+use Anothark::StatusManager;
+
 use Anothark::Battle::BaseValue;
 use Anothark::Battle::StatusValue;
 use Anothark::Battle::TargetValue;
@@ -38,6 +40,7 @@ sub init
     warn "Call init";
     my $class = shift;
     $class->setUseElementCount({});
+    $class->setStatus( new Anothark::StatusManager() );
     $class->setRawData( new Anothark::ValueObject() );
     $class->setHp( new Anothark::ValueObject() );
     $class->setStamina( new Anothark::ValueObject());
@@ -124,6 +127,7 @@ my $is_gm = undef;
 my $position = undef;
 my $vel = undef;
 my $rel = undef;
+my $status = undef;
 
 my $point_map = {
     e => { b => 3, f => 2, },
@@ -144,6 +148,19 @@ sub setIsGm
 sub getIsGm
 {
     return $_[0]->getAttribute( 'is_gm' );
+}
+
+
+
+sub setStatus
+{
+    my $class = shift;
+    return $class->setAttribute( 'status', shift );
+}
+
+sub getStatus
+{
+    return $_[0]->getAttribute( 'status' );
 }
 
 
@@ -589,6 +606,30 @@ sub isLiving
     my $class = shift;
 #    warn sprintf("%s is living.", $class->getName());
     return ( $class->getHp()->cv() > 0 );
+}
+
+
+sub isSmallerThanHalf
+{
+    my $class = shift;
+#    warn sprintf("%s is living.", $class->getName());
+    return ( $class->getHp()->cv() < $class->getHp()->mv() / 2 );
+}
+
+sub canMove
+{
+    my $class = shift;
+    # XXX check status manager! XXX
+    return 1;
+}
+
+
+
+sub canTarget
+{
+    my $class = shift;
+    # XXX check status manager! XXX
+    return 1;
 }
 
 sub Damage

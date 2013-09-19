@@ -5,6 +5,7 @@ package Anothark::Battle;
 $|=1;
 use strict;
 
+use Encode;
 
 use ObjMethod;
 use base qw( ObjMethod );
@@ -337,9 +338,10 @@ sub resolveDamages
 {
     my $class  = shift;
     my $target = shift;
+    my $skill  = shift;
     my $turn   = $class->getCurrentTurn();
     my $char   = $class->getCurrentActor();
-    my $skill  = $char->getCmd()->[$turn];
+#    my $skill  = $char->getCmd()->[$turn];
     # Target
     $class->getTurnText()->[$turn] .= sprintf($target_template, $symbol->{$char->getSide()}->{align},$target->getName());
 
@@ -347,12 +349,13 @@ sub resolveDamages
     # Interlapt Check
     # Interlapt cmd
 
+    my $is_count = 0;
 
     return if $class->battleEnd();
     ##  Do Damages ##
     # Search effect range.
     # Dmg
-    my $dmg = $class->damageExec($char, $target );
+    my $dmg = $class->damageExec($char, $target, $skill );
     if ( $dmg == 0 )
     {
         $class->getTurnText()->[$turn] .= sprintf(
@@ -360,6 +363,7 @@ sub resolveDamages
                                                 $symbol->{$char->getSide()}->{align},
                                                 sprintf($effect_str_template, "Œø‰Ê‚È‚µ")
                                           );
+        $is_count = 1;
     }
     else
     {
@@ -368,11 +372,18 @@ sub resolveDamages
                                                 $symbol->{$char->getSide()}->{align},
                                                 sprintf($dmg_str_template, $skill->getBaseElementName(), ( $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } ))
                                           );
+        $is_count = 1;
     }
 #    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
     $target->Damage( $skill,$dmg );
 
-    if ( $dmg )
+    if ( $skill->getParentSkillId() ne "0" )
+    {
+        $is_count = 0;
+        warn "No Count!";
+    }
+
+    if ( $is_count )
     {
         $char->countupElementCount($skill->getTypeId());
         $char->countupElementCount($skill->getSubTypeId());
@@ -566,7 +577,7 @@ sub doTurn
     my $chars = $class->getCharacter();
     $class->setCurrentTurn($turn);
     $class->getTurnText()->[$turn] .= "<hr /><div style=\"text-align:center;color:#ff0000;\">Turn $turn</div>";
-#    warn "[$turn]";
+    warn "TURN [$turn]";
 
     foreach my $cs ( @{$class->getLiving()} )
     {
@@ -654,7 +665,15 @@ sub doCmd
 
     my $text_pointer = \$class->getTurnText()->[$turn];
     my $cmd = $char->getCmd()->[$turn];
-    $class->doSkillUnit($char,$cmd,$text_pointer );
+    if( $char->canMove() )
+    {
+        $class->doSkillUnit($char,$cmd,$text_pointer );
+    }
+    else
+    {
+    }
+
+
 
 
 
@@ -828,6 +847,8 @@ sub doSkillUnit
         $cmd->getName(),
     );
 
+    warn "Run Cmd id is [". $cmd->getSkillId() ."]";
+
     my @target_order = ();
 
     # ‘S‘ÌUŒ‚
@@ -840,17 +861,27 @@ sub doSkillUnit
     else
     {
 
+        if ( $char->canTarget() )
+        {
+        }
+        else
+        {
+            $$text_pointer .= 'ÌŞ×İ¸‚Å‘_‚¦‚È‚¢';
+            return ;
+        }
+
+
         if ( $cmd->getRangeType() eq "1" )
         {
             # for single taggeting.
             @target_order = (
                 sort {
                     $chars->{$b}->getTargetingValue(
-                        $class->damageExec( $char, $chars->{$b} ), $char->gCkk()->cv(), $char->gKky()->cv()
+                        $class->damageExec( $char, $chars->{$b} , $cmd), $char->gCkk()->cv(), $char->gKky()->cv()
                     )
                     <=>
                     $chars->{$a}->getTargetingValue(
-                        $class->damageExec( $char, $chars->{$a} ) , $char->gCkk()->cv(), $char->gKky()->cv()
+                        $class->damageExec( $char, $chars->{$a}, $cmd ) , $char->gCkk()->cv(), $char->gKky()->cv()
                     )
                     or $chars->{$a}->getId() <=> $chars->{$b}->getId()
                 } @{$class->getLivingTargetsWithState( $char,$cmd )}
@@ -860,7 +891,7 @@ sub doSkillUnit
         {
             my $td = { f => 0, b => 0};
             map {
-                $td->{$chars->{$_}->getPoint()} +=  $class->damageExec( $char, $chars->{$_} ), $char->gCkk()->cv(), $char->gKky()->cv()
+                $td->{$chars->{$_}->getPoint()} +=  $class->damageExec( $char, $chars->{$_},$cmd ), $char->gCkk()->cv(), $char->gKky()->cv()
             } @{$class->getLivingTargetsWithState( $char,$cmd )};
             my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
             @target_order = (
@@ -891,7 +922,7 @@ sub doSkillUnit
         # ‘S‘ÌUŒ‚
         if ($cmd->getRangeType() eq "3" )
         {
-            map { $class->resolveDamages($chars->{ $_ }); } @{$class->getLivingTargetsWithState( $char,$cmd )};
+            map { $class->resolveDamages($chars->{ $_ }, $cmd); } @{$class->getLivingTargetsWithState( $char,$cmd )};
         }
         # ’P‘ÌE“¯—ñ
         else
@@ -906,14 +937,14 @@ sub doSkillUnit
                 {
 #                warn "range type 1";
                     my $target = $chars->{$target_order[0]};
-                    $class->resolveDamages($target);
+                    $class->resolveDamages($target, $cmd);
                     # Target
                 }
                 elsif( $cmd->getRangeType() eq "2" )
                 {
 #                warn "range type 2";
                     my $target = $chars->{$target_order[0]};
-                    map { $class->resolveDamages($chars->{ $_ }); } @{$class->getSameRangeTargets($target)};
+                    map { $class->resolveDamages($chars->{ $_ }, $cmd); } @{$class->getSameRangeTargets($target)};
                     
                 }
                 else
@@ -1053,11 +1084,29 @@ sub damageExec
     my $from  = shift;
     my $to    = shift;
 
-    my $turn  = $class->getCurrentTurn();
-    my $skill = $from->getCmd()->[$turn];
+    my $skill = shift;
+
+#    my $turn  = $class->getCurrentTurn();
+#    my $skill = $from->getCmd()->[$turn];
 
 #    $base->setPs(1);
-warn "PS is [".$skill->getPowerSourceByKey()."]";
+{
+    warn sprintf("
+    [Char]     : %s
+    [SkillName]: %s
+    [PSname]   : %s
+    [Value]    : %s
+    [rate]     : %s
+    [Id]       : %s/%s
+    ",
+     $from->getName(),
+     $skill->getSkillName(),
+     $skill->getPowerSourceByKey(),
+     $from->getAttribute($skill->getPowerSourceByKey())->cv(),
+     $skill->getSkillRate(),
+     $skill->getSkillId(), $skill->getParentSkillId(),
+    );
+}
     $base->setPs( $from->getAttribute($skill->getPowerSourceByKey())->cv() );
     $base->setSr( $skill->getSkillRate() );
     $base->setMainExpr(0);
@@ -1084,7 +1133,7 @@ warn "PS is [".$skill->getPowerSourceByKey()."]";
     $target_value->setChain(1);
 
     my $tmp_value = $base->calc() * $status->calc() * $target_value->calc();
-#    warn sprintf "Damage [%s/%s/%s]",$base->calc(), $status->calc(), $target_value->calc();
+    warn sprintf "Damage [%s/%s/%s]",$base->calc(), $status->calc(), $target_value->calc();
 
     return getRealDamage( $tmp_value, ( $skill->getEffectTargetType() == 3 ? $to->gDef()->cv()  : 0 ), 1 );
 #    return getRealDamage( $skill->getSkillRate(), $to->gDef()->cv(), 0 ); ‘Ï«‚Í‰¼‚Ì’l
@@ -1113,7 +1162,7 @@ sub calcDeffence
     my $tmp_regist = shift;
     return 0 if ( $tmp_regist == 0 );
     my $value = sprintf "%d", ($tmp_value - ( ( abs($tmp_value) < abs($ap/2) ? $tmp_value : ($ap/2)) * ( $tmp_regist / abs( $tmp_regist) ) ) );
-#    warn " Result -> [$value]";
+    warn "   [CalResult] : $value";
     return $value;
 }
 

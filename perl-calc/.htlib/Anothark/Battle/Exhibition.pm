@@ -22,12 +22,14 @@ sub doExhibitionMatch
 
     my $p1 = $battle->getAt()->getPlayerByUserId(2);
     $p1->setSide("p");
+    $p1->getAtack()->setBothValue(20);
     $battle->appendCharacter( $p1 );
 
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
 
     $me->getCmd()->[1] = $sl->loadSkill(1020);
+    $me->getAtack()->setBothValue(15);
 
 
 #warn "Append hagis1.";
@@ -36,7 +38,7 @@ sub doExhibitionMatch
     $npc1->setId("hagis1");
     $npc1->setName("íŽmÊ·Þ½");
     $npc1->getHp()->setBothValue(50);
-    $npc1->getAtack()->setBothValue(10);
+    $npc1->getAtack()->setBothValue(20);
     $npc1->gDef()->setBothValue(10);
     $npc1->setCmd([
         [],
@@ -56,6 +58,7 @@ sub doExhibitionMatch
     $npc2->setId("hagis2");
     $npc2->setName("‰°•aÊ·Þ½");
     $npc2->getHp()->setBothValue(25);
+    $npc2->getAtack()->setBothValue(10);
     $npc2->gDef()->setBothValue(5);
     $npc2->setCmd([
         [],
@@ -267,8 +270,9 @@ sub hagis
     $battle->setPartyLevel(5);
     $enemy->setId("e_hagis");
     $enemy->setName('•ú˜QÊ·Þ½');
-    $enemy->getHp()->setBothValue(90);
+    $enemy->getHp()->setBothValue(120);
     $enemy->gDef()->setBothValue(5);
+    $enemy->getAtack()->setBothValue(15);
     push(@{$enemy->getDropItems()}, 
        ( $il->loadItem( 9, 20),
         $il->loadItem( 1, 80),)
@@ -280,11 +284,6 @@ sub hagis
         $sl->loadSkill(1009),
         $sl->loadSkill(1009),
         $sl->loadSkill(1009),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
     ]);
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");
@@ -309,6 +308,7 @@ sub golem
     $enemy->getHp()->setBothValue(500);
     $enemy->getAgility()->setBothValue(20);
     $enemy->gDef()->setBothValue(5);
+    $enemy->getAtack()->setBothValue(50);
     $enemy->setCmd([
         [],
         $sl->loadSkill(1018),
@@ -316,11 +316,6 @@ sub golem
         $sl->loadSkill(1018),
         $sl->loadSkill(1018),
         $sl->loadSkill(1019),
-#        new Anothark::Skill( '’´‚Žü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´‚Žü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´‚Žü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´‚Žü”g' , { skill_rate => 10 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '¾ÙÌÃÞ½Ä×¸¼®Ý' , { skill_rate => 450 ,length_type => 1, range_type => 1,target_type => 2, random_type => 0, base_element => 3 } ),
     ]);
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");

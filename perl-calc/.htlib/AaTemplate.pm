@@ -514,6 +514,8 @@ sub getCharacterByUserId
             s.a_chrm   AS a_chrm,
             s.node_id AS node_id,
             s.a_hp AS hp,
+            s.a_atack AS atack,
+            s.a_def AS def,
             n.node_name
         FROM
             t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
@@ -538,9 +540,9 @@ sub getCharacterByUserId
     $char->setNodeName(  $row->{node_name} );
     $char->setNodeId(  $row->{node_id} );
     $char->getConcentration()->setBothValue($row->{rp});
-    $char->getAtack()->setBothValue(0);
+    $char->getAtack()->setBothValue($row->{atack});
     $char->getMagic()->setBothValue(0);
-    $char->getDefence()->setBothValue(0);
+    $char->getDefence()->setBothValue($row->{def});
     $char->getAgility()->setBothValue($row->{a_agl});
     $char->getKehai()->setBothValue($row->{a_kehai});
     $char->getChikaku()->setBothValue($row->{a_chikaku});
