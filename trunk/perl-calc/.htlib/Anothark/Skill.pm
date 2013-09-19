@@ -27,6 +27,7 @@ sub new
     $self->setEffectTargetType(3);
     $self->setPowerSource(1);
     $self->setTargetType(1);
+    $self->setParentSkillId(0);
 
 
 
