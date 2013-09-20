@@ -270,7 +270,7 @@ sub hagis
     $battle->setPartyLevel(5);
     $enemy->setId("e_hagis");
     $enemy->setName('•ú˜QÊ·Þ½');
-    $enemy->getHp()->setBothValue(120);
+    $enemy->getHp()->setBothValue(80);
     $enemy->gDef()->setBothValue(5);
     $enemy->getAtack()->setBothValue(15);
     push(@{$enemy->getDropItems()}, 
