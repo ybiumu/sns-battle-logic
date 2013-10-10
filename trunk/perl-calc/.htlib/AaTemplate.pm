@@ -248,6 +248,15 @@ _HERE_"
 sub output
 {
     my $class = shift;
+    $class->printHeader();
+
+    print $class->getBaseHtml();
+}
+
+
+sub printHeader
+{
+    my $class = shift;
 #    my $ct = $class->getPageUtil()->getContentType();
 #    print <<_HEADER_;
 #Content-type: $ct;
@@ -264,11 +273,7 @@ sub output
     {
         $class->printSpHeader();
     }
-
-    print $class->getBaseHtml();
 }
-
-
 
 sub printFpHeader
 {
