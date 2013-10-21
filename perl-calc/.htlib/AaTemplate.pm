@@ -457,8 +457,9 @@ sub getBaseDataByUserId
     my $class = shift;
     my $user_id = shift;
     my $result = 0;
+    my $template = new Anothark::Character::Player();
 
-    my $char = $class->getCharacterByUserId($user_id);
+    my $char = $class->getCharacterByUserId($user_id,$template);
     if ( not $char )
     {
         return $result;
@@ -498,7 +499,7 @@ sub getCharacterByUserId
 {
     my $class   = shift;
     my $user_id = shift;
-    my $char    = shift || new Anothark::Character();
+    my $char    = shift || new Anothark::Character::Player();
     my $get_base_sql = "
         SELECT
             b.user_id AS user_id,
