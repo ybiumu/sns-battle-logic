@@ -99,6 +99,11 @@ $rs_sth->finish();
 
 
 my $qb = new Anothark::QueingBase($at);
+my $force = $c->param("f") || "";
+if ( $force eq "1" )
+{
+    $qb->setForce("1");
+}
 
 $qb->openMainSth();
 my $queing_status = $qb->doQueing($rs_row);

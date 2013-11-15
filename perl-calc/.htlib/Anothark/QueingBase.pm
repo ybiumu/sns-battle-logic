@@ -30,6 +30,18 @@ sub new
 
 
 
+my $force = 0;
+sub setForce
+{
+    my $class = shift;
+    return $class->setAttribute( 'force', shift );
+}
+
+sub getForce
+{
+    return $_[0]->getAttribute( 'force' );
+}
+
 
 my $at = undef;
 sub setAt
@@ -75,6 +87,22 @@ FROM
     t_user AS u
 WHERE
     u.user_id = ?
+";
+
+our $clear_current_result_sql = "
+DELETE
+    r
+FROM
+    t_result_log AS r
+    JOIN
+    t_user AS u
+    USING(user_id)
+WHERE
+    u.user_id = ?
+    AND
+    r.wday = WEEKDAY(NOW())
+    AND
+    r.hour = HOUR(NOW())
 ";
 
 our $insert_prepost = "
@@ -208,7 +236,7 @@ our $up_win_sth;
 our $up_rollback_sth;
 our $up_que_sth;
 our $result_sth_b;
-
+our $clear_current_result_sth;
 
 sub doQueing
 {
@@ -243,6 +271,15 @@ sub doQueing
         my $ins_post = "";
 # log_id‚Ì—\–ñ
         my $affected = "";
+
+        # ‹­§ƒtƒ‰ƒO
+        if ( $class->getForce() )
+        {
+            $pu->notice("Force queing.");
+            $pu->notice("Clear duplicace result.[$user_id->[0]]");
+            my $clear_result = $clear_current_result_sth->execute( ($user_id->[0]) );
+            $pu->notice("Clear result.[$clear_result]");
+        }
 
         $pu->notice(sprintf "Value [%s]",join("/",($seq_id,$user_id->[0])));
         my $booking_result = $booking_sth->execute(($seq_id, $user_id->[0]));
@@ -415,6 +452,10 @@ sub openMainSth
     $up_rollback_sth = $db->prepare( $rollback_node_sql );
     $booking_sth = $db->prepare( $bookin_log_id );
     $result_sth_b = $db->prepare( $insert_battle );
+    if ( $class->getForce() )
+    {
+        $clear_current_result_sth = $db->prepare($clear_current_result_sql);
+    }
 }
 
 sub finishMainSth
@@ -426,6 +467,10 @@ sub finishMainSth
     $up_rollback_sth->finish();
     $booking_sth->finish();
     $result_sth_b->finish();
+    if ( defined $clear_current_result_sth )
+    {
+        $clear_current_result_sth->finish();
+    }
 }
 
 
