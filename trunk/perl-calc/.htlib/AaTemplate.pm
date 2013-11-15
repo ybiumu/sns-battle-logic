@@ -447,6 +447,13 @@ sub getPlayerByUserId
     my $user_id = shift;
     my $template = new Anothark::Character::Player();
     my $char = $class->getCharacterByUserId($user_id,$template);
+    if ( not defined $char )
+    {
+        warn "undefined character. id [$user_id]";
+        return $char;
+    }
+    my $ref = ref($char);
+    warn "char is [$char]";
     $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
     return $char;

@@ -21,9 +21,12 @@ sub doExhibitionMatch
     $battle->appendCharacter( $me );
 
     my $p1 = $battle->getAt()->getPlayerByUserId(2);
-    $p1->setSide("p");
-    $p1->getAtack()->setBothValue(20);
-    $battle->appendCharacter( $p1 );
+    if ( defined  $p1 )
+    {
+        $p1->setSide("p");
+        $p1->getAtack()->setBothValue(20);
+        $battle->appendCharacter( $p1 );
+    }
 
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
