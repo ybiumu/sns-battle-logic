@@ -101,11 +101,20 @@ sub doExhibitionMatch
         sub { hagis(@_) },
     ];
 
-
+    ##########
+    ## TODO:to Databse data.
+    ##########
     my $node_append = {
        2 => [ sub { zwei(@_) } ],
        4 => [ sub { golem(@_) }, sub { enemy001( @_ )} ],
        6 => [ sub { gemStone(@_) }, sub { enemy001( @_ )} ],
+       10 => [
+            (sub { enemy002(@_)}) x 10,
+            (sub { enemy003(@_)}) x 5,
+            (sub { enemy004(@_)}) x 3,
+            (sub { enemy005(@_)}) x 2,
+            (sub { enemy006(@_)} ) x 1,
+       ],
     };
 
 
@@ -115,17 +124,19 @@ sub doExhibitionMatch
 
     if ( exists $node_append->{$node_id} )
     {
-        if ( $force_node eq $node_id )
-        {
+#        if ( $force_node eq $node_id )
+#        {
             $encounts = $node_append->{$node_id};
-        }
-        else
-        {
-            push(@{$encounts},  @{$node_append->{$node_id}});
-        }
+#        }
+#        else
+#        {
+#            push(@{$encounts},  @{$node_append->{$node_id}});
+#        }
     }
 
-    my $rnd = int(rand(scalar(@{$encounts})));
+    my $total_count = scalar(@{$encounts});
+    my $rnd = int(rand( $total_count ));
+    warn "total_count[$total_count] rnd[$rnd]";
 #warn "Do encount.";
     &{$encounts->[$rnd]}( $battle );
 
@@ -370,5 +381,213 @@ sub enemy001
     $battle->appendCharacter( $enemy );
     $sl->finish();
 }
+
+
+# 公爵 duke
+# 侯爵 marquis
+# 伯爵 earl
+# 子爵 viscount
+# 男爵 baron
+
+sub enemy002
+{
+    my $battle = shift;
+    my $db       = $battle->getAt()->getDbHandler();
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+    $battle->setPartyName('男爵');
+    $battle->setPartyImg("potate");
+    $battle->setPartyLevel(5);
+
+    my $enemy = new Anothark::Character::Enemy();
+    $enemy->setId("enemy002_01");
+    $enemy->setName('ﾊﾞﾛﾝ');
+    $enemy->getHp()->setBothValue(40);
+    $enemy->gDef()->setBothValue(10);
+    $enemy->getAtack()->setBothValue(10);
+    push(@{$enemy->getDropItems()}, 
+       (
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 30),
+       )
+    );
+    $enemy->setCmd([
+        [],
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1024),
+    ]);
+    $enemy->setSide("e");
+    $enemy->getPosition()->setBothValue("f");
+
+    $battle->appendCharacter( $enemy );
+    $sl->finish();
+}
+
+sub enemy003
+{
+    my $battle = shift;
+    my $db       = $battle->getAt()->getDbHandler();
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+    $battle->setPartyName('子爵');
+    $battle->setPartyImg("potate");
+    $battle->setPartyLevel(8);
+
+    my $enemy = new Anothark::Character::Enemy();
+    $enemy->setId("enemy003_01");
+    $enemy->setName('ｳﾞｧｲｶｳﾝﾄ');
+    $enemy->getHp()->setBothValue(60);
+    $enemy->gDef()->setBothValue(10);
+    $enemy->getAtack()->setBothValue(15);
+    push(@{$enemy->getDropItems()}, 
+       (
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 5),
+       )
+    );
+    $enemy->setCmd([
+        [],
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1025),
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1024),
+    ]);
+    $enemy->setSide("e");
+    $enemy->getPosition()->setBothValue("f");
+
+    $battle->appendCharacter( $enemy );
+    $sl->finish();
+}
+
+sub enemy004
+{
+    my $battle = shift;
+    my $db       = $battle->getAt()->getDbHandler();
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+    $battle->setPartyName('伯爵');
+    $battle->setPartyImg("potate");
+    $battle->setPartyLevel(10);
+
+    my $enemy = new Anothark::Character::Enemy();
+    $enemy->setId("enemy004_01");
+    $enemy->setName('ｱｰﾙ');
+    $enemy->getHp()->setBothValue(80);
+    $enemy->gDef()->setBothValue(10);
+    $enemy->getAtack()->setBothValue(20);
+    push(@{$enemy->getDropItems()}, 
+       (
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 5),
+            $il->loadItem( 14, 5),
+       )
+    );
+    $enemy->setCmd([
+        [],
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1025),
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1025),
+        $sl->loadSkill(1024),
+    ]);
+    $enemy->setSide("e");
+    $enemy->getPosition()->setBothValue("f");
+
+    $battle->appendCharacter( $enemy );
+    $sl->finish();
+}
+
+sub enemy005
+{
+    my $battle = shift;
+    my $db       = $battle->getAt()->getDbHandler();
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+    $battle->setPartyName('侯爵');
+    $battle->setPartyImg("potate");
+    $battle->setPartyLevel(10);
+
+    my $enemy = new Anothark::Character::Enemy();
+    $enemy->setId("enemy004_01");
+    $enemy->setName('ﾏｰｸｳｨｽ');
+    $enemy->getHp()->setBothValue(100);
+    $enemy->gDef()->setBothValue(10);
+    $enemy->getAtack()->setBothValue(25);
+    push(@{$enemy->getDropItems()}, 
+       (
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 5),
+            $il->loadItem( 14, 5),
+       )
+    );
+    $enemy->setCmd([
+        [],
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1025),
+        $sl->loadSkill(1026),
+        $sl->loadSkill(1024),
+        $sl->loadSkill(1025),
+    ]);
+    $enemy->setSide("e");
+    $enemy->getPosition()->setBothValue("f");
+
+    $battle->appendCharacter( $enemy );
+    $sl->finish();
+}
+
+sub enemy006
+{
+    my $battle = shift;
+    my $db       = $battle->getAt()->getDbHandler();
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+    $battle->setPartyName('公爵');
+    $battle->setPartyImg("potate");
+    $battle->setPartyLevel(12);
+
+    my $enemy = new Anothark::Character::Enemy();
+    $enemy->setId("enemy006_01");
+    $enemy->setName('ﾃﾞｭｰｸ');
+    $enemy->getHp()->setBothValue(120);
+    $enemy->gDef()->setBothValue(10);
+    $enemy->getAtack()->setBothValue(40);
+    push(@{$enemy->getDropItems()}, 
+       (
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 100),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 30),
+            $il->loadItem( 14, 5),
+       )
+    );
+    $enemy->setCmd([
+        [],
+        $sl->loadSkill(1026),
+        $sl->loadSkill(1025),
+        $sl->loadSkill(1025),
+        $sl->loadSkill(1025),
+        $sl->loadSkill(1025),
+    ]);
+    $enemy->setSide("e");
+    $enemy->getPosition()->setBothValue("f");
+
+    $battle->appendCharacter( $enemy );
+    $sl->finish();
+}
+
+
 1;
 

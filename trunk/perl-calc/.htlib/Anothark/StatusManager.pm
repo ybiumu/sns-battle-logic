@@ -48,11 +48,13 @@ my $stat_master = {
 };
 
 use constant BLANK => 6;
+use constant POISON => 14;
 
 
-#use constant NOT_STATUS  => 0;
-use constant JUST_STATUS => 0;
-use constant ANTI_STATUS => 1;
+use constant NOT_STATUS  => 0;
+use constant JUST_STATUS => 1;
+use constant ANTI_STATUS => 2;
+# use constant ANY_STATUS? => 4;
 
 my $stat_length = 28;
 my $stat_str = "0" x $stat_length;
@@ -170,5 +172,24 @@ sub clearBlank
 {
     $_[0]->clearStatus(BLANK, JUST_STATUS);
 }
+
+
+sub isPoison
+{
+    return $_[0]->isStatTrue( POISON, JUST_STATUS );
+}
+
+sub setPoison
+{
+    $_[0]->appendStatus( POISON, JUST_STATUS );
+}
+
+sub clearPoison
+{
+
+    $_[0]->clearStat( POISON, JUST_STATUS );
+}
+
+
 
 1;
