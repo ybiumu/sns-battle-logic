@@ -152,7 +152,7 @@ UPDATE
     LEFT JOIN t_selection AS sel USING(selection_id)
     LEFT JOIN t_node_master AS nm ON( sel.next_node_id = nm.node_id )
 SET
-    s.node_id = IFNULL(NULLIF(sel.next_node_id,0), s.node_id ),
+    s.node_id = CASE WHEN nm.can_stay = 1 THEN IFNULL(NULLIF(sel.next_node_id,0), s.node_id ) ELSE s.node_id END,
     s.last_link_node = CASE
                        WHEN nm.node_id IS NOT NULL AND nm.use_link = 1
                        THEN
@@ -329,7 +329,7 @@ sub doQueing
             $pu->error("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" || $affected eq "0E0");
 
 
-
+            ## TODO flagment pre
 
 
 

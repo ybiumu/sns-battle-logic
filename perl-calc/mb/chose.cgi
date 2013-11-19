@@ -106,7 +106,8 @@ WHERE
             AND
             flg.flag_id IS NOT NULL
         )
-    )";
+    )
+";
 
 
 
