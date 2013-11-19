@@ -37,7 +37,7 @@ my $page_name = "No Name";
 my $gm_img = '<img src="img/icon/ico_gm.gif" />';
 
 
-my $task_str = '<br />&gt;<a href="/mb/viewtasks.cgi">Ç‚ÇÈÇ±Ç∆“”</a>';
+my $task_str = '<br /><a href="/mb/viewtasks.cgi?guid=ON">&gt;Ç‚ÇÈÇ±Ç∆“”</a>';
 
 sub init
 {
