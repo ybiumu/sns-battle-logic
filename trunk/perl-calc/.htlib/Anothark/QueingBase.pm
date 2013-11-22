@@ -60,6 +60,9 @@ sub getAt
 # loop before
 # XXX REMEBER XXX
 # append optimization for result!
+# 留まった場合のリザルトの取り出し方追加
+# 選択をしなかった場合は留まるが、結合条件がなくなるのでLEFT JOIN
+#
 our $select_result_summary = "
 SELECT
     IFNULL(r.result_id, rc.result_id) AS result_id,
@@ -70,9 +73,34 @@ FROM
     JOIN t_user_status AS s USING(user_id)
     JOIN t_selection_que AS q USING(user_id)
     LEFT JOIN t_selection AS sel USING(selection_id)
-    LEFT JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id )
-    JOIN t_result_master AS rc ON ( rc.node_id = s.node_id )
-WHERE u.user_id = ? ";
+    LEFT JOIN (
+        t_user_flagment AS f
+        LEFT JOIN
+        t_result_master AS r
+        ON ( f.flag_id = r.flag_id )
+    ) ON ( f.user_id = u.user_id AND r.node_id = sel.next_node_id )
+    JOIN (
+        t_user_flagment AS fc
+        LEFT JOIN
+        t_result_master AS rc 
+        ON ( fc.flag_id = rc.flag_id )
+    ) ON ( fc.user_id = u.user_id AND rc.node_id = s.node_id )
+WHERE u.user_id = ?
+ORDER BY r.priority DESC, r.result_id DESC,rc.priority DESC,rc.result_id DESC LIMIT 1"
+;
+
+#SELECT
+#    IFNULL(r.result_id, rc.result_id) AS result_id,
+#    IFNULL(r.enemy_group_id, rc.enemy_group_id) AS enemy_group_id,
+#    IFNULL(NULLIF(sel.next_node_id,0), s.node_id ) AS next_node_id
+#FROM
+#    t_user AS u
+#    JOIN t_user_status AS s USING(user_id)
+#    JOIN t_selection_que AS q USING(user_id)
+#    LEFT JOIN t_selection AS sel USING(selection_id)
+#    LEFT JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id )
+#    JOIN t_result_master AS rc ON ( rc.node_id = s.node_id )
+#WHERE u.user_id = ? ";
 
 
 our $bookin_log_id = "
@@ -143,13 +171,13 @@ VALUES
 
 
 
-
+### BUGBUG
 our $update_win_node_sql = "
 UPDATE
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_selection_que AS q USING(user_id)
-    LEFT JOIN t_selection AS sel USING(selection_id)
+    LEFT JOIN t_selection AS sel ON( q.selection_id = sel.selection_id AND sel.can_stay = 1 )
     LEFT JOIN t_node_master AS nm ON( sel.next_node_id = nm.node_id )
 SET
     s.node_id = CASE WHEN nm.can_stay = 1 THEN IFNULL(NULLIF(sel.next_node_id,0), s.node_id ) ELSE s.node_id END,
