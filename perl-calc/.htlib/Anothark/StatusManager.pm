@@ -6,8 +6,8 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 
 #
 #
@@ -65,7 +65,6 @@ sub new
     my $class = shift;
     my $self = $class->SUPER::new();
     bless $self, $class;
-    $self->init();
 
     return $self;
 }
@@ -73,6 +72,7 @@ sub new
 sub init
 {
     my $class = shift;
+    $class->SUPER::init();
     $class->setStatArray($stat_array);
     $class->array2str();
 

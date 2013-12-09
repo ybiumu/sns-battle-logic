@@ -6,10 +6,10 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
+use LoggingObjMethod;
 use Anothark::Item;
 use Anothark::Item::DropItem;
-use base qw( ObjMethod );
+use base qw( LoggingObjMethod );
 sub new
 {
     my $class = shift;
@@ -36,13 +36,13 @@ sub loadItem
     my $stat = $sth->execute(($item_id));
     if ( $sth->rows > 0 )
     {
-        warn "Find record for $item_id";
+        $class->warning( "Find record for $item_id" );
         $item  = $drop_rate ? new Anothark::Item::DropItem( $sth->fetchrow_hashref(), $drop_rate) : new Anothark::Item( $sth->fetchrow_hashref());
         $item->setFieldNames( $sth->{"NAME"}  );
     }
     else
     {
-        warn "No record for $item_id";
+        $class->warning( "No record for $item_id" );
         $item = $drop_rate ? new Anothark::Item::DropItem() : new Anothark::Item();
     }
     $sth->finish();
@@ -65,13 +65,13 @@ sub loadUserItem
     my $stat = $sth->execute(($user_id,$item_id));
     if ( $sth->rows > 0 )
     {
-        warn "Find record for $item_id";
+        $class->warning( "Find record for $item_id" );
         $item  = new Anothark::Item( $sth->fetchrow_hashref());
         $item->setFieldNames( $sth->{"NAME"}  );
     }
     else
     {
-        warn "No record for $item_id";
+        $class->warning( "No record for $item_id");
         $item = new Anothark::Item();
     }
     $sth->finish();

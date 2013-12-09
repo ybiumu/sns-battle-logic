@@ -7,8 +7,8 @@ package Anothark::Character;
 $|=1;
 use strict;
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 
 
 use Anothark::ValueObject;
@@ -28,17 +28,18 @@ sub new
     bless $self, $class;
 
 
-#warn "new init";
+#$class->warning( "new init");
 #    $self->init();
-#warn "new init done";
+#$class->warning( "new init done");
     return $self;
 }
 
 
 sub init
 {
-    warn "Call init";
     my $class = shift;
+    $class->SUPER::init();
+    $class->warning( "Call init");
     $class->setUseElementCount({});
     $class->setStatus( new Anothark::StatusManager() );
     $class->setRawData( new Anothark::ValueObject() );
@@ -579,7 +580,7 @@ sub getTargetingValue
             + ( ( $t_kehai / 100 ) + ( $dv < 0 ? 0: $dv ) )
     );
 
-#    warn sprintf("[%s ‚Ì À°¹Þ¯Ä’l: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_charm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv);
+#    $class->warning( sprintf("[%s ‚Ì À°¹Þ¯Ä’l: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_charm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv));
 
     return $tv;
 }
@@ -604,7 +605,7 @@ sub getPointStr
 sub isLiving
 {
     my $class = shift;
-#    warn sprintf("%s is living.", $class->getName());
+#    $class->warning( sprintf("%s is living.", $class->getName()));
     return ( $class->getHp()->cv() > 0 );
 }
 
@@ -612,7 +613,7 @@ sub isLiving
 sub isSmallerThanHalf
 {
     my $class = shift;
-#    warn sprintf("%s is living.", $class->getName());
+#    $class->warning( sprintf("%s is living.", $class->getName()));
     return ( $class->getHp()->cv() < $class->getHp()->mv() / 2 );
 }
 

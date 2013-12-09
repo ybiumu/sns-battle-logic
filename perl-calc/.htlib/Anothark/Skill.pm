@@ -7,8 +7,8 @@ use strict;
 
 use constant RAND_ALIAS => { 0 => 0, 1 => 5, 2 => 10, 3 => 25, 4 => 50, 5 => 100};
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 sub new
 {
     my $class   = shift;
@@ -35,6 +35,12 @@ sub new
 
     return $self;
 }
+sub init
+{
+    my $class = shift;
+    $class->SUPER::init();
+    $class->debug("Call skill init");
+}
 
 sub setup_options
 {
@@ -45,7 +51,7 @@ sub setup_options
         foreach my $key ( keys %{$options})
         {
             $class->{$key} = $options->{$key};
-#            warn sprintf("[LIB] %s: %s",$key, $options->{$key});
+#            $class->warning( sprintf("[LIB] %s: %s",$key, $options->{$key}));
         }
     }
 }

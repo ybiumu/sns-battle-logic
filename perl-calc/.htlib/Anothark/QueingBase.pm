@@ -15,8 +15,8 @@ use Anothark::Battle::Exhibition;
 use Anothark::Character;
 use Anothark::Skill;
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 sub new
 {
     my $class   = shift;
@@ -408,7 +408,7 @@ sub doQueing
                     foreach my $items ( @{$drops} )
                     {
                         my $target = $party->[int(rand(scalar(@{$party})))];
-#        warn sprintf( "[DROP R] %s", $items->getItemLabel());
+#        $class->warning( sprintf( "[DROP R] %s", $items->getItemLabel()));
                         $ins_pre .= sprintf('<br />™%s‚Í%s‚ðŽè‚É“ü‚ê‚½!', $target->getName(),$items->getItemLabel());
                         $target->getStatusIo()->getItem( $target->getId(), $items->getItemMasterId() );
                     }

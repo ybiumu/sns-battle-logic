@@ -7,8 +7,8 @@ use strict;
 
 use Encode;
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 
 use Anothark::Battle::BaseValue;
 use Anothark::Battle::TargetValue;
@@ -97,7 +97,7 @@ sub new
     my $self = $class->SUPER::new();
     bless $self, $class;
 
-    $self->init();
+#    $self->init();
     $self->setLogger($logger);
     $self->setAt($at);
     return $self;
@@ -106,6 +106,7 @@ sub new
 sub init
 {
     my $class = shift;
+    $class->SUPER::init();
     $class->setBattleEnd(0);
     $class->setCharacter({});
     $class->setTurnText([]);
@@ -460,17 +461,17 @@ sub doBattle
 
 sub checkDropItems
 {
-    warn "[CHECK]";
     my $class = shift;
+    $class->warning( "[CHECK]");
     my $beats = $class->getBeatCharactersBySide("e");
     return [ grep { $_->isDroped() } ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )];
 #    my $drops = [];
 #    foreach my $item ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )
 #    {
-#        warn sprintf "[ITEMS] %s",$item->getItemLabel();
+#        $class->warning( sprintf "[ITEMS] %s",$item->getItemLabel());
 #        if ( $item->isDroped() )
 #        {
-#            warn sprintf "[DROP] %s",$item->getItemLabel();
+#            $class->warning( sprintf "[DROP] %s",$item->getItemLabel());
 #            push( @{$drops}, $item);
 #        }
 #    }
@@ -568,7 +569,7 @@ sub doTurn
     my $chars = $class->getCharacter();
     $class->setCurrentTurn($turn);
     $class->getTurnText()->[$turn] .= "<hr /><div style=\"text-align:center;color:#ff0000;\">Turn $turn</div>";
-    warn "TURN [$turn]";
+    $class->warning( "TURN [$turn]");
 
     foreach my $cs ( @{$class->getLiving()} )
     {
@@ -714,7 +715,7 @@ sub doSkillUnit
         $cmd->getName(),
     );
 
-    warn "Run Cmd id is [". $cmd->getSkillId() ."]";
+    $class->warning( "Run Cmd id is [". $cmd->getSkillId() ."]");
 
     my @target_order = ();
 
@@ -803,14 +804,14 @@ sub doSkillUnit
                 # each targets
                 if ( $cmd->getRangeType() eq "1" )
                 {
-#                warn "range type 1";
+#                $class->warning( "range type 1");
                     my $target = $chars->{$target_order[0]};
                     $is_count += $class->resolveDamages($target, $cmd);
                     # Target
                 }
                 elsif( $cmd->getRangeType() eq "2" )
                 {
-#                warn "range type 2";
+#                $class->warning( "range type 2");
                     my $target = $chars->{$target_order[0]};
                     map { $is_count += $class->resolveDamages($chars->{ $_ }, $cmd); } @{$class->getSameRangeTargets($target)};
                     
@@ -837,7 +838,7 @@ sub doSkillUnit
     {
         $raise_parent = $is_count;
         $is_count = 0;
-        warn "No Count!";
+        $class->warning( "No Count!");
     }
 
     if ( $is_count )
@@ -979,7 +980,7 @@ sub damageExec
 
 #    $base->setPs(1);
 {
-    warn sprintf("
+    $class->warning( sprintf("
     [Char]     : %s
     [SkillName]: %s
     [PSname]   : %s
@@ -993,7 +994,7 @@ sub damageExec
      $from->getAttribute($skill->getPowerSourceByKey())->cv(),
      $skill->getSkillRate(),
      $skill->getSkillId(), $skill->getParentSkillId(),
-    );
+    ));
 }
     $base->setPs( $from->getAttribute($skill->getPowerSourceByKey())->cv() );
     $base->setSr( $skill->getSkillRate() );
@@ -1021,16 +1022,17 @@ sub damageExec
     $target_value->setChain(1);
 
     my $tmp_value = $base->calc() * $status->calc() * $target_value->calc();
-    warn sprintf "Damage [%s/%s/%s]",$base->calc(), $status->calc(), $target_value->calc();
+    $class->warning( sprintf "Damage [%s/%s/%s]",$base->calc(), $status->calc(), $target_value->calc());
 
-    return getRealDamage( $tmp_value, ( $skill->getEffectTargetType() == 3 ? $to->gDef()->cv()  : 0 ), 1 );
+    return $class->getRealDamage( $tmp_value, ( $skill->getEffectTargetType() == 3 ? $to->gDef()->cv()  : 0 ), 1 );
 #    return getRealDamage( $skill->getSkillRate(), $to->gDef()->cv(), 0 ); ‘Ï«‚Í‰¼‚Ì’l
 }
 
 sub getRealDamage
 {
 #    return getRealDamageSimple(@_);
-    return calcDeffence(@_);
+    my $class = shift;
+    return $class->calcDeffence(@_);
 }
 
 sub getRealDamageSimple
@@ -1045,12 +1047,13 @@ sub getRealDamageSimple
 
 sub calcDeffence
 {
+    my $class = shift;
     my $tmp_value  = shift;
     my $ap         = shift;
     my $tmp_regist = shift;
     return 0 if ( $tmp_regist == 0 );
     my $value = sprintf "%d", ($tmp_value - ( ( abs($tmp_value) < abs($ap/2) ? $tmp_value : ($ap/2)) * ( $tmp_regist / abs( $tmp_regist) ) ) );
-    warn "   [CalResult] : $value";
+    $class->warning( "   [CalResult] : $value");
     return $value;
 }
 

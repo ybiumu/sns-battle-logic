@@ -22,7 +22,7 @@ sub new
 #    {
 #        foreach my $key ( keys %{$options})
 #        {
-#            warn "$key : $options->{$key}";
+#            $class->warning( "$key : $options->{$key}");
 #            $self->{$key} = $options->{$key};
 #        }
 #    }

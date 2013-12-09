@@ -3,8 +3,8 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 
 use constant CALC_FORMAT => "%.2f";
 #use constant CALC_FORMAT => "%s";
@@ -135,13 +135,13 @@ sub new
     my $self = $class->SUPER::new();
     bless $self, $class;
 
-    $self->init();
     return $self;
 }
 
 sub init
 {
     my $class = shift;
+    $class->SUPER::init();
     $class->setPs(0);
     $class->setSr(0);
     $class->setLv(0);#new!
@@ -189,7 +189,7 @@ sub calc_target
     my $rv    = shift;
 #    my $value = sprintf(CALC_FORMAT, $class->getPs() / 100 * $class->getSr() * $class->getExpRate() * $class->getRange() * $class->getRandTarget($rv) ) ;
     my $value = sprintf(CALC_FORMAT, $class->getSr() * $class->getExpRate() * $class->getRange() * $class->getRandTarget($rv) ) ;
-#    warn "[result] $rv / $value";
+#    $class->warning( "[result] $rv / $value");
     return $value;
 }
 

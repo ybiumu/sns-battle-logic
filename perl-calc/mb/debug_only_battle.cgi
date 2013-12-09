@@ -83,7 +83,7 @@ my $mob_uid = $mu->get_muid();
     foreach my $items ( @{$drops} )
     {
         my $target = $party->[int(rand(scalar(@{$party})))];
-#        warn sprintf( "[DROP R] %s", $items->getItemLabel());
+#        $pu->warning(sprintf( "[DROP R] %s", $items->getItemLabel()));
         $out->{RESULT} .= sprintf('<br />™%s‚Í%s‚ðŽè‚É“ü‚ê‚½!', $target->getName(),$items->getItemLabel());
         $target->getStatusIo()->getItem( $target->getId(), $items->getItemMasterId() );
     }

@@ -18,8 +18,8 @@ use Anothark::Skill;
 sub new
 {
     my $class = shift;
-    warn "Call Player";
     my $self = $class->SUPER::new();
+    $self->debug( "Call Player");
     bless $self, $class;
 
 
@@ -32,7 +32,7 @@ my $element_total_count = undef;
 
 sub init
 {
-#    warn "Call child init";
+#    $class->warning( "Call child init");
     my $class = shift;
     $class->SUPER::init();
 

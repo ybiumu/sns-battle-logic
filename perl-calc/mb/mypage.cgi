@@ -16,6 +16,7 @@ $at->setPageUtil($pu);
 
 my $db = DbUtil::getDbHandler();
 my $mu = new MobileUtil();
+$mu->debug(" page muid " .$mu->get_muid() );
 
 $at->setDbHandler($db);
 $at->setMobileUtil($mu);

@@ -6,9 +6,9 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
+use LoggingObjMethod;
 use Anothark::Skill;
-use base qw( ObjMethod );
+use base qw( LoggingObjMethod );
 sub new
 {
     my $class = shift;
@@ -92,7 +92,7 @@ sub loadSkillById
     my $stat = $sth->execute(($skill_id));
     if ( $sth->rows > 0 )
     {
-#        warn "Find record for $skill_id";
+#        $class->warning( "Find record for $skill_id");
         $skill  = new Anothark::Skill( "", $sth->fetchrow_hashref());
         $skill->setFieldNames( $sth->{"NAME"}  );
 #        $skill->setSkillLoader($class);
@@ -100,7 +100,7 @@ sub loadSkillById
     }
     else
     {
-#        warn "No record for $skill_id";
+#        $class->warning( "No record for $skill_id");
         $skill = new Anothark::Skill();
     }
 #    $sth->finish();
