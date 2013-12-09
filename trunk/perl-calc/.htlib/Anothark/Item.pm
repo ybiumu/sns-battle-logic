@@ -6,8 +6,8 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 sub new
 {
     my $class   = shift;
@@ -20,7 +20,7 @@ sub new
     {
         foreach my $key ( keys %{$options})
         {
-            warn "$key : $options->{$key}";
+            $self->warning( "$key : $options->{$key}");
             $self->{$key} = $options->{$key};
         }
     }

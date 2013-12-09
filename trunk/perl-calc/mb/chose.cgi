@@ -9,7 +9,6 @@ use Avatar;
 
 use PageUtil;
 use AaTemplate;
-
 my $pu = new PageUtil();
 my $at = new AaTemplate();
 $at->setPageUtil($pu);

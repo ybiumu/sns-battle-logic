@@ -17,7 +17,7 @@ sub doExhibitionMatch
     my $force_node = shift;
     my $db       = $battle->getAt()->getDbHandler();
     $me->setSide("p");
-#warn "Append user.";
+#$battle->warning( "Append user.");
     $battle->appendCharacter( $me );
 
 #    my $p1 = $battle->getAt()->getPlayerByUserId(2);
@@ -36,9 +36,9 @@ sub doExhibitionMatch
     $me->getAtack()->setBothValue(15);
 
 
-#warn "Append hagis1.";
+#$battle->warning( "Append hagis1.");
     my $npc1 = new Anothark::Character();
-#warn "Append hagis1 done.";
+#$battle->warning( "Append hagis1 done.");
     $npc1->setId("hagis1");
     $npc1->setName("íŽmÊ·Þ½");
     $npc1->getHp()->setBothValue(50);
@@ -56,9 +56,9 @@ sub doExhibitionMatch
     $npc1->getPosition()->setBothValue("f");
     $battle->appendCharacter( $npc1 );
 
-#warn "Append hagis2.";
+#$battle->warning( "Append hagis2.";
     my $npc2 = new Anothark::Character();
-#warn "Append hagis2 done.";
+#$battle->warning( "Append hagis2 done.";
     $npc2->setId("hagis2");
     $npc2->setName("‰°•aÊ·Þ½");
     $npc2->getHp()->setBothValue(25);
@@ -137,8 +137,8 @@ sub doExhibitionMatch
 
     my $total_count = scalar(@{$encounts});
     my $rnd = int(rand( $total_count ));
-    warn "total_count[$total_count] rnd[$rnd]";
-#warn "Do encount.";
+    $battle->warning( "total_count[$total_count] rnd[$rnd]");
+#$battle->warning( "Do encount.");
     &{$encounts->[$rnd]}( $battle );
 
     $battle->doBattle();
@@ -151,8 +151,8 @@ sub doExhibitionMatch
 
 sub gemStone
 {
-#    warn "Call gemStone";
     my $battle = shift;
+#    $battle->warning( "Call gemStone");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -191,8 +191,8 @@ sub gemStone
 
 sub zwei
 {
-#    warn "Call zwei";
     my $battle = shift;
+#    $battle->warning( "Call zwei");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -274,7 +274,7 @@ sub zwei
 
 sub hagis
 {
-#    warn "Call hhagis";
+#    $battle->warning( "Call hhagis");
     my $battle = shift;
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
@@ -309,8 +309,8 @@ sub hagis
 
 sub golem
 {
-#    warn "Call golem";
     my $battle = shift;
+#    $battle->warning( "Call golem");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -346,8 +346,8 @@ sub golem
 
 sub enemy001
 {
-#    warn "Call hhagis";
     my $battle = shift;
+#    $battle->warning( "Call hhagis");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);

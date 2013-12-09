@@ -8,13 +8,13 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
+use LoggingObjMethod;
 use Avatar;
 use LocalConfig;
 use Anothark::Character;
 use Anothark::Character::Player;
 use Anothark::Character::StatusIO;
-use base qw( ObjMethod );
+use base qw( LoggingObjMethod );
 
 
 my $base = "template.html";
@@ -37,11 +37,12 @@ my $page_name = "No Name";
 my $gm_img = '<img src="img/icon/ico_gm.gif" />';
 
 
-my $task_str = '<br /><a href="/mb/viewtasks.cgi?guid=ON">&gt;Ç‚ÇÈÇ±Ç∆“”</a>';
+my $task_str = '<br /><a href="viewtasks.cgi?guid=ON">&gt;Ç‚ÇÈÇ±Ç∆“”</a>';
 
 sub init
 {
     my $class = shift;
+    $class->SUPER::init();
     $class->setOut($out);
     $class->setPageName($page_name);
     $class->setBase($base);
@@ -265,7 +266,7 @@ sub printHeader
 #<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
 # "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
 #_HEADER_
-    if ($class->getMobileUtil()->getCarrierId())
+    if ($class->getMobileUtil() && $class->getMobileUtil()->getCarrierId())
     {
         $class->printFpHeader();
     }
@@ -279,13 +280,26 @@ sub printFpHeader
 {
     my $class = shift;
     my $ct = $class->getPageUtil()->getContentType();
-    print <<_HEADER_;
+    my $bw = $class->getMobileUtil()->getBrowser();
+    if ( $bw eq "P" )
+    {
+        print <<_HEADER_;
+Content-type: $ct;
+
+<?xml version="1.0" encoding="Shift_JIS"?>
+<!DOCTYPE html>
+_HEADER_
+    }
+    else
+    {
+        print <<_HEADER_;
 Content-type: $ct;
 
 <?xml version="1.0" encoding="Shift_JIS"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
  "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
 _HEADER_
+    }
 }
 
 
@@ -359,7 +373,7 @@ sub setupBaseData
     my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
     my $row  = $sth->fetchrow_hashref();
 
-    $class->getPageUtil()->output_log(qq["Already registed check: " ], sprintf("carrier: %s, uid: %s, row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $sth->rows() ));
+    $class->notice(qq["Already registed check: " ], sprintf("carrier: %s, uid: %s, row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $sth->rows() ));
 
     if ( $sth->rows() == 0 )
     {
@@ -449,11 +463,11 @@ sub getPlayerByUserId
     my $char = $class->getCharacterByUserId($user_id,$template);
     if ( not defined $char )
     {
-        warn "undefined character. id [$user_id]";
+        $class->warning( "undefined character. id [$user_id]" );
         return $char;
     }
     my $ref = ref($char);
-    warn "char is [$char]";
+    $class->warning( "char is [$char]");
     $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
     return $char;
@@ -536,7 +550,7 @@ sub getCharacterByUserId
     my $stat = $sth->execute(($user_id));
     my $row  = $sth->fetchrow_hashref();
 
-    $class->getPageUtil()->output_log(qq["CHECK: " ], sprintf("carrier: %s, uid: %s, target_user_id: %s,row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $user_id, $sth->rows() ));
+    $class->output_log(qq["CHECK: " ], sprintf("carrier: %s, uid: %s, target_user_id: %s,row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $user_id, $sth->rows() ));
 
     if ( $sth->rows() == 0 )
     {

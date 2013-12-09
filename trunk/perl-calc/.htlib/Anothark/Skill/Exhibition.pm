@@ -13,13 +13,20 @@ sub new
 {
     my $class = shift;
     my $skill_name = shift;
-    warn "Call Exhibision skill";
     my $self = $class->SUPER::new();
+    $self->debug( "Call Exhibision skill");
     bless $self, $class;
 
 
     $self->setup( $skill_name );
     return $self;
+}
+
+sub init
+{
+    my $class = shift;
+    $class->SUPER::init();
+    $class->debug("Call skill exhibition init");
 }
 
 sub setup

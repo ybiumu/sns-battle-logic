@@ -6,14 +6,23 @@ $LocalConfig::DATA_PLACE = "$LocalConfig::BASE_DIR/data";
 $LocalConfig::TEMPLATE_DIR = "$LocalConfig::DATA_PLACE/anothark";
 $LocalConfig::LOG_DIR = "$LocalConfig::BASE_DIR/.htlog";
 
+$LocalConfig::ACCESS_LOG = "aa_access_log";
+$LocalConfig::SYSTEM_LOG = "aa_system_log";
+
+
+
+$LocalConfig::BASE_URL = 'http://anothark.colinux.net';
 $LocalConfig::USER   = 'mp';
 $LocalConfig::PASSWD = 'mp';
 $LocalConfig::DBNAME = 'LAA0195285-anothark';
 $LocalConfig::SERVER = 'localhost';
+$LocalConfig::LOCAL_DEBUG = 1;
 
-#$LocalConfg::USER   = 'LAA0195285';
-#$LocalConfg::PASSWD = 'krah_tona';
-#$LocalConfg::DBNAME = 'LAA0195285-anothark';
-#$LocalConfg::SERVER = 'mysql567.phy.lolipop.jp';
+#$LocalConfig::BASE_URL = 'http://anothark.ciao.jp';
+#$LocalConfig::USER   = 'LAA0195285';
+#$LocalConfig::PASSWD = 'krah_tona';
+#$LocalConfig::DBNAME = 'LAA0195285-anothark';
+#$LocalConfig::SERVER = 'mysql567.phy.lolipop.jp';
+#$LocalConfig::LOCAL_DEBUG = 0;
 
 1;

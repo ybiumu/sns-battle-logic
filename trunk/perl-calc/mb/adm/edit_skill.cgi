@@ -145,7 +145,7 @@ if ( $skill->getSkillId() > 0 )
         $out->{"save_form"}  = "";
         foreach my $select_element (keys %{$selects})
         {
-#            $out->{ "_".$select_element } = { map { warn sprintf("[%s] map[%s] [%s]",$select_element , $_ , $out->{$select_element});( $_ => ( $out->{$select_element} eq $_ ? ( warn " ->") && $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
+#            $out->{ "_".$select_element } = { map { $pu->warning( sprintf("[%s] map[%s] [%s]",$select_element , $_ , $out->{$select_element}));( $_ => ( $out->{$select_element} eq $_ ? ( $pu->warning( " ->")) && $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
             $out->{ "_".$select_element } = { map { ( $_ => ( $out->{$select_element} eq $_ ? $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
         }
     }

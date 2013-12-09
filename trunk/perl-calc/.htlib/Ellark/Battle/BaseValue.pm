@@ -173,7 +173,7 @@ sub calc_target
     my $class = shift;
     my $rv    = shift;
     my $value = sprintf(CALC_FORMAT, $class->getPs() * $class->getSr() * $class->getExpRate() * $class->getRange() * $class->getRandTarget($rv) ) ;
-#    warn "[result] $rv / $value";
+#    $class->warning( "[result] $rv / $value");
     return $value;
 }
 
@@ -204,7 +204,7 @@ sub getExpRate
     {
         $exp_rate = sqrt( ( ($class->getMainExpr()*3+$class->getSubExpr())*7 + 1000) / 1000 );
     }
-#    warn "[EXP_RATE] $exp_rate";
+#    $class->warning( "[EXP_RATE] $exp_rate");
     return sprintf("%s", $exp_rate);
 #    return sprintf("%.2f", $exp_rate);
 }
@@ -234,7 +234,7 @@ sub getRandTarget
     my $rv    = shift;
     my $value = (100 + ( $rv )) / 100;
 #    my $value =  1 + ( ( $rv ) / 100 );
-#    warn "[VALUE]: $rv / $value";
+#    $class->warning( "[VALUE]: $rv / $value");
     return $value;
 }
 

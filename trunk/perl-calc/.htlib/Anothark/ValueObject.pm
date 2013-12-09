@@ -6,8 +6,8 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 
 my $max_value = undef;
 my $current_value = undef;
@@ -16,7 +16,7 @@ sub new
     my $class = shift;
     my $self = $class->SUPER::new();
     bless $self, $class;
-    $self->init();
+#    $self->init();
 
     return $self;
 }
@@ -24,6 +24,7 @@ sub new
 sub init
 {
     my $class = shift;
+    $class->SUPER::init();
     $class->setMaxValue(0);
     $class->setCurrentValue(0);
 }

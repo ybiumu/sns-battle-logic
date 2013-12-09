@@ -3,8 +3,10 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
-use base qw( ObjMethod );
+use CGI;
+use CGI::Session;
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 
 
 my $browser = undef;
@@ -17,13 +19,14 @@ sub new
     my $self = $class->SUPER::new();
     bless $self, $class;
 
-    $self->init();
+#    $self->init();
     return $self;
 }
 
 sub init
 {
     my $class = shift;
+    $class->SUPER::init();
     $class->setBrowser("P");
     $class->setCarrierId(0);
     $class->setContentType("text/html");
@@ -53,30 +56,90 @@ sub parseUserAgent
         $class->setCarrierId(3);
         $class->setContentType("application/xhtml+xml");
     }
+    else
+    {
+        my $cgi = CGI->new;
+        my $sid = $cgi->cookie('CGISESSID')||undef;
+        if ( $sid )
+        {
+            my $session = new CGI::Session(undef, $sid, {Directory=>'/home/users/2/ciao.jp-anothark/web/.htsession'});
+            $class->debug("Session check");
+            if ( $sid eq $session->id)
+            {
+                # Updage available time.
+                $session->expire("+1h");
+
+                if ( $session->param('pattern') eq "twauth" )
+                {
+                    $class->debug(" Session is 'twauth'");
+                    $class->setBrowser("P");
+                    $class->setCarrierId(11);
+                    $class->debug(" Session user_id is `" . $session->param('user_id'). "'");
+                    $class->setUid( sprintf("%s:%s", $session->param('pattern'), $session->param('user_id')));
+                }
+                else
+                {
+                    $class->debug(" Session is 'unknown' type");
+                }
+            }
+            else
+            {
+                $class->notice(" Session is Expired[$sid]. ");
+                $session->close();
+                $session->delete();
+                print $cgi->redirect( -uri => "/sp/logout.html" );
+                exit;
+            }
+        }
+    }
 }
 
 
 
 sub get_muid {
     my $class = shift;
-    my $muid = $ENV{"HTTP_X_DCMGUID"};
-    if ($muid) {
-      return $muid;
+
+    my $muid ;
+    if( $class->getBrowser() ne "P" )
+    {
+        $muid = $ENV{"HTTP_X_DCMGUID"};
+        if ($muid) {
+          return $muid;
+        }
+        $muid = $ENV{"HTTP_X_UP_SUBNO"};
+        if ($muid) {
+          return $muid;
+        }
+        $muid = $ENV{"HTTP_X_JPHONE_UID"};
+        if ($muid) {
+          return $muid;
+        }
+        $muid = $ENV{"HTTP_X_EM_UID"};
+        if ($muid) {
+          return $muid;
+        }
     }
-    $muid = $ENV{"HTTP_X_UP_SUBNO"};
-    if ($muid) {
-      return $muid;
-    }
-    $muid = $ENV{"HTTP_X_JPHONE_UID"};
-    if ($muid) {
-      return $muid;
-    }
-    $muid = $ENV{"HTTP_X_EM_UID"};
-    if ($muid) {
-      return $muid;
+
+    $muid = $class->getUid();
+    $class->debug("get_muid muid is '$muid'");
+    if($muid)
+    {
+        return $muid;
     }
 }
 
+
+sub setUid
+{
+    my $class = shift;
+    $class->debug("Call setUid '" . $_[0] . "'");
+    return $class->setAttribute( 'uid', shift );
+}
+
+sub getUid
+{
+    return $_[0]->getAttribute( 'uid' );
+}
 
 
 sub setContentType

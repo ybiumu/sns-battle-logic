@@ -22,8 +22,8 @@ use Anothark::Item::DropItem;
 sub new
 {
     my $class = shift;
-    warn "Call enemy";
     my $self = $class->SUPER::new();
+    $self->debug( "Call enemy");
     bless $self, $class;
 
 
@@ -35,9 +35,9 @@ my $drop_items = undef;
 
 sub init
 {
-    warn "Call child init";
     my $class = shift;
     $class->SUPER::init();
+    $class->debug( "Call child init");
     $class->setDropItems([
         new Anothark::Item::DropItem( {item_master_id => 5, item_label => '‹•‹U‚ÌŒ‡•Ð' } , 50)
     ]);
@@ -495,7 +495,7 @@ sub getDropItems
 #            + ( ( $t_kehai / 100 ) + ( $dv < 0 ? 0: $dv ) )
 #    );
 #
-##    warn sprintf("[%s ‚Ì À°¹Þ¯Ä’l: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_charm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv);
+##    $class->warning( sprintf("[%s ‚Ì À°¹Þ¯Ä’l: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_charm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv));
 #
 #    return $tv;
 #}
@@ -516,7 +516,7 @@ sub getDropItems
 #sub isLiving
 #{
 #    my $class = shift;
-##    warn sprintf("%s is living.", $class->getName());
+##    $class->warning( sprintf("%s is living.", $class->getName()));
 #    return ( $class->getHp()->cv() > 0 );
 #}
 #

@@ -6,19 +6,19 @@ $|=1;
 use strict;
 
 
-use ObjMethod;
+use LoggingObjMethod;
 use LocalConfig;
-use base qw( ObjMethod );
+use base qw( LoggingObjMethod );
 
 #my $BASE_DIR = "/home/users/2/ciao.jp-anothark/web";
 #my $LOG_DIR = $BASE_DIR . "/.htlog";
 #my $access_log = $LOG_DIR . "/access_log";
 #my $system_log = $LOG_DIR . "/system_log";
-my $access_log = "aa_access_log";
-my $system_log = "aa_system.log";
+#my $access_log = "aa_access_log";
+#my $system_log = "aa_system.log";
 my $content_type = "text/html";
 my $selected_str = 'selected="true"';
-my $both = 0;
+#my $both = 0;
 
 sub new
 {
@@ -26,7 +26,7 @@ sub new
     my $self = $class->SUPER::new();
     bless $self, $class;
 
-    $self->init();
+#    $self->init();
     return $self;
 
 }
@@ -34,24 +34,15 @@ sub new
 sub init
 {
     my $class = shift;
-    $class->setAccessLog($access_log);
-    $class->setSystemLog($system_log);
+    $class->SUPER::init();
+#    $class->setAccessLog($access_log);
+#    $class->setSystemLog($system_log);
     $class->setContentType($content_type);
     $class->setSelectedStr($selected_str);
-    $class->setBoth($both);
+#    $class->setBoth($both);
 
 }
 
-sub setBoth
-{
-    my $class = shift;
-    return $class->setAttribute( 'both', shift );
-}
-
-sub getBoth
-{
-    return $_[0]->getAttribute( 'both' );
-}
 
 
 sub setContentType
@@ -77,67 +68,6 @@ sub getSelectedStr
     return $_[0]->getAttribute( 'selected_str' );
 }
 
-sub setSystemLog
-{
-    my $class = shift;
-    return $class->setAttribute( 'system_log', getLogPath(shift) );
-}
-
-sub getSystemLog
-{
-    return $_[0]->getAttribute( 'system_log' );
-}
-
-sub setAccessLog
-{
-    my $class = shift;
-    return $class->setAttribute( 'access_log', getLogPath(shift) );
-}
-
-sub getAccessLog
-{
-    return $_[0]->getAttribute( 'access_log' );
-}
-
-sub getLogPath
-{
-    return sprintf("%s/%s", $LocalConfig::LOG_DIR, shift );
-}
-
-sub output_access_log
-{
-    my $class = shift;
-    open LOG, ">>", $class->getAccessLog()  || ( printError("Can't open log 1") && exit );
-    printf LOG "[%s] %s\r\n", scalar(localtime()), join(" ",@_);
-    close LOG;
-}
-
-sub output_log
-{
-    my $class = shift;
-    open LOG, ">>", $class->getSystemLog || ( printError("Can't open log 2") && exit );
-    printf LOG "[%s] %s\r\n", scalar(localtime()), join("",@_);
-    printf "[%s] %s\r\n", scalar(localtime()), join("",@_) if $class->getBoth();
-    close LOG;
-}
-
-sub notice
-{
-    my $class = shift;
-    $class->output_log(sprintf("[NOTICE] %s", join("",@_) ));
-}
-
-sub error
-{
-    my $class = shift;
-    $class->output_log(sprintf("[ERROR] %s", join("",@_) ));
-}
-
-sub warning
-{
-    my $class = shift;
-    $class->output_log(sprintf("[WARNING] %s", join("",@_) ));
-}
 
 sub printError
 {

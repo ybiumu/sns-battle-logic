@@ -28,26 +28,37 @@ my $ad_str = "";
 
 
 my $selects = {
-    'effect_type'      => [0,1,2,3,4,5,6],
-    'learn_type_id'    => [0,1,2],
-    'type_id'          => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
-    'sub_type_id'      => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
-    'item_type'       => [1,2,3,4],
-    'power_source'     => [0,1,2],
-    'concent_type'     => [0,1,2,3,4],
-    'random_type'      => [0,1,2,3,4,5,6],
-    'formula_type'     => [0,1],
-    'base_type'        => [1,2,3,4],
-    'base_element'     => [0,1,2,3,4,-1,11,12,13,14],
-    'sub_base_type'    => [0,1,2,3,4],
-    'sub_base_element' => [0,1,2,3,4,-1,11,12,13,14],
-    'length_type'         => [1,2,3],
-    'range_type'          => [1,2,3],
-    'target_type'         => [1,2,3],
-    'position_limit_type' => [0,1,2],
-    'flying_limit_type'   => [0,1,2],
-    'phaseout_limit_type' => [0,1,2],
+#    'effect_type'      => [0,1,2,3,4,5,6],
+#    'learn_type_id'    => [0,1,2],
+#    'type_id'          => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
+#    'sub_type_id'      => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
+#    'item_type'       => [1,2,3,4],
+#    'power_source'     => [0,1,2],
+#    'concent_type'     => [0,1,2,3,4],
+#    'random_type'      => [0,1,2,3,4,5,6],
+#    'formula_type'     => [0,1],
+#    'base_type'        => [1,2,3,4],
+#    'base_element'     => [0,1,2,3,4,-1,11,12,13,14],
+#    'sub_base_type'    => [0,1,2,3,4],
+#    'sub_base_element' => [0,1,2,3,4,-1,11,12,13,14],
+#    'length_type'         => [1,2,3],
+#    'range_type'          => [1,2,3],
+#    'target_type'         => [1,2,3],
+#    'position_limit_type' => [0,1,2],
+#    'flying_limit_type'   => [0,1,2],
+#    'phaseout_limit_type' => [0,1,2],
+
+    'item_type_id'          => [1,2,3,4,5,6],
+    'item_sub_type_id'      => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,33],
+    'use_effect_target'     => [0,1,2],
+    'use_effect_range'      => [0],
+    'is_external_exec'      => [0,1],
 };
+
+
+
+
+
 
 my $browser      = $mu->getBrowser();
 #my $carrier_id   = $mu->getCarrierId();
@@ -99,7 +110,7 @@ my $item = $sl->loadItem($item_master_id);
 
 my $lines = 0;
 
-warn $item->getItemMasterId();
+$pu->warning($item->getItemMasterId());
 
 if ( $item->getItemMasterId() > 0 )
 {
@@ -111,7 +122,7 @@ $out->{RESULT_TITLE} = "ŠÇ— - ±²ÃÑ•ÒW";
 
     if ( $c->param("act") eq "saveconfirm" )
     {
-$out->{RESULT_TITLE} .= "(1)";
+        my $code = "(1)";
         $out->{"difference"} = "";
         $out->{"save_form"}  = "";
         foreach my $select_element (keys %{$selects})
@@ -122,9 +133,13 @@ $out->{RESULT_TITLE} .= "(1)";
         {
             if ( $c->param($key) ne undef )
             {
-                if ( $item->{$key} ne $c->param($key) )
+                my $old = $item->{$key};
+                my $new = $c->param($key);
+#                $out->{PRE_RESULT} .= sprintf("%s: %s/%s<br />\n",$key,$old,$new);
+                if ( $old ne $new )
                 {
                     $out->{"difference"} .= sprintf("%s:%s->%s<br />\n", $key,$item->{$key},$c->param($key));
+                    $out->{PRE_RESULT} .= $out->{"difference"};
                 }
             }
         }
@@ -132,6 +147,11 @@ $out->{RESULT_TITLE} .= "(1)";
         {
             $out->{"save_form"}  = '<input type="submit" value="save" />';
         }
+        else
+        {
+            $code = "(1->3)";
+        }
+$out->{RESULT_TITLE} .= $code;
     }
     elsif ( $c->param("act") eq "save" )
     {
@@ -150,7 +170,7 @@ $out->{RESULT_TITLE} .= "(3)";
         $out->{"save_form"}  = "";
         foreach my $select_element (keys %{$selects})
         {
-#            $out->{ "_".$select_element } = { map { warn sprintf("[%s] map[%s] [%s]",$select_element , $_ , $out->{$select_element});( $_ => ( $out->{$select_element} eq $_ ? ( warn " ->") && $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
+#            $out->{ "_".$select_element } = { map { $pu->warning( sprintf("[%s] map[%s] [%s]",$select_element , $_ , $out->{$select_element}));( $_ => ( $out->{$select_element} eq $_ ? ( $pu->warning( " ->")) && $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
             $out->{ "_".$select_element } = { map { ( $_ => ( $out->{$select_element} eq $_ ? $pu->getSelectedStr() : ""  ) ) } @{$selects->{$select_element}}};
         }
     }

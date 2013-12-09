@@ -166,9 +166,9 @@ elsif ( $done ne "" && scalar( grep { $setting_type eq $_ } keys %{$template_map
 
         my $up_sth  = $db->prepare( $update_query_map->{$position} );
         my $up_stat = $up_sth->execute(($list_id, $setting_type, $user_id ));
-        warn "[POS] $position";
-        warn "[SQL] $update_query_map->{$position}";
-        warn "[PRM] " . join("/",($list_id, $setting_type, $user_id ));
+        $pu->warning("[POS] $position");
+        $pu->warning("[SQL] $update_query_map->{$position}");
+        $pu->warning("[PRM] " . join("/",($list_id, $setting_type, $user_id )));
         $up_sth->finish();
         $out->{RESULT} .= "Desc save.";
         if ( scalar( grep { $setting_type eq $_ } keys %{$rebind_sql_map} ) )

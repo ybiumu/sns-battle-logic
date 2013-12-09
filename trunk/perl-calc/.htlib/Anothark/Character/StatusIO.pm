@@ -5,8 +5,8 @@ package Anothark::Character::StatusIO;
 $|=1;
 use strict;
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 sub new
 {
     my $class = shift;

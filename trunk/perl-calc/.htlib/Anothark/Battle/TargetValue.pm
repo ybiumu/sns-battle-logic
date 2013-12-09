@@ -2,8 +2,8 @@ package Anothark::Battle::TargetValue;
 $|=1;
 use strict;
 
-use ObjMethod;
-use base qw( ObjMethod );
+use LoggingObjMethod;
+use base qw( LoggingObjMethod );
 
 use constant CONCENT_TYPE => {
     normal  => 0,
@@ -19,13 +19,13 @@ sub new
     my $self = $class->SUPER::new();
     bless $self, $class;
 
-    $self->init();
     return $self;
 }
 
 sub init
 {
     my $class = shift;
+    $class->SUPER::init();
     $class->setConcent(0);
     $class->setPlaceVal(0);
     $class->setPlaceVector(1);

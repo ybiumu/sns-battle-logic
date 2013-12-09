@@ -83,7 +83,7 @@ if ( ! $rs_sth->rows() == 1 )
 {
     $rs_sth->finish();
     $db->disconnect();
-    warn "1";
+    $pu->warning("1");
     $at->Error();
     $at->{out}->{RESULT} = "–â‘è‚ª”­¶‚µ‚Ü‚µ‚½B<br />ŠÇ—ŽÒ‚É‚¨–â‚¢‡‚í‚¹‰º‚³‚¢";
     $db->disconnect();
@@ -112,7 +112,7 @@ $qb->finishMainSth();
 if ( $queing_status == 2 )
 {
 
-    warn "2";
+    $pu->warning("2");
     $at->Error();
     $at->{out}->{RESULT} = "Œ‹‰Êˆ—o—ˆ‚Ü‚¹‚ñB<br />Œ‹‰Êˆ—‚Í1ŽžŠÔ‚É1‰ñ‚Å‚·";
     $db->disconnect();

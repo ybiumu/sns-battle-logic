@@ -1,14 +1,18 @@
 <div class="contents2">$out->{RESULT_TITLE}</div>
+$out->{difference}
+<hr />
+$out->{RESULT}
 <form action="edit_item.cgi?guid=ON" method="post">
 <input type="hidden" name="guid" value="ON" />
 <input type="hidden" name="act" value="save" />
+$out->{save_form}
 </form>
 
 <form action="edit_item.cgi?guid=ON" method="post">
 <input type="hidden" name="guid" value="ON" />
 <a href="#a" accesskey="4">A</a>/<a href="#b" accesskey="5">B</a>/<a href="#c" accesskey="6">C</a>/<a href="#d" accesskey="7">D</a>
 <a name="a"><div class="contents">-A-&nbsp;基本情報</div></a>
-ｱｲﾃﾑID　：<input type="hidden" size="4" maxlength="4" name="item_id" value="$out->{item_id}" />$out->{item_id}<br />
+ｱｲﾃﾑID　：<input type="hidden" size="4" maxlength="4" name="item_master_id" value="$out->{item_master_id}" />$out->{item_master_id}<br />
 ｱｲﾃﾑ名　：<input type="text" size="20" name="item_label" value="$out->{item_label}" /><br />
 説明文 ：<textarea name="item_descr" >$out->{item_descr}</textarea><br />
 主ﾀｲﾌﾟ ：<span style="font-size:medium"><select name="item_type_id">
