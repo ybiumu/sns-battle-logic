@@ -1,0 +1,21 @@
+AuthType Basic
+AuthName "oauth debug"
+AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
+AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
+require valid-user
+#require group admin
+
+
+ErrorDocument 403 /.hterror/notmobile.html
+ErrorDocument 401 /.hterror/notpermit.html
+
+Order Allow,deny
+Allow from all
+#Order Allow,deny
+#Allow from all
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*) /mb/$1 [L,QSA]
+
