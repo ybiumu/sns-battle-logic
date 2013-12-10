@@ -1,0 +1,20 @@
+#OPEN#AuthType Basic
+#OPEN#AuthName "Please wait..."
+#OPEN##AuthName "maintenance"
+#OPEN#AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
+#OPEN#AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
+#OPEN#require valid-user
+#OPEN##require group admin
+
+
+ErrorDocument 403 /.hterror/notmobile.html
+ErrorDocument 401 /.hterror/notpermit.html
+
+Order Allow,deny
+Allow from all
+
+
+RewriteEngine On
+RewriteCond %{THE_REQUEST} "[^ ]* /gw/.*"
+RewriteRule .* - [F,L]
+
