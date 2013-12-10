@@ -100,3 +100,11 @@ Allow from 66.249.73.0/24
 # Local
 
 Allow from 192.168.137.0/24
+
+
+
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*) /gw/$1 [L,QSA]
