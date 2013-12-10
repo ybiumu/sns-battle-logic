@@ -13,7 +13,7 @@ use CGI::Session;
 
 my $cgi = new CGI;
 my $session = new CGI::Session(undef, undef, {Directory=>'/home/users/2/ciao.jp-anothark/web/.htsession'});
-$session->expire('+12h');
+$session->expire('+1h');
 
 ############
 ### Main ###
