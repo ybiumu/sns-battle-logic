@@ -155,6 +155,10 @@ elsif ( $c->param("commit") eq "OK" )
     $stat = $sth5->execute($id);
     $sth5->finish();
 
+    my $sth6 = $db->prepare("INSERT INTO t_user_flagment(user_id,flag_id,enable) VALUES(?,0,1);");
+    $stat = $sth6->execute($id);
+    $sth6->finish();
+
 
     my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.carrier_id = ? AND u.uid = ? ");
     $up_sth->execute((1,$carrier_id, $mob_uid));

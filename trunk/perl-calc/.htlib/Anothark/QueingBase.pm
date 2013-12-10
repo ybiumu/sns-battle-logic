@@ -79,7 +79,7 @@ FROM
         t_result_master AS r
         ON ( f.flag_id = r.flag_id )
     ) ON ( f.user_id = u.user_id AND r.node_id = sel.next_node_id )
-    JOIN (
+    LEFT JOIN (
         t_user_flagment AS fc
         LEFT JOIN
         t_result_master AS rc 

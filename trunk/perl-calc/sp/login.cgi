@@ -5,12 +5,14 @@ use YAML::Tiny;
 use Net::Twitter::Lite;
 use CGI;
 use LocalConfig;
+use LoggingObjMethod;
 
 
 #my $db = DbUtil::getDbHandler();
 #use CGI::Session;
 
 my $cgi = new CGI;
+my $log = new LoggingObjMethod();
 
 ############
 ### Main ###
@@ -53,6 +55,7 @@ my $err_msg = "";
 if ($@)
 {
     $err_msg = $@;
+    $log->warning("[login.cgi] Auth failure.:$err_msg");
 }
 
 

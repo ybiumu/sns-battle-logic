@@ -7,10 +7,10 @@ use DbUtil;
 use MobileUtil;
 use PageUtil;
 use AaTemplate;
-use Anothark::Battle;
-use Anothark::Battle::Exhibition;
-use Anothark::Character;
-use Anothark::Skill;
+#use Anothark::Battle;
+#use Anothark::Battle::Exhibition;
+#use Anothark::Character;
+#use Anothark::Skill;
 
 use Anothark::QueingBase;
 
