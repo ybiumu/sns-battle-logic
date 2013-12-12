@@ -116,7 +116,7 @@ if ( $c->param("exec") )
     foreach my $turn ( 1 .. 5 )
     {
 #        $out->{RESULT} .= sprintf "<center>== Turn %s ==</center><br />", $turn;
-        $out->{RESULT} .= sprintf '<center><img src="img/turn1.gif" alt="turn%s" /></center><br />', $turn;
+        $out->{RESULT} .= sprintf '<center><img src="imgdl.cgi?guid=ON&i=turn1.gif" alt="turn%s" /></center><br />', $turn;
         map {
             $out->{RESULT} .= sprintf $act_template, $symbol->{$players->{$_}->{ep}}->{align}, $symbol->{$players->{$_}->{ep}}->{head},$names->{$_}
         } sort { getTotalAgility($turn,$b) <=> getTotalAgility($turn,$a) } keys %{$players};

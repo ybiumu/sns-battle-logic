@@ -1,4 +1,5 @@
 User-agent: *
+Allow: /sp/
 Allow: /
 
 User-agent: Googlebot-Mobile

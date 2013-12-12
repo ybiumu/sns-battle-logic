@@ -12,11 +12,13 @@ use base qw( LoggingObjMethod );
 my $browser = undef;
 my $carrier_id = undef;
 my $content_type = undef;
+my $is_batch = undef;
 
 sub new
 {
     my $class = shift;
-    my $self = $class->SUPER::new();
+    my $default = shift || {};
+    my $self = $class->SUPER::new($default);
     bless $self, $class;
 
 #    $self->init();
@@ -30,14 +32,15 @@ sub init
     $class->setBrowser("P");
     $class->setCarrierId(0);
     $class->setContentType("text/html");
-
     $class->parseUserAgent();
 }
+
 
 
 sub parseUserAgent
 {
     my $class = shift;
+    $class->debug("parseUserAgent");
     if( $ENV{HTTP_USER_AGENT} =~ /^DoCoMo\/(1|2)/)
     {
         $class->setBrowser("D");
@@ -55,6 +58,10 @@ sub parseUserAgent
         $class->setBrowser("S");
         $class->setCarrierId(3);
         $class->setContentType("application/xhtml+xml");
+    }
+    elsif( $class->getIsBatch() eq "1" )
+    {
+        $class->debug("Run as batch");
     }
     else
     {
@@ -90,6 +97,12 @@ sub parseUserAgent
                 print $cgi->redirect( -uri => "/sp/logout.html" );
                 exit;
             }
+        }
+        else
+        {
+            $class->debug("No sid");
+            print $cgi->redirect( -uri => "/sp/logout.html" );
+            exit;
         }
     }
 }
@@ -175,6 +188,19 @@ sub getBrowser
 {
     return $_[0]->getAttribute( 'browser' );
 }
+
+
+sub setIsBatch
+{
+    my $class = shift;
+    return $class->setAttribute( 'is_batch', shift );
+}
+
+sub getIsBatch
+{
+    return $_[0]->getAttribute( 'is_batch' );
+}
+
 
 
 1;
