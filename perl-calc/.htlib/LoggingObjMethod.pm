@@ -13,7 +13,8 @@ our $both = 0;
 sub new
 {
     my $class = shift;
-    my $self = $class->SUPER::new();
+    my $default = shift || {};
+    my $self = $class->SUPER::new($default);
     bless $self, $class;
 
 #    $self->init();

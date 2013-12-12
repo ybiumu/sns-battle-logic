@@ -5,7 +5,12 @@ $VERSION = "1.1";
 sub new
 {
     my $class = shift;
+    my $default = shift || undef;
     my $self  = {};
+    if ( $default && ref($default) eq "HASH")
+    {
+        $self = $default;
+    }
     bless $self, $class;
     $self->init();
     return $self;

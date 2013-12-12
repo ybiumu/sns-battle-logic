@@ -177,7 +177,7 @@ UPDATE
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_selection_que AS q USING(user_id)
-    LEFT JOIN t_selection AS sel ON( q.selection_id = sel.selection_id AND sel.can_stay = 1 )
+    LEFT JOIN t_selection AS sel ON( q.selection_id = sel.selection_id )
     LEFT JOIN t_node_master AS nm ON( sel.next_node_id = nm.node_id )
 SET
     s.node_id = CASE WHEN nm.can_stay = 1 THEN IFNULL(NULLIF(sel.next_node_id,0), s.node_id ) ELSE s.node_id END,

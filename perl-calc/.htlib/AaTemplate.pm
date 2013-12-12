@@ -19,6 +19,12 @@ use base qw( LoggingObjMethod );
 
 my $base = "template.html";
 my $css = "template.css";
+
+my $spbase = "sptemplate.html";
+my $spcss = "sptemplate.css";
+
+my $sp_admin = "adm_sptemplate.html";
+
 my $body = undef;
 my $base_html = undef;
 my $body_html = undef;
@@ -34,11 +40,14 @@ my $out = {};
 my $ad_str = undef;
 my $page_name = "No Name";
 
-my $gm_img = '<img src="img/icon/ico_gm.gif" />';
+#my $gm_img = '<img src="img/icon/ico_gm.gif" />';
+my $gm_img = '<img src="imgld.cgi?i=icon/ico_gm.gif&guid=ON" />';
 
 
-my $task_str = '<br /><a href="viewtasks.cgi?guid=ON">&gt;Ç‚ÇÈÇ±Ç∆“”</a>';
+my $img = undef;
+my $task_str = '<a href="viewtasks.cgi?guid=ON">&gt;Ç‚ÇÈÇ±Ç∆“”</a>';
 
+my $local_menu = undef;
 sub init
 {
     my $class = shift;
@@ -119,6 +128,19 @@ sub getBaseHtml
     return $_[0]->getAttribute( 'base_html' );
 }
 
+
+
+sub setImg
+{
+    my $class = shift;
+    return $class->setAttribute( 'img', getImagePath(shift) );
+}
+
+sub getImg
+{
+    return $_[0]->getAttribute( 'img' );
+}
+
 sub setBody
 {
     my $class = shift;
@@ -170,6 +192,12 @@ sub getTemplatePath
     return sprintf("%s/%s", $LocalConfig::TEMPLATE_DIR, shift );
 }
 
+sub getImagePath
+{
+    return sprintf("%s/gw/img/%s", $LocalConfig::BASE_DIR, shift );
+}
+
+
 sub setDbHandler
 {
     my $class = shift;
@@ -186,7 +214,13 @@ sub getDbHandler
 sub setMobileUtil
 {
     my $class = shift;
-    return $class->setAttribute( 'mobile_util', shift );
+    my $mu = $class->setAttribute( 'mobile_util', shift );
+    if ( $mu->getBrowser() eq "P")
+    {
+        $class->setBase( $spbase );
+        $class->setCss( $spcss );
+    }
+    return $mu;
 }
 
 sub getMobileUtil
@@ -206,6 +240,17 @@ sub getTaskStr
     return $_[0]->getAttribute( 'task_str' );
 }
 
+
+sub setLocalMenu
+{
+    my $class = shift;
+    return $class->setAttribute( 'local_menu', shift );
+}
+
+sub getLocalMenu
+{
+    return $_[0]->getAttribute( 'local_menu' );
+}
 
 
 
@@ -233,16 +278,27 @@ _HERE_"
         $tmp_html = sprintf "Template failure.<br />%s\n",$@;
     }
 
-    my $base_css  = $class->{base_css};
-    my $page_name = $class->getPageName();
-    my $ad_str    = $class->getAdStr();
-    my $task_html = $class->getTaskStr();
+    my $base_css   = $class->{base_css};
+    my $page_name  = $class->getPageName();
+    my $ad_str     = $class->getAdStr();
+    my $task_html  = $class->getTaskStr();
+    my $local_menu = $class->getLocalMenu();
+
+    if ( $class->getMobileUtil()->getBrowser() ne "P" )
+    {
+        $task_html = "<br />" . $task_html;
+    }
+    else
+    {
+        $task_html =~ s/&gt;//g;
+    }
 
     $class->{base_html} =~ s/__TITLE__/$page_name/g;
     $class->{base_html} =~ s/__PAGE_TITLE__/$page_name/g;
     $class->{base_html} =~ s/__BASE_CSS__/$base_css/g;
     $class->{base_html} =~ s/__MESSAGE_BODY__/$tmp_html/g;
     $class->{base_html} =~ s/__LINK_TASKS__/$task_html/g;
+    $class->{base_html} =~ s/__LOCAL_MENU__/$local_menu/g;
     $class->{base_html} =~ s/__ADD_SPACE__/$ad_str/g;
 }
 
@@ -581,6 +637,9 @@ sub getCharacterByUserId
 
     $char->setVel( $row->{vel} );
     $char->setRel( $row->{rel} );
+
+    ## SetSkill
+
 
     return $char;
 }

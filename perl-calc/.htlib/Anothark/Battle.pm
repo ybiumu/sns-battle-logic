@@ -442,7 +442,7 @@ sub doBattle
     my $enemy_img = $class->getPartyImg();
 
     $class->getTurnText()->[0] = sprintf(
-        "<div class=\"contents_e1\">%s</div><img src=\"img/%s.jpg\" />",
+        "<div class=\"contents_e1\">%s</div><img class=\"dispimg\" src=\"img/%s.jpg\" />",
         $enemy_party,
         $enemy_img
     );

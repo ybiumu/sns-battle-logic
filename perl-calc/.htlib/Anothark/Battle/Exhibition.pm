@@ -21,7 +21,7 @@ sub doExhibitionMatch
     $battle->appendCharacter( $me );
 
 #    my $p1 = $battle->getAt()->getPlayerByUserId(2);
-    my $p1 = $battle->getAt()->getPlayerByUserId(102);
+    my $p1 = $battle->getAt()->getPlayerByUserId(101);
     if ( defined  $p1 )
     {
         $p1->setSide("p");

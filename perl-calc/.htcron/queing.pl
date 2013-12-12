@@ -21,7 +21,7 @@ $at->setPageUtil($pu);
 $pu->setBoth(1);
 
 my $db = DbUtil::getDbHandler();
-my $mu = new MobileUtil();
+my $mu = new MobileUtil({ is_batch => "1"});
 
 $at->setDbHandler($db);
 $at->setMobileUtil($mu);
@@ -46,7 +46,7 @@ $pu->notice("Start que at `$hour'.");
 ############
 
 # ¡‚ÌŽžŠÔ‚Éˆ—‚·‚éƒ†[ƒU[‚ÌŒŸõ
-my $select_users = "SELECT user_id FROM t_selection_que WHERE queing_hour = ? AND qued = 0";
+my $select_users = "SELECT user_id FROM t_selection_que JOIN t_user USING(user_id) WHERE queing_hour = ? AND qued = 0 AND delete_flag = 0";
 my $su_sth = $db->prepare( $select_users );
 $pu->notice( "query status is " . $su_sth->execute(( $hour )) );
 
