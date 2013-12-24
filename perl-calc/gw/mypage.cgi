@@ -68,6 +68,10 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{user_id} )
 #        $at->Error();
         $at->{out}->{RESULT} = "‚»‚Ìƒ†[ƒU[‚Í‘¶Ý‚µ‚Ü‚¹‚ñ";
     }
+    else
+    {
+        $at->setBody("body_yourpage.html");
+    }
 }
 
 

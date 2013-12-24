@@ -34,6 +34,11 @@ sub new
     return $self;
 }
 
+#
+#
+# Charactor - StatusMamanger - Status/Any
+#
+#
 
 sub init
 {

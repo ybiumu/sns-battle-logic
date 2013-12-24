@@ -13,7 +13,7 @@ $at->setPageUtil($pu);
 
 
 my $db = DbUtil::getDbHandler();
-my $mu = new MobileUtil();
+my $mu = new MobileUtil({ is_batch => "1"});
 
 $at->setDbHandler($db);
 $at->setMobileUtil($mu);

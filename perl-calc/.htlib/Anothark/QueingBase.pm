@@ -379,7 +379,7 @@ sub doQueing
 
 
                 my $affected_b = "";
-                $pu->notice("SQL [$insert_battle]");
+                $pu->notice("SQL battle [$insert_battle]");
                 $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $battle_html ,$rid ,$nnid,'battle',$user_id->[0])));
                 $affected_b = $result_sth_b->execute(($log_id,$seq_id, $battle_html ,$rid,$nnid,'battle',$user_id->[0]));
                 $pu->notice("insert result[$affected_b]");
@@ -414,7 +414,7 @@ sub doQueing
                     }
                     $ins_pre .= "<br /><br />" if(scalar(@{$drops}));
 
-                    $pu->notice("SQL [$insert_prepost]");
+                    $pu->notice("SQL prepost [$insert_prepost]");
                     $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
                     $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0]));
                     $pu->notice("insert result[$affected]");
@@ -447,7 +447,7 @@ sub doQueing
             }
             else
             {
-                $pu->notice("SQL [$insert_prepost]");
+                $pu->notice("SQL prepost [$insert_prepost]");
                 $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
                 $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0]));
                 $pu->notice("insert result[$affected]");
