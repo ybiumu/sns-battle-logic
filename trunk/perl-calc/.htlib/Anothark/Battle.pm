@@ -15,6 +15,11 @@ use Anothark::Battle::TargetValue;
 use Anothark::Battle::StatusValue;
 use Anothark::Skill;
 
+use constant BEFORE_START_TURN => "before_start_turn";
+use constant BEFORE_CMD        => "before_cmd";
+use constant AFTER_CMD         => "after_cmd";
+use constant DAMAGED           => "damaged";
+
 our $base   = new Anothark::Battle::BaseValue();
 our $status = new Anothark::Battle::StatusValue();
 our $target_value = new Anothark::Battle::TargetValue();
@@ -385,6 +390,13 @@ sub resolveDamages
                                             $effect_template,
                                             $symbol->{$char->getSide()}->{align}, "@ËË“|‚ê‚½")
     }
+    else
+    {
+        if ( $dmg > 0 )
+        {
+            $class->chkScene(DAMAGED,{ char => $char });
+        }
+    }
 
     return $is_dmg;
 }
@@ -433,6 +445,38 @@ sub having_bit
     return ($s == (hex($k) & $s) ? 1 : 0 ) 
 }
 
+sub chkEffect
+{
+    my $class = shift;
+    my $scene = shift;
+}
+
+sub chkClear
+{
+    my $class = shift;
+    my $scene = shift;
+}
+
+sub chkCmdStack
+{
+    my $class = shift;
+    my $scene = shift;
+    # Stacking
+
+    # resolve stacks
+}
+
+
+sub chkScene
+{
+    my $class = shift;
+    my $scene = shift;
+    my $opt   = shift;
+    $class->chkEffect($scene, $opt);
+    $class->chkCmdStack($scene, $opt);
+    $class->chkClear($scene, $opt);
+}
+
 sub doBattle
 {
     my $class = shift;
@@ -450,6 +494,7 @@ sub doBattle
     {
 
         #doTurn
+
         $class->doTurn($turn);
         last if $class->battleEnd();
     }
@@ -571,6 +616,8 @@ sub doTurn
     $class->getTurnText()->[$turn] .= "<hr /><div style=\"text-align:center;color:#ff0000;\">Turn $turn</div>";
     $class->warning( "TURN [$turn]");
 
+    $class->chkScene( BEFORE_START_TURN ); 
+
     foreach my $cs ( @{$class->getLiving()} )
     {
         # status
@@ -647,6 +694,9 @@ sub doCmd
 
     my $text_pointer = \$class->getTurnText()->[$turn];
     my $cmd = $char->getCmd()->[$turn];
+
+    $class->chkScene( BEFORE_CMD ); 
+
     if( $char->canMove() )
     {
         $class->doSkillUnit($char,$cmd,$text_pointer );
@@ -656,6 +706,7 @@ sub doCmd
     }
 
 
+    $class->chkScene( AFTER_CMD ); 
     # Post Effect Check
     # Post Effect cmd
 
