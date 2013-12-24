@@ -1,0 +1,10 @@
+$out->{"RESULT"}
+メッセージを入力してください
+<form name="regist" action="edit_message.cgi?guid=ON">
+<input name="msg" maxlength="64" size="64" value="$out->{MSG}">
+<br />
+<input type="hidden" name="guid" value="ON" />
+<input type="hidden" name="st" value="1" />
+<input type="submit" value="送信" />
+
+</form>
