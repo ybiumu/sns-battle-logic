@@ -1,0 +1,52 @@
+<!--?xml version="1.0" encoding="Shift_JIS"?-->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="jp" lang="jp"><head><meta name="viewport" content="width=320" /><meta http-equiv="Content-Type" content="application/xhtml+xml;charset=Shift_JIS" /><meta http-equiv="Cache-Control" content="no-cache" /><title>__PAGE_TITLE__</title><style type="text/css">
+<!--
+__BASE_CSS__
+-->
+</style>
+</head>
+<body>
+<div id="nav" class="globalnav">
+    <div class="pb">
+        <div class="header">-おたすけ-</div>
+        <a href="index.html"         >TOP</a>
+        <a href="howtouse.html">あそびかた</a>
+        __LINK_TASKS__
+        <div class="header">-Debug-</div>
+        <a href="admin_room.cgi?guid=ON">管理者の部屋</a>
+        <a href="debug_room.cgi?guid=ON">ﾃﾞﾊﾞｯｸﾞﾙｰﾑ</a>
+    </div>
+</div>
+<!--div style="font-size:x-small;width:240;"-->
+
+
+<div id="main" class="content">
+  <div class="switcher">
+    <button id="toggleMenu">&#9776;</button>
+  </div>
+<div style="font-size:small;width:240;">
+<div class="contents">__TITLE__</div>
+__MESSAGE_BODY__
+</div>
+<aside>
+__ADD_SPACE__
+</aside>
+</div>
+
+<footer>
+<hr>
+<div style="text-align: center;">Project「L」Archive</div>
+</footer>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script type="text/javascript">
+<!--
+jQuery(function ($) {
+  $('#toggleMenu').on('click', function (e) {
+    e.preventDefault();
+    $('body').toggleClass('showMenu');
+  });
+});
+//-->
+</script>
+</body></html>
+
