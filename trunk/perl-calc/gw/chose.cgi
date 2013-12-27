@@ -7,6 +7,8 @@ use MobileUtil;
 use GoogleAdSence;
 use Avatar;
 
+use Anothark::ShopManager;
+
 use PageUtil;
 use AaTemplate;
 my $pu = new PageUtil();
@@ -49,6 +51,12 @@ $at->setPageName("s“®‘I‘ð");
 
 my $version = "0.1a20120328";
 
+my $sm = new Anothark::ShopManager( $db );
+
+if ( $sm->getExistsShop($user_id) )
+{
+    $out->{APPEND_CTL} .= "/<a href='shop.cgi?guid=ON'>¼®¯Ìß</a>";
+}
 
 my $debug_str = "";
 

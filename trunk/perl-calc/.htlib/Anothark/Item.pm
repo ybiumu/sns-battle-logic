@@ -20,7 +20,7 @@ sub new
     {
         foreach my $key ( keys %{$options})
         {
-            $self->warning( "$key : $options->{$key}");
+            $self->debug( "$key : $options->{$key}");
             $self->{$key} = $options->{$key};
         }
     }

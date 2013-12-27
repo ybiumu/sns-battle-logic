@@ -9,6 +9,7 @@ use strict;
 use LoggingObjMethod;
 use Anothark::Item;
 use Anothark::Item::DropItem;
+use Anothark::Item::ShopItem;
 use base qw( LoggingObjMethod );
 sub new
 {
@@ -112,5 +113,46 @@ sub getDbHandler
 
 
 
+my $get_shop_item_sql = "
+SELECT
+    shop_element_id,
+    item_master_id,
+    price,
+    item_label,
+    item_descr,
+    item_type_id
+FROM
+    t_shop_element
+    JOIN
+    t_item_master USING(item_master_id)
+WHERE
+    shop_id = ?
+;
+";
+
+sub getShopItems
+{
+    my $class = shift;
+    my $shop_id = shift;
+
+
+    my $shop_item = [];
+
+    my $sth  = $class->getDbHandler()->prepare($get_shop_item_sql);
+    my $stat = $sth->execute(($shop_id));
+    if ( $sth->rows > 0 )
+    {
+        $class->warning( "Find record for $shop_id" );
+        $shop_item  = [ map { my $si = new Anothark::Item::ShopItem( $_ ); $si->setFieldNames( $sth->{"NAME"}  );$si } @{$sth->fetchall_arrayref( +{} )} ] ;
+    }
+    else
+    {
+        $class->warning( "No record for $shop_id");
+        $shop_item = new Anothark::Item::ShopItem();
+    }
+    $sth->finish();
+
+    return $shop_item; 
+}
 
 1;

@@ -170,6 +170,7 @@ else
             if ($lines > $max_item)
             {
                 $out->{RESULT} .= sprintf("<div style=\"text-align: center;\">%s</div>\n", '--&nbsp;‚±‚êˆÈã•\Ž¦‚Å‚«‚Ü‚¹‚ñ&nbsp;--');
+                $lines = $item_sth->rows;
                 last;
             }
 #        $out->{RESULT} .= sprintf("<input type=\"checkbox\" name=\"i_%s\" />&nbsp;%s<br />\n",$row->{item_id}, $row->{item_label})
