@@ -34,7 +34,7 @@ my $c = new CGI();
 ##################
 ### init check ###
 ##################
-my $result = $at->setupBaseData();
+my $result = $at->setupBaseData(1);
 if ( ! $result )
 {
     $db->disconnect();

@@ -14,7 +14,7 @@ sub new
     my $class = shift;
     my $skill_name = shift;
     my $self = $class->SUPER::new();
-    $self->debug( "Call Exhibision skill");
+#    $self->debug( "Call Exhibision skill");
     bless $self, $class;
 
 
@@ -26,7 +26,7 @@ sub init
 {
     my $class = shift;
     $class->SUPER::init();
-    $class->debug("Call skill exhibition init");
+#    $class->debug("Call skill exhibition init");
 }
 
 sub setup

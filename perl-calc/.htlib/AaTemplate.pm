@@ -402,6 +402,7 @@ sub loadBodyHtml
 sub setupBaseData
 {
     my $class = shift;
+    my $without_skill = shift || 0;
     my $result = 0;
     my $get_base_sql = "
         SELECT
@@ -466,6 +467,8 @@ sub setupBaseData
     $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
     $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
 
+    $class->{PLAYER} = $class->getPlayerByUserId( $row->{user_id},$without_skill );
+
     $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
     return $result;
@@ -515,7 +518,16 @@ sub getPlayerByUserId
 {
     my $class   = shift;
     my $user_id = shift;
-    my $template = new Anothark::Character::Player();
+    my $w       = shift || 0;
+    my $template = "";
+    if ($w)
+    {
+        $template = new Anothark::Character::Player( {without_skill => 1} );
+    }
+    else
+    {
+        $template = new Anothark::Character::Player();
+    }
     my $char = $class->getCharacterByUserId($user_id,$template);
     if ( not defined $char )
     {
