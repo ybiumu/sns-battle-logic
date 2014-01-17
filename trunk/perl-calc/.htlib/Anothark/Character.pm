@@ -24,7 +24,8 @@ use Anothark::Battle::TargetValue;
 sub new
 {
     my $class = shift;
-    my $self = $class->SUPER::new();
+    my $default = shift || {};
+    my $self = $class->SUPER::new( $default );
     bless $self, $class;
 
 
@@ -67,19 +68,28 @@ sub init
     $class->setRel(0);
     $class->setVel(0);
 
-    $class->setCmd([
-        [],
-        new Anothark::Skill::Exhibition("zoom_punch"),
-        new Anothark::Skill::Exhibition("zoom_punch"),
-        new Anothark::Skill::Exhibition("lost_memorys"),
-        new Anothark::Skill::Exhibition("zoom_punch"),
-        new Anothark::Skill::Exhibition("zoom_punch"),
+    if ( exists $class->{without_skill})
+    {
+        $class->setCmd([
+            [],
+            ]);
+    }
+    else
+    {
+        $class->setCmd([
+            [],
+            new Anothark::Skill::Exhibition("zoom_punch"),
+            new Anothark::Skill::Exhibition("zoom_punch"),
+            new Anothark::Skill::Exhibition("lost_memorys"),
+            new Anothark::Skill::Exhibition("zoom_punch"),
+            new Anothark::Skill::Exhibition("zoom_punch"),
 #        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
 #        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
 #        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
 #        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
 #        new Anothark::Skill( '½Þ°ÑÊßÝÁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-    ]);
+        ]);
+    }
 
     $class->getRawData()->setBothValue(1);
 

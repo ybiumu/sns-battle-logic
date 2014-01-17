@@ -53,6 +53,7 @@ if ( ! $result )
 
 
 our $out = $at->getOut();
+our $money_unit = 'VEL';
 my $user_id = $out->{USER_ID};
 
 
@@ -66,12 +67,17 @@ my $version = "0.1a20130415";
 my $shop_id = $c->param("sid") || undef;
 
 my $sm = new Anothark::ShopManager( $db );
+my @oddeven = ( "odd", "even" );
+my $tr = $c->param("tr") || 0;
 
+$out->{TMP_MONEY} = $out->{$money_unit};
 # Check record exists.
 if ( $shop_id )
 {
     my $shop = $sm->loadShopDescr( $user_id, $shop_id );
     $pu->output_log(sprintf( "c: %s ", $carrier_id));
+    $out->{sid} = $shop_id;
+
     if ( $shop->getShopId() )
     {
         $out->{NODE_ID}  = $shop->getNodeId();
@@ -83,9 +89,58 @@ if ( $shop_id )
 
         $at->setPageName($out->{SHOP_NAME});
 
-        foreach my $item ( sort { $a->getItemTypeId() cmp $b->getItemTypeId() && $a->getPrice() cmp $b->getPrice() } @{ $shop->getItems() } )
+        if ( $tr == 2 )
         {
-            $out->{RESULT} .= sprintf("<input type='radio' name='item' value='%s'>%s :%s<br />\n",$item->getItemMasterId(), $item->getItemLabel(), $item->getPrice() );
+            $at->setPageName( $at->getPageName() . '/w“üŠm”F');
+            my $seid = $c->param("item") || 0;
+$at->warning("SEID: $seid");
+            my $item = $shop->getItems()->{$seid};
+
+$at->warning("ITEM:  $item");
+$at->warning("ITEM2: ".ref($item));
+            $at->setBody("body_shop_descr.html");
+            $out->{ITEM_LABEL} = $item->getItemLabel();
+            $out->{ITEM_DESCR} = $item->getItemDescr();
+            $out->{PRICE} = $item->getPrice();
+            $out->{SEID}  = $item->getShopElementId();
+            $out->{SHOP_ID} = $shop_id;
+        }
+        elsif( $tr == 3 )
+        {
+            my $rb = $c->param("rb") || 0;
+            my $ci = $c->param("ci") || 0;
+            my $n  = $c->param("n")  || 0;
+            my $hm = $c->param("hm") || 0;
+            my $seid = $c->param("item") || 0;
+
+
+            if ( $ci )
+            {
+                # B B ‘Î‰ž
+                if ( $hm != $out->{$money_unit} )
+                {
+                    # Not same session!
+                }
+                else
+                {
+                    my $status = $sm->trading( $at->{PLAYER}, $shop, $seid, $money_unit, $n);
+                    $out->{SHOP_DESCR} = $status;
+                }
+
+            }
+            $tr = 0;
+        }
+
+        unless ( $tr )
+        {
+            my $lines = 0;
+            foreach my $item ( sort { $a->getItemTypeId() cmp $b->getItemTypeId() && $a->getPrice() cmp $b->getPrice() } values %{ $shop->getItems() } )
+            {
+                $lines++;
+                $out->{RESULT} .= sprintf("<div class='item_%s'><input type='radio' name='item' value='%s'>%s :%s</div>\n",$oddeven[$lines%2],$item->getShopElementId(), $item->getItemLabel(), $item->getPrice() );
+            }
+
+            $out->{RESULT} .= sprintf('<input type="hidden" name="sid" value="%s" />',$shop_id);
         }
     }
     else
@@ -114,16 +169,16 @@ else
 #WHERE user_id = ?
 #");
 #    my $stat = $sth->execute(($user_id));
-    my @oddeven = ( "odd", "even" );
     $pu->output_log(sprintf( "c: %s ", $carrier_id));
     my $rownum = scalar(@{$shop_list});
     if ( $rownum > 0 )
     {
+        my $lines = 0;
         while( my $row  = shift(@{$shop_list}) )
         {
             $lines++;
 #        $out->{RESULT} .= sprintf("<input type=\"checkbox\" name=\"i_%s\" />&nbsp;%s<br />\n",$row->{item_id}, $row->{item_label})
-            $out->{RESULT} .= sprintf("<div class=\"item_%s\"><a href=\"shop.cgi?guid=ON&sid=%s\"/>%s</a></div>\n",$oddeven[$lines%2], $row->{shop_id}, $row->{shop_name});
+            $out->{RESULT} .= sprintf("<div class='item_%s'><a href='shop.cgi?guid=ON&sid=%s'>%s</a></div>\n",$oddeven[$lines%2], $row->{shop_id}, $row->{shop_name});
         }
 
 
@@ -155,7 +210,9 @@ $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", 
 
 
 $db->disconnect();
+$at->debug("[BEFORE SETFUP]");
 $at->setup();
+$at->debug("[AFTER SETFUP]");
 $at->output();
 
 

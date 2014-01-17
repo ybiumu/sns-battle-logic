@@ -19,6 +19,22 @@ sub new
 
 my $db_handler = undef;
 
+sub spendMoney
+{
+    my $class = shift;
+    my $user_id    = shift;
+    my $price      = shift;
+    my $money_unit = lc(shift);
+
+    my $sql_tmp = "UPDATE t_user_money AS um SET um._MONEY_UNIT_ = um._MONEY_UNIT_ - ? WHERE um.user_id = ?";
+    my $sql = $sql_tmp;
+    $sql =~ s/_MONEY_UNIT_/$money_unit/g;
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+    my $stat = $sth->execute(($price,$user_id));
+    $sth->finish();
+}
+
 sub getItem
 {
     my $class = shift;

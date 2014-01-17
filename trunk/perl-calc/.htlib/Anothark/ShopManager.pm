@@ -8,6 +8,7 @@ use Encode;
 use LoggingObjMethod;
 use Anothark::ItemLoader;
 use Anothark::Shop;
+use Anothark::Character::StatusIO;
 use base qw( LoggingObjMethod );
 
 my $status = undef;
@@ -144,5 +145,36 @@ sub loadShopDescr
     return $shop; 
 }
 
+sub trading
+{
+    my $class = shift;
+    my $char  = shift;
+    my $shop  = shift;
+    my $seid  = shift;
+    my $money_unit = shift;
+    my $num   = shift;
+
+    my $item = $shop->getItems()->{$seid};
+    my $price = $item->getPrice();
+    my $total = $price * $num;
+    my $status = "";
+    my $lc_mu = lc($money_unit);
+    # 持ち金確認
+    $class->warning("Total: $total / Having:  $char->{$lc_mu} / Unit: $money_unit / Char: " . ref($char) );
+    if ( $char->{$lc_mu} >= $total )
+    {
+        # 所持金十分
+        my $s_io = $char->getStatusIo();
+        $s_io->spendMoney( $char->getId(), $total, $money_unit );
+        $s_io->getItem( $char->getId(), $item->getItemMasterId(), $num );
+        $status = sprintf('%sを購入しました', $item->getItemLabel());
+    }
+    else
+    {
+        # 所持金不足
+        $status = sprintf('お金が足りません');
+    }
+    return $status;
+}
 
 1;

@@ -68,7 +68,7 @@ if ( $auth_url )
 else
 {
     printf "Content-Type: text/html\n\n";
-    print <<_HERE_;
+    print <<'_HERE_';
 <!DOCTYPE html>
 <html>
 <head>

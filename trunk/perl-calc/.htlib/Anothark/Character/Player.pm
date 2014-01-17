@@ -18,7 +18,8 @@ use Anothark::Skill;
 sub new
 {
     my $class = shift;
-    my $self = $class->SUPER::new();
+    my $default = shift || {};
+    my $self = $class->SUPER::new($default);
     $self->debug( "Call Player");
     bless $self, $class;
 
@@ -27,6 +28,7 @@ sub new
     return $self;
 }
 
+my $user_id = undef;
 my $status_io = undef;
 my $element_total_count = undef;
 
@@ -43,6 +45,18 @@ sub isPlayer
 {
     return 1;
 }
+
+sub setUserId
+{
+    my $class = shift;
+    return $class->setAttribute( 'user_id', shift );
+}
+
+sub getUserId
+{
+    return $_[0]->getAttribute( 'user_id' );
+}
+
 
 sub setStatusIo
 {

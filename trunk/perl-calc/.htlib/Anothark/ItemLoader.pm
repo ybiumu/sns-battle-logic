@@ -136,14 +136,14 @@ sub getShopItems
     my $shop_id = shift;
 
 
-    my $shop_item = [];
+    my $shop_item = {};
 
     my $sth  = $class->getDbHandler()->prepare($get_shop_item_sql);
     my $stat = $sth->execute(($shop_id));
     if ( $sth->rows > 0 )
     {
         $class->warning( "Find record for $shop_id" );
-        $shop_item  = [ map { my $si = new Anothark::Item::ShopItem( $_ ); $si->setFieldNames( $sth->{"NAME"}  );$si } @{$sth->fetchall_arrayref( +{} )} ] ;
+        $shop_item  = { map { my $si = new Anothark::Item::ShopItem( $_ ); $si->setFieldNames( $sth->{"NAME"}  );$si->getShopElementId() => $si } @{$sth->fetchall_arrayref( +{} )} } ;
     }
     else
     {
