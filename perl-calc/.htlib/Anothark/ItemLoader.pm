@@ -148,7 +148,7 @@ sub getShopItems
     else
     {
         $class->warning( "No record for $shop_id");
-        $shop_item = new Anothark::Item::ShopItem();
+#        $shop_item = new Anothark::Item::ShopItem();
     }
     $sth->finish();
 
