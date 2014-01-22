@@ -135,8 +135,10 @@ my $act = $c->param("act") || "";
 $out->{"PRE_RESULT"} = "";
 if ( $act && exists $ITEM_ACTIONS{$act} ) 
 {
+#    &{$PRE_ITEM_ACTIONS{$act}}($at,$c);
     $out->{"PRE_RESULT"} .= &{$PRE_ITEM_ACTIONS{$act}}($at,$c) . "<br />\n";
-    $out->{"PRE_RESULT"} .= join("<br />\n", map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid")) );
+#    $out->{"PRE_RESULT"} .= join("<br />\n", map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid")) );
+    map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid"));
     $out->{"PRE_RESULT"} .=  "<br />\n" . &{$POST_ITEM_ACTIONS{$act}}($at,$c);
 }
 

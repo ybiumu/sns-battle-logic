@@ -140,7 +140,15 @@ $at->warning("ITEM2: ".ref($item));
                 $out->{RESULT} .= sprintf("<div class='item_%s'><input type='radio' name='item' value='%s'>%s :%s</div>\n",$oddeven[$lines%2],$item->getShopElementId(), $item->getItemLabel(), $item->getPrice() );
             }
 
-            $out->{RESULT} .= sprintf('<input type="hidden" name="sid" value="%s" />',$shop_id);
+            if ($lines)
+            {
+                $out->{RESULT} .= sprintf('<br /><input type="submit" value="Ú‚µ‚­Œ©‚é" />');
+                $out->{RESULT} .= sprintf('<input type="hidden" name="sid" value="%s" />',$shop_id);
+            }
+            else
+            {
+                $out->{RESULT} .= sprintf('‚¨Žæ‚èˆµ‚¢‚ª‚ ‚è‚Ü‚¹‚ñ');
+            }
         }
     }
     else
