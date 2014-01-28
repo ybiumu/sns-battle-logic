@@ -128,7 +128,7 @@ my $available_value = {
     'skill_type'         => [1,2,3,4],
     'power_source'       => [0,1,2,3,4,5],
 #0:field,1:atc,2:magic,3:hp,4:agi,5:sence,6:def,7:connect,8:aura,9:luck,10:odd:11,charm
-    'effect_target_type' => [0,1,2,3,4,5,6,7,8,9,10,11],
+    'effect_target_type' => [0,1,2,3,4,5,6,7,8,9,10,11,12],
     'concent_type'       => [0,1,2,3,4],
     'random_type'        => [0,1,2,3,4,5,6],
     'formula_type'       => [0,1],
@@ -150,8 +150,15 @@ my $iv_map = {
     1 => "atack",
     2 => "magic",
     3 => "hp",
-    4 => "agility",
+    4 => "agl",
     5 => "chikaku",
+    6 => "def",
+    7 => "rp",
+    8 => "kehai",
+    9 => "luck",
+    10 => "kikyou",
+    11 => "chrm",
+    12 => "stamina"
 };
 
 my $is_skill = undef;

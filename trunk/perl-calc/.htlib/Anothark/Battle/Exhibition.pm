@@ -685,6 +685,18 @@ sub setSkills
                 {
                     $char->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
                 }
+                elsif ( $set->{setting_id} == 3 )
+                {
+                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 31 );
+                    $char->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
+                    $char->getCmd()->[$set->{position}]->setIsSkill(0);
+                }
+                elsif ( $set->{setting_id} == 4 )
+                {
+                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 40 + ( $set->{info} > 0 ? $set->{info} : 2 ) );
+                    $char->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
+                    $char->getCmd()->[$set->{position}]->setIsSkill(0);
+                }
                 else
                 {
                     $char->getCmd()->[$set->{position}] = $sl->loadSkill( 1001 );

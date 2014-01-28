@@ -113,8 +113,8 @@ my $hp = undef;
 my $stamina = undef;
 my $atack = undef;
 my $magic = undef;
-my $defence = undef;
-my $concentration = undef;
+my $def = undef;
+my $rp = undef;
 
 my $side = undef;
 my $id = undef;
@@ -126,12 +126,12 @@ my $use_elelment_count = undef;
 my $face_type = undef;
 my $hair_type = undef;
 
-my $agility = undef;
+my $agl = undef;
 my $luck = undef;
 my $kehai = undef;
 my $chikaku = undef;
 my $kikyou = undef;
-my $charm = undef;
+my $chrm = undef;
 
 my $cmd = undef;
 
@@ -194,12 +194,12 @@ sub getMagic
 sub setConcentration
 {
     my $class = shift;
-    return $class->setAttribute( 'concentration', shift );
+    return $class->setAttribute( 'rp', shift );
 }
 
 sub getConcentration
 {
-    return $_[0]->getAttribute( 'concentration' );
+    return $_[0]->getAttribute( 'rp' );
 }
 
 sub setKikyou
@@ -410,24 +410,24 @@ sub getStamina
 sub setAgility
 {
     my $class = shift;
-    return $class->setAttribute( 'agility', shift );
+    return $class->setAttribute( 'agl', shift );
 }
 
 sub getAgility
 {
-    return $_[0]->getAttribute( 'agility' );
+    return $_[0]->getAttribute( 'agl' );
 }
 
 
 sub setDefence
 {
     my $class = shift;
-    return $class->setAttribute( 'defence', shift );
+    return $class->setAttribute( 'def', shift );
 }
 
 sub getDefence
 {
-    return $_[0]->getAttribute( 'defence' );
+    return $_[0]->getAttribute( 'def' );
 }
 
 sub gDef
@@ -450,12 +450,12 @@ sub getAtack
 sub setCharm
 {
     my $class = shift;
-    return $class->setAttribute( 'charm', shift );
+    return $class->setAttribute( 'chrm', shift );
 }
 
 sub getCharm
 {
-    return $_[0]->getAttribute( 'charm' );
+    return $_[0]->getAttribute( 'chrm' );
 }
 
 
@@ -580,13 +580,13 @@ sub getTargetingValue
     my $damage = shift;
     my $p_sence = shift;
     my $p_odd  = shift;
-    my $t_charm = $class->getCharm()->current();
+    my $t_chrm = $class->getCharm()->current();
     my $t_hp    = $class->getHp()->current();
     my $t_kehai = $class->getKehai()->current();
 
     my $dv =  int( (
                     ( ( $p_odd > 100 ? $p_odd : 0 ) / 100 )
-                    * ( $t_charm / 100 )
+                    * ( $t_chrm / 100 )
                     - 1
               ) / 2 );
     my $tv = (
@@ -594,7 +594,7 @@ sub getTargetingValue
             + ( ( $t_kehai / 100 ) + ( $dv < 0 ? 0: $dv ) )
     );
 
-#    $class->warning( sprintf("[%s ‚Ì À°¹Þ¯Ä’l: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_charm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv));
+#    $class->warning( sprintf("[%s ‚Ì À°¹Þ¯Ä’l: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_chrm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv));
 
     return $tv;
 }
@@ -654,14 +654,30 @@ sub Damage
     my $dmg   = shift;
     my $effect_target = $skill->getEffectTargetTypeByKey();
 
+    $class->debug("Effect Target[$effect_target] DMG[$dmg]");
+
     my $remain = $class->getAttribute($effect_target)->cv() - ( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
     if ( $skill->getEffectTargetType() == 3 )
     {
         if ( $remain > 0 )
         {
+            # Add damage concent
             my $cbase =  ($dmg * 10 ) / $class->getAttribute($effect_target)->cv();
             $cbase += 1 if ( int($cbase) != $cbase  );
             $class->getConcentration->addCurrent( int($cbase) );
+        }
+    }
+
+    # Status Resolve
+    if ( $skill->getNoSkillType() == 4)
+    {
+        if ( $skill->getSkillId() == 41 )
+        {
+            $class->getPosition->setCurrentValue("f");
+        }
+        else
+        {
+            $class->getPosition->setCurrentValue("b");
         }
     }
 
