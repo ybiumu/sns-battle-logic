@@ -369,7 +369,7 @@ sub resolveActions
     my $dmg = $class->damageExec($char, $target, $skill );
     if (! $skill->isSkill() )
     {
-        if( $skill->NoSkillType() == 1 ) # ˆÚ“®
+        if( $skill->getNoSkillType() == 4 ) # ˆÚ“®
         {
             $class->getTurnText()->[$turn] .= sprintf(
                                                     $effect_template,
@@ -377,7 +377,7 @@ sub resolveActions
                                                     sprintf($effect_str_template, "ˆÚ“®‚µ‚½")
                                               );
         }
-        elsif ( $skill->NoSkillType() == 2 ) # W’†
+        elsif ( $skill->getNoSkillType() == 3 ) # W’†
         {
             $class->getTurnText()->[$turn] .= sprintf(
                                                     $effect_template,
@@ -560,7 +560,10 @@ sub checkExperiment
         my $cnts = $c->getUseElementCount();
         foreach my $type ( sort keys %{$cnts})
         {
-            $chk_str .= sprintf '%s‚Í%s‚Ìn—û‚ª%.2fã‚ª‚Á‚½<br />', $c->getName(), Anothark::Skill::typeId2typeName($type),( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
+            $chk_str .= sprintf '%s‚Í%s‚Ìn—û‚ª%.2fã‚ª‚Á‚½<br />',
+                            $c->getName(),
+                            Anothark::Skill::typeId2typeName($type),
+                            ( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
         }
     }
     return $chk_str;
@@ -651,6 +654,8 @@ sub doTurn
         foreach my $cs ( @{$class->getLiving()} )
         {
             # status
+            my $c = $chars->{$cs};
+            my $cnts = $c->getUseElementCount();
             $class->getTurnText()->[$turn] .= sprintf(
                 $debug_stat_template,
                 $symbol->{$chars->{$cs}->getSide()}->{color},
@@ -661,6 +666,16 @@ sub doTurn
                 $chars->{$cs}->getConcentration->cv(),
                 $chars->{$cs}->getAtack()->cv(),
                 $chars->{$cs}->getDefence()->cv(),
+                join(
+                    "/",
+                    map
+                    {
+                        sprintf "%s(%s)->%s",
+                            Anothark::Skill::typeId2typeName($_),
+                            $_,
+                            $cnts->{$_}
+                    } sort keys %{$cnts}
+                )
             )
             # Turnly concent;
         }
@@ -729,7 +744,7 @@ sub doTurnCmd
         # Point Check
         if ( not scalar($class->getLivingCharactersBySide($side)) )
         {
-            map { $chars->{$_}->setPosition("f") } $class->getLivingFrontCharactersBySide($side);
+            map { $chars->{$_}->getPosition()->setCurrentValue("f") } $class->getLivingFrontCharactersBySide($side);
         }
     }
 }
