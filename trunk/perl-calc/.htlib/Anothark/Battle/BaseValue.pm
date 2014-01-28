@@ -9,6 +9,7 @@ use base qw( LoggingObjMethod );
 use constant CALC_FORMAT => "%.2f";
 #use constant CALC_FORMAT => "%s";
 use constant RANGE_MAP => {
+    self  => 1.0,
     short  => 1.0,
     middle => 0.9,
     long   => 0.8

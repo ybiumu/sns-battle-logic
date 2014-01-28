@@ -70,7 +70,7 @@ my $mob_uid = $mu->get_muid();
     my $battle = new Anothark::Battle( $at );
     my $me = $at->getPlayerByUserId($out->{USER_ID});
 #    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me ,6,6);
-    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me );
+    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me,4 );
 #    my $battle_html = $battle->getBattleText();
 
     my $drops = $battle->checkDropItems();
