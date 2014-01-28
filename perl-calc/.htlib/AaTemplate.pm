@@ -534,7 +534,7 @@ sub getPlayerByUserId
         $class->warning( "undefined character. id [$user_id]" );
         return $char;
     }
-    my $ref = ref($char);
+#    my $ref = ref($char);
     $class->warning( "char is [$char]");
     $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
@@ -622,6 +622,7 @@ sub getCharacterByUserId
 
     if ( $sth->rows() == 0 )
     {
+        $class->warning("No user record.");
         return undef;
     }
 
@@ -632,6 +633,8 @@ sub getCharacterByUserId
     $char->setFaceType($row->{face_type});
     $char->setHairType($row->{hair_type});
     $char->setId($row->{user_id});
+    $class->debug("Record user_id: " . $row->{user_id});
+    $class->debug("getId:" . $char->getId() . " getUserId:" . $char->getUserId());
     $char->setNodeName(  $row->{node_name} );
     $char->setNodeId(  $row->{node_id} );
     $char->getConcentration()->setBothValue($row->{rp});

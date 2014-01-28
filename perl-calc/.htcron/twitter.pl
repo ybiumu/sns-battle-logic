@@ -1,4 +1,5 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
+##!/usr/local/bin/perl
 
 #use lib qw( .htlib ../.htlib );
 use lib qw( /home/users/2/ciao.jp-anothark/web/.htlib );
@@ -51,6 +52,7 @@ my $config = ( YAML::Tiny->read('/home/users/2/ciao.jp-anothark/web/.htcron/twco
 my $twit = Net::Twitter::Lite->new(
     consumer_key    => $config->{'cs_key'},
     consumer_secret => $config->{'cs_secret'},
+    ssl => 1,
     legacy_lists_api => 1,
     # For twitter api v1.1
     apiurl                => 'http://api.twitter.com/1.1',
@@ -117,8 +119,20 @@ $part_sth->finish();
 $rand_sth->finish();
 
 #warn "$string";
+$pu->output_log(sprintf( "%s", $string));
 
-my $result = $twit->update( { status => decode( 'utf8', $string ) } );
+my $result = "";
+eval {
+    $result = $twit->update( { status => decode( 'utf8', $string ) } );
+};
+
+my $err_msg = "";
+
+if ($@)
+{
+    $err_msg = $@;
+    $pu->warning("[login.cgi] Auth failure.:$err_msg");
+}
 
 
 $db->disconnect();

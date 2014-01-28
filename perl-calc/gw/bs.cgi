@@ -142,7 +142,7 @@ my $setting_type = $c->param("setting_type") || "";
 
 if ( $act ne "" && not $bs->isDescTemplateSettingType( $setting_type ))
 {
-    my $position = $bs->parsePosition($slot);;
+    my $position = $bs->parsePosition($slot);
     $out->{RESULT} .= "Simple save.[$slot][$setting_type][$position]";
     $bs->updateSimpleTemplate( $position, $setting_type);
 

@@ -29,6 +29,7 @@ my $config = ( YAML::Tiny->read('/home/users/2/ciao.jp-anothark/web/.htcron/twco
 my $twit = Net::Twitter::Lite->new(
     consumer_key    => $config->{'cs_key'},
     consumer_secret => $config->{'cs_secret'},
+    ssl => 1,
     legacy_lists_api => 1,
     # For twitter api v1.1
     apiurl                => 'http://api.twitter.com/1.1',

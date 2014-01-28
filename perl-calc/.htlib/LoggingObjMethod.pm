@@ -93,25 +93,25 @@ sub output_log
 sub debug
 {
     my $class = shift;
-    $class->output_log(sprintf("[DEBUG] %s", join("",@_) ));
+    $class->output_log(sprintf("[D]%s", join("",( "[", ref($class) ,"] " ,@_)) ));
 }
 
 sub notice
 {
     my $class = shift;
-    $class->output_log(sprintf("[NOTICE] %s", join("",@_) ));
+    $class->output_log(sprintf("[N]%s", join("",( "[", ref($class) ,"] " ,@_)) ));
 }
 
 sub error
 {
     my $class = shift;
-    $class->output_log(sprintf("[ERROR] %s", join("",@_) ));
+    $class->output_log(sprintf("[E]%s", join("",( "[", ref($class) ,"] " ,@_)) ));
 }
 
 sub warning
 {
     my $class = shift;
-    $class->output_log(sprintf("[WARNING] %s", join("",@_) ));
+    $class->output_log(sprintf("[W]%s", join("",( "[", ref($class) ,"] " ,@_)) ));
 }
 
 

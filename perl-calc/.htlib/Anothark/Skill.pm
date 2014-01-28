@@ -28,6 +28,8 @@ sub new
     $self->setPowerSource(1);
     $self->setTargetType(1);
     $self->setParentSkillId(0);
+    $self->setIsSkill(1);
+    $self->setNoSkillType(0);
 
 
 
@@ -78,7 +80,8 @@ sub setup_options
 my $range_str = {
     1 => "short"  ,
     2 => "middle" ,
-    3 => "long" 
+    3 => "long",
+    4 => "self"
 };
 
 my $element_name =
@@ -124,8 +127,8 @@ my $available_value = {
     'sub_type_id'        => [ 0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 20 ],
     'skill_type'         => [1,2,3,4],
     'power_source'       => [0,1,2,3,4,5],
-#a0:field,1:atc,2:magic,3:hp,4:agi,5:sence
-    'effect_target_type' => [0,1,2,3,4,5],
+#0:field,1:atc,2:magic,3:hp,4:agi,5:sence,6:def,7:connect,8:aura,9:luck,10:odd:11,charm
+    'effect_target_type' => [0,1,2,3,4,5,6,7,8,9,10,11],
     'concent_type'       => [0,1,2,3,4],
     'random_type'        => [0,1,2,3,4,5,6],
     'formula_type'       => [0,1],
@@ -151,6 +154,8 @@ my $iv_map = {
     5 => "chikaku",
 };
 
+my $is_skill = undef;
+my $no_skill_type = [1,2,3]; #1: move, 2: concent, 3: item
 
 my $skill_id = undef;
 my $parent_skill_id = undef;
@@ -607,5 +612,36 @@ sub appendChild
 {
     push(@{$_[0]->getChildren()},$_[1]);
 }
+
+
+sub setIsSkill
+{
+    my $class = shift;
+    return $class->setAttribute( 'is_skill', shift );
+}
+
+sub getIsSkill
+{
+    return $_[0]->getAttribute( 'is_skill' );
+}
+
+sub isSkill
+{
+    return $_[0]->getIsSkill();
+}
+
+
+sub setNoSkillType
+{
+    my $class = shift;
+    return $class->setAttribute( 'no_skill_type', shift );
+}
+
+sub getNoSkillType
+{
+    return $_[0]->getAttribute( 'no_skill_type' );
+}
+
+
 
 1;

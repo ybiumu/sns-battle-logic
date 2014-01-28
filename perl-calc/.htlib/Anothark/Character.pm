@@ -339,7 +339,6 @@ sub getId
     return $_[0]->getAttribute( 'id' );
 }
 
-
 sub setSide
 {
     my $class = shift;
@@ -656,6 +655,16 @@ sub Damage
     my $effect_target = $skill->getEffectTargetTypeByKey();
 
     my $remain = $class->getAttribute($effect_target)->cv() - ( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
+    if ( $skill->getEffectTargetType() == 3 )
+    {
+        if ( $remain > 0 )
+        {
+            my $cbase =  ($dmg * 10 ) / $class->getAttribute($effect_target)->cv();
+            $cbase += 1 if ( int($cbase) != $cbase  );
+            $class->getConcentration->addCurrent( int($cbase) );
+        }
+    }
+
     return $class->getAttribute($effect_target)->setCurrentValue( $remain > 0 ? $remain : 0 );
 #    my $remain = $class->getHp()->cv() - $dmg;
 #    return $class->getHp->setCurrentValue( $remain > 0 ? $remain : 0 );

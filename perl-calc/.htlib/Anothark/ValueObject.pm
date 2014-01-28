@@ -48,11 +48,23 @@ sub getMaxValue
 }
 
 
+sub addMax
+{
+    my $class = shift;
+    return $class->setMaxValue( $class->getMaxValue() + shift );
+}
 
 sub setCurrentValue
 {
     my $class = shift;
     return $class->setAttribute( 'current_value', shift );
+}
+
+
+sub addCurrent
+{
+    my $class = shift;
+    return $class->setCurrentValue( $class->getCurrentValue() + shift );
 }
 
 sub getCurrentValue

@@ -15,6 +15,8 @@ use Anothark::Battle::TargetValue;
 use Anothark::Battle::StatusValue;
 use Anothark::Skill;
 
+use constant DEBUG => 1;
+
 use constant BEFORE_START_TURN => "before_start_turn";
 use constant BEFORE_CMD        => "before_cmd";
 use constant AFTER_CMD         => "after_cmd";
@@ -36,6 +38,7 @@ my $current_actor = undef;
 my $beat_flag = undef;
 
 my $stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s<br />';
+my $debug_stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s(RT:%s/AT:%s/DF:%s[EXP:%s])<br />';
 my $act_template = '<div style="text-align:%s;color:%s;">%s%s</div>';
 my $cmd_template = '<div style="text-align:%s;color:%s;" class="act_%s" >%s%s!</div>';
 my $target_template = '<div style="text-align:%s">⇒%s</div>';
@@ -267,15 +270,17 @@ sub getLivingTargetsWithState
     my $char = $class->getCharacter();
     $class->setLivingOrder(
         [
-            grep {
+            grep { # Can reach filter
                 ( isReach( $from, $char->{$_}, $skill->getLengthType() , $class) )
             }
-            grep {
-                ($skill->getTargetType() == 3 ? 1 : ( $skill->getTargetType() == 1 ?
-                    $char->{$_}->getSide() eq $from->getReverseSide() : $char->{$_}->getSide() eq $from->getSide())
+            grep { # Side filter
+                ($skill->getTargetType() == 3 ?
+                    1 : ( $skill->getTargetType() == 1 ?
+                        $char->{$_}->getSide() eq $from->getReverseSide() : $char->{$_}->getSide() eq $from->getSide()
+                    ) # 1(敵攻撃)の場合:逆サイドである事,2(見方攻撃の場合):同サイドである事
                 )
             }
-            grep {
+            grep { # Living Target filter
                 $char->{$_}->getHp()->current() > 0
             }
             keys %{$char}
@@ -340,7 +345,7 @@ sub getLivingFrontCharactersBySide
 }
 
 
-sub resolveDamages
+sub resolveActions
 {
     my $class  = shift;
     my $target = shift;
@@ -362,23 +367,45 @@ sub resolveDamages
     # Search effect range.
     # Dmg
     my $dmg = $class->damageExec($char, $target, $skill );
-    if ( $dmg == 0 )
+    if (! $skill->isSkill() )
     {
-        $class->getTurnText()->[$turn] .= sprintf(
-                                                $effect_template,
-                                                $symbol->{$char->getSide()}->{align},
-                                                sprintf($effect_str_template, "効果なし")
-                                          );
-        $is_dmg = 1;
+        if( $skill->NoSkillType() == 1 ) # 移動
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getSide()}->{align},
+                                                    sprintf($effect_str_template, "移動した")
+                                              );
+        }
+        elsif ( $skill->NoSkillType() == 2 ) # 集中
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getSide()}->{align},
+                                                    sprintf($effect_str_template, "集中")
+                                              );
+        }
     }
     else
     {
-        $class->getTurnText()->[$turn] .= sprintf(
-                                                $effect_template,
-                                                $symbol->{$char->getSide()}->{align},
-                                                sprintf($dmg_str_template, $skill->getBaseElementName(), ( $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } ))
-                                          );
-        $is_dmg = 1;
+        if ( $dmg == 0 )
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getSide()}->{align},
+                                                    sprintf($effect_str_template, "効果なし")
+                                              );
+            $is_dmg = 1;
+        }
+        else
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getSide()}->{align},
+                                                    sprintf($dmg_str_template, $skill->getBaseElementName(), ( $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } ))
+                                              );
+            $is_dmg = 1;
+        }
     }
 #    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
     $target->Damage( $skill,$dmg );
@@ -400,6 +427,7 @@ sub resolveDamages
 
     return $is_dmg;
 }
+
 
 
 sub getSameRangeTargets
@@ -618,17 +646,40 @@ sub doTurn
 
     $class->chkScene( BEFORE_START_TURN ); 
 
-    foreach my $cs ( @{$class->getLiving()} )
+    if ( DEBUG )
     {
-        # status
-        $class->getTurnText()->[$turn] .= sprintf(
-            $stat_template,
-            $symbol->{$chars->{$cs}->getSide()}->{color},
-            $symbol->{$chars->{$cs}->getSide()}->{head},
-            $chars->{$cs}->getName(), $chars->{$cs}->getPointStr(), "",
-            $chars->{$cs}->getHp()->current(),
-            $chars->{$cs}->getHp()->max(),
-        )
+        foreach my $cs ( @{$class->getLiving()} )
+        {
+            # status
+            $class->getTurnText()->[$turn] .= sprintf(
+                $debug_stat_template,
+                $symbol->{$chars->{$cs}->getSide()}->{color},
+                $symbol->{$chars->{$cs}->getSide()}->{head},
+                $chars->{$cs}->getName(), $chars->{$cs}->getPointStr(), "",
+                $chars->{$cs}->getHp()->current(),
+                $chars->{$cs}->getHp()->max(),
+                $chars->{$cs}->getConcentration->cv(),
+                $chars->{$cs}->getAtack()->cv(),
+                $chars->{$cs}->getDefence()->cv(),
+            )
+            # Turnly concent;
+        }
+    }
+    else
+    {
+        foreach my $cs ( @{$class->getLiving()} )
+        {
+            # status
+            $class->getTurnText()->[$turn] .= sprintf(
+                $stat_template,
+                $symbol->{$chars->{$cs}->getSide()}->{color},
+                $symbol->{$chars->{$cs}->getSide()}->{head},
+                $chars->{$cs}->getName(), $chars->{$cs}->getPointStr(), "",
+                $chars->{$cs}->getHp()->current(),
+                $chars->{$cs}->getHp()->max(),
+            )
+            # Turnly concent;
+        }
     }
 
     my $order = $class->execActOrder($turn);
@@ -640,6 +691,13 @@ sub doTurn
         $class->doTurnCmd();
 
         last if $class->battleEnd()
+    }
+
+    # refresh
+    foreach my $cs2 ( @{$class->getLiving()} )
+    {
+        # Turnly concent;
+        $chars->{$cs2}->getConcentration()->addCurrent( 10 );
     }
 }
 
@@ -770,10 +828,18 @@ sub doSkillUnit
 
     my @target_order = ();
 
+#################
+### TARGETING ###
+#################
+
     # 全体攻撃
     if ($cmd->getRangeType() eq "3" )
     {
-#        map { $class->resolveDamages($chars->{ $_ }); } @{$class->getLivingTargetsWithState( $char,$char->getCmd()->[$turn] )};
+        # Do Not anything
+    }
+    # 自身攻撃
+    elsif ($cmd->getRangeType() eq "4" )
+    {
         # Do Not anything
     }
     # 単体・同列
@@ -823,8 +889,9 @@ sub doSkillUnit
 
     }
 
-
-    # Resolve Damages.
+########################
+###  Resolve Damages ###
+########################
 
 #    $$text_pointer .= sprintf("[DEBUG]%s<br/>\n",$cmd->getEffectType());
 
@@ -842,13 +909,16 @@ sub doSkillUnit
         # 全体攻撃
         if ($cmd->getRangeType() eq "3" )
         {
-            map { $is_count += $class->resolveDamages($chars->{ $_ }, $cmd); } @{$class->getLivingTargetsWithState( $char,$cmd )};
+            map { $is_count += $class->resolveActions($chars->{ $_ }, $cmd); } @{$class->getLivingTargetsWithState( $char,$cmd )};
+        }
+        # 自身攻撃
+        if ($cmd->getRangeType() eq "4" )
+        {
+            $is_count += $class->resolveActions($char, $cmd);
         }
         # 単体・同列
         else
         {
-
-
 
             if (scalar(@target_order))
             {
@@ -857,14 +927,14 @@ sub doSkillUnit
                 {
 #                $class->warning( "range type 1");
                     my $target = $chars->{$target_order[0]};
-                    $is_count += $class->resolveDamages($target, $cmd);
+                    $is_count += $class->resolveActions($target, $cmd);
                     # Target
                 }
                 elsif( $cmd->getRangeType() eq "2" )
                 {
 #                $class->warning( "range type 2");
                     my $target = $chars->{$target_order[0]};
-                    map { $is_count += $class->resolveDamages($chars->{ $_ }, $cmd); } @{$class->getSameRangeTargets($target)};
+                    map { $is_count += $class->resolveActions($chars->{ $_ }, $cmd); } @{$class->getSameRangeTargets($target)};
                     
                 }
                 else
@@ -1038,6 +1108,7 @@ sub damageExec
     [Value]    : %s
     [rate]     : %s
     [Id]       : %s/%s
+    [RT]       : %s
     ",
      $from->getName(),
      $skill->getSkillName(),
@@ -1045,6 +1116,7 @@ sub damageExec
      $from->getAttribute($skill->getPowerSourceByKey())->cv(),
      $skill->getSkillRate(),
      $skill->getSkillId(), $skill->getParentSkillId(),
+     $from->getConcentration()->cv()
     ));
 }
     $base->setPs( $from->getAttribute($skill->getPowerSourceByKey())->cv() );
@@ -1067,7 +1139,7 @@ sub damageExec
     $status->setSleep(0);
     $status->setSerialRegist(0);
 
-    $target_value->setConcent(0);
+    $target_value->setConcent( $from->getConcentration()->cv());
     $target_value->setPlaceVal(0);
     $target_value->setPlaceVector(1);
     $target_value->setChain(1);

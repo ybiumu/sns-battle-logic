@@ -8,6 +8,7 @@ use Anothark::Character::Enemy;
 use Anothark::Skill;
 use Anothark::SkillLoader;
 use Anothark::ItemLoader;
+use Anothark::BattleSetting;
 
 sub doExhibitionMatch
 {
@@ -16,7 +17,23 @@ sub doExhibitionMatch
     my $node_id  = shift;
     my $force_node = shift;
     my $db       = $battle->getAt()->getDbHandler();
+
+    my $sl = new Anothark::SkillLoader($db);
+    my $il = new Anothark::ItemLoader($db);
+    my $bs = new Anothark::BattleSetting($db);
+
     $me->setSide("p");
+    setSkills($bs,$sl,$me);
+#    $bs->setUserId($me->getUserId());
+#    my $settings = $bs->getBattleSettings();
+#
+#    foreach my $set ( @{$settings} )
+#    {
+#        if ( $set->{position} > 0 && $set->{setting_id} == 2 )
+#        {
+#            $me->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
+#        }
+#    }
 #$battle->warning( "Append user.");
     $battle->appendCharacter( $me );
 
@@ -26,13 +43,19 @@ sub doExhibitionMatch
     {
         $p1->setSide("p");
         $p1->getAtack()->setBothValue(20);
+        setSkills($bs,$sl,$p1);
+#        $bs->setUserId($p1->getUserId());
+#        $settings = $bs->getBattleSettings();
+#        foreach my $set ( @{$settings} )
+#        {
+#            if ( $set->{position} > 0 && $set->{setting_id} == 2 )
+#            {
+#                $p1->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
+#            }
+#        }
         $battle->appendCharacter( $p1 );
     }
-
-    my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
-
-    $me->getCmd()->[1] = $sl->loadSkill(1020);
+#    $me->getCmd()->[1] = $sl->loadSkill(1020);# Å¯¸ÙºÝÎÞ
     $me->getAtack()->setBothValue(15);
 
 
@@ -314,19 +337,20 @@ sub golem
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
-    my $enemy = new Anothark::Character::Enemy();
     $battle->setPartyName('œfœr‚¤“ylŒ`');
     $battle->setPartyImg("golem");
     $battle->setPartyLevel(15);
+
+    my $enemy = new Anothark::Character::Enemy();
     $enemy->setId("e_golem");
-    $enemy->setName('±ÝÀÚ½ƒÀ');
+    $enemy->setName('±ÝÀÚ½ƒÀA');
     $enemy->getHp()->setBothValue(500);
     $enemy->getAgility()->setBothValue(20);
     $enemy->gDef()->setBothValue(5);
     $enemy->getAtack()->setBothValue(50);
     $enemy->setCmd([
         [],
-        $sl->loadSkill(1018),
+        $sl->loadSkill(1019),
         $sl->loadSkill(1018),
         $sl->loadSkill(1018),
         $sl->loadSkill(1018),
@@ -334,11 +358,62 @@ sub golem
     ]);
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");
+
     push(
         @{$enemy->getDropItems()},
         ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
     );
+
+    my $enemy2 = new Anothark::Character::Enemy();
+    $enemy2->setId("e_golem2");
+    $enemy2->setName('±ÝÀÚ½ƒÀB');
+    $enemy2->getHp()->setBothValue(500);
+    $enemy2->getAgility()->setBothValue(20);
+    $enemy2->gDef()->setBothValue(5);
+    $enemy2->getAtack()->setBothValue(50);
+    $enemy2->setCmd([
+        [],
+        $sl->loadSkill(1019),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1019),
+    ]);
+    $enemy2->setSide("e");
+    $enemy2->getPosition()->setBothValue("f");
+
+    push(
+        @{$enemy2->getDropItems()},
+        ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
+    );
+
+
+    my $enemy3 = new Anothark::Character::Enemy();
+    $enemy3->setId("e_golem3");
+    $enemy3->setName('±ÝÀÚ½ƒÀC');
+    $enemy3->getHp()->setBothValue(500);
+    $enemy3->getAgility()->setBothValue(20);
+    $enemy3->gDef()->setBothValue(5);
+    $enemy3->getAtack()->setBothValue(50);
+    $enemy3->setCmd([
+        [],
+        $sl->loadSkill(1019),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1018),
+        $sl->loadSkill(1019),
+    ]);
+    $enemy3->setSide("e");
+    $enemy3->getPosition()->setBothValue("f");
+
+    push(
+        @{$enemy3->getDropItems()},
+        ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
+    );
+
     $battle->appendCharacter( $enemy );
+    $battle->appendCharacter( $enemy2 );
+    $battle->appendCharacter( $enemy3 );
     $sl->finish();
 }
 
@@ -589,6 +664,39 @@ sub enemy006
     $sl->finish();
 }
 
+
+sub setSkills
+{
+    my $bs   = shift;
+    my $sl   = shift;
+    my $char = shift;
+
+    $bs->setUserId( $char->getUserId());
+    my $settings = $bs->getBattleSettings();
+
+    if ( $settings )
+    {
+        $bs->notice("FOUND ! [" . $char->getUserId() .  "]");
+        foreach my $set ( @{$settings} )
+        {
+            if ( $set->{position} > 0 )
+            {
+                if ($set->{setting_id} == 2 )
+                {
+                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
+                }
+                else
+                {
+                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 1001 );
+                }
+            }
+        }
+    }
+    else
+    {
+        $bs->warning("No settings found ! [" . $char->getUserId() .  "]");
+    }
+}
 
 1;
 

@@ -44,13 +44,17 @@ div.contents2 {
     clear:both;
 }
 div.contents3 {
-    background-color:#7f40ef;
+    background-color:#005DFC;
     text-align:center;
     color:#ffffff;
     width:100%;
     padding:1px;
+    /*
     border-top:solid 2px #2f6f6f;
     border-bottom:solid 2px #2f6f6f;
+    */
+    border-top:solid 2px #4f4f4f;
+    border-bottom:solid 2px #4f4f4f;
     clear:both;
 }
 div.contents_e1 {

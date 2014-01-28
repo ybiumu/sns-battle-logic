@@ -28,7 +28,7 @@ sub new
     return $self;
 }
 
-my $user_id = undef;
+#my $user_id = undef;
 my $status_io = undef;
 my $element_total_count = undef;
 
@@ -46,17 +46,28 @@ sub isPlayer
     return 1;
 }
 
+sub getUserId
+{
+    return $_[0]->getId();
+}
+
 sub setUserId
 {
     my $class = shift;
-    return $class->setAttribute( 'user_id', shift );
+    return $class->setId(shift);
 }
 
-sub getUserId
-{
-    return $_[0]->getAttribute( 'user_id' );
-}
-
+#sub setUserId
+#{
+#    my $class = shift;
+#    return $class->setAttribute( 'user_id', shift );
+#}
+#
+#sub getUserId
+#{
+#    return $_[0]->getAttribute( 'user_id' );
+#}
+#
 
 sub setStatusIo
 {
