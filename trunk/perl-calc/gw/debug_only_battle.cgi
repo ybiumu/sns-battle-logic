@@ -85,7 +85,7 @@ my $mob_uid = $mu->get_muid();
         my $target = $party->[int(rand(scalar(@{$party})))];
 #        $pu->warning(sprintf( "[DROP R] %s", $items->getItemLabel()));
         $out->{RESULT} .= sprintf('<br />™%s‚Í%s‚ðŽè‚É“ü‚ê‚½!', $target->getName(),$items->getItemLabel());
-        $target->getStatusIo()->getItem( $target->getId(), $items->getItemMasterId() );
+        $target->getStatusIo()->getItem( $items->getItemMasterId() );
     }
     $out->{RESULT_TITLE} = $battle->getPartyName();
 

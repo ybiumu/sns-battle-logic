@@ -72,7 +72,8 @@ sub setUserId
 sub setStatusIo
 {
     my $class = shift;
-    return $class->setAttribute( 'status_io', shift );
+    $class->setAttribute( 'status_io', shift )->setUserId( $class->getUserId() );
+    return $class->getStatusIo();
 }
 
 sub getStatusIo

@@ -410,7 +410,7 @@ sub doQueing
                         my $target = $party->[int(rand(scalar(@{$party})))];
 #        $class->warning( sprintf( "[DROP R] %s", $items->getItemLabel()));
                         $ins_pre .= sprintf('<br />™%s‚Í%s‚ðŽè‚É“ü‚ê‚½!', $target->getName(),$items->getItemLabel());
-                        $target->getStatusIo()->getItem( $target->getId(), $items->getItemMasterId() );
+                        $target->getStatusIo()->getItem( $items->getItemMasterId() );
                     }
                     $ins_pre .= "<br /><br />" if(scalar(@{$drops}));
 

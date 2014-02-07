@@ -59,7 +59,7 @@ my $version = "0.1a20120328";
 if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{user_id} )
 {
 
-
+    # 他人のマイペ
     $result = $at->getBaseDataByUserId($c->param("user_id"));
     if ( ! $result )
     {

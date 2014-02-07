@@ -2,6 +2,9 @@
 ############
 ### LOAD ###
 ############
+#
+# ˆ¤
+#
 use lib qw( .htlib ../.htlib );
 use CGI;
 use DbUtil;
