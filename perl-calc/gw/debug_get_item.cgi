@@ -75,9 +75,12 @@ $sth->finish();
 my $user_id = $row->{user_id};
 my $num = $c->param("n") || 0;
 my $item_id = $c->param("imi") || 0;
-my $s_io = new Anothark::Character::StatusIO($db);
+#my $s_io = new Anothark::Character::StatusIO($db);
+my $s_io = $at->getStatusIo()
 
-$s_io->getItem($user_id, $item_id, $num);
+#$s_io->getItem($user_id, $item_id, $num);
+$s_io->getItem($item_id, $num);
+
 #my $get_item_sql = "
 #INSERT INTO t_user_item (user_id, item_master_id)
 #SELECT

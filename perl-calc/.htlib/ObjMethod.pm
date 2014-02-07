@@ -77,4 +77,73 @@ sub delAttribute
     }
 }
 
+sub dump
+{
+    my $class = shift;
+    my $result = [];
+    stackDump($class,0,$result);
+    return $result;
+}
+
+sub stackDump
+{
+    my $obj   = shift;
+    my $depth = shift;
+    my $result = shift;
+    if( ref($obj) eq "HASH" )
+    {
+        foreach my $key ( sort keys %{$obj} )
+        {
+            if ( ref($obj->{$key}) )
+            {
+                push(@{$result}, sprintf "%s(KEY)[%s]->%s", "  " x $depth,$key,ref($obj->{$key}));
+                stackDump($obj->{$key},$depth+1,$result);
+            }
+            else
+            {
+                push(@{$result}, sprintf "%s(KEY)[%s]->%s", "  " x $depth,$key,$obj->{$key});
+            }
+        }
+    }
+    elsif ( ref($obj) eq "ARRAY" )
+    {
+        foreach my $idx ( (0 .. (scalar(@{$obj}) - 1) ))
+        {
+            if ( ref($obj->[$idx]) )
+            {
+                push(@{$result}, sprintf "%s(IDX)[%s]->%s", "  " x $depth,$idx,ref($obj->[$idx]));
+                stackDump($obj->[$idx],$depth+1,$result);
+            }
+            else
+            {
+                push(@{$result}, sprintf "%s(IDX)[%s]->%s", "  " x $depth,$idx,$obj->[$idx]);
+            }
+        }
+    }
+    elsif( ref($obj) eq "SCALAR" )
+    {
+        push(@{$result}, sprintf "%s(SCA)[%s]->%s", "  " x $depth,ref($obj),$$obj);
+    }
+    elsif( ref($obj) )
+    {
+        push(@{$result}, sprintf "%s(REF)[%s]->%s", "  " x $depth,ref($obj),$obj);
+        foreach my $key ( sort keys %{$obj} )
+        {
+            if ( ref($obj->{$key}) )
+            {
+                push(@{$result}, sprintf "%s(KEY)[%s]->%s", "  " x $depth,$key,ref($obj->{$key}));
+                stackDump($obj->{$key},$depth+1,$result);
+            }
+            else
+            {
+                push(@{$result}, sprintf "%s(KEY)[%s]->%s", "  " x $depth,$key,$obj->{$key});
+            }
+        }
+    }
+    else
+    {
+        push(@{$result}, sprintf "%s(NML)->%s", "  " x $depth,$obj);
+    }
+}
+
 1;

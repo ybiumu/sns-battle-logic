@@ -398,7 +398,8 @@ sub loadBodyHtml
 
 }
 
-
+# 自分のデータ
+# getBaseDataByUserIdに統合したい
 sub setupBaseData
 {
     my $class = shift;
@@ -434,6 +435,7 @@ sub setupBaseData
 
     if ( $sth->rows() == 0 )
     {
+        $sth->finish();
         return $result;
     }
 
@@ -467,9 +469,21 @@ sub setupBaseData
     $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
     $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
 
-    $class->{PLAYER} = $class->getPlayerByUserId( $row->{user_id},$without_skill );
 
-    $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+    $class->{PLAYER} = $class->getPlayerByUserId( $row->{user_id},$without_skill );
+    $sth->finish();
+    $class->{out}->{EXP}   = join(
+        "<br />\n",
+        map {
+            sprintf "%s Lv%s (%s)", 
+            Anothark::Skill::typeId2typeName2($_),
+            $class->{PLAYER}->getTypeLevel($_),
+            int $class->{PLAYER}->getTypeExperiment($_),
+        } sort keys %{$class->{PLAYER}->getExperiments() }
+    );
+
+    $class->setStatusIo( $class->{PLAYER}->getStatusIo() );
+#    $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
     return $result;
 }
@@ -536,11 +550,12 @@ sub getPlayerByUserId
     }
 #    my $ref = ref($char);
     $class->warning( "char is [$char]");
-    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+#    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
     return $char;
 }
 
+# 汎用ユーザーデータ取得
 sub getBaseDataByUserId
 {
     my $class = shift;
@@ -580,6 +595,17 @@ sub getBaseDataByUserId
     $class->{out}->{V_HMT} = $char->getKikyou()->current();
     $class->{out}->{V_CHR} = $char->getCharm()->current();
 
+
+    $class->{out}->{EXP}   = join(
+        "<br />\n",
+        map {
+            sprintf "%s Lv%s (%s)", 
+            Anothark::Skill::typeId2typeName2($_),
+            $char->getTypeLevel($_),
+            int $char->getTypeExperiment($_),
+        } sort keys %{$char->getExperiments() }
+    );
+
     return $result;
 }
 
@@ -611,6 +637,8 @@ sub getCharacterByUserId
             s.a_hp AS hp,
             s.a_atack AS atack,
             s.a_def AS def,
+            s.stamina AS stamina,
+            s.position_code AS position,
             n.node_name
         FROM
             t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
@@ -623,6 +651,7 @@ sub getCharacterByUserId
     if ( $sth->rows() == 0 )
     {
         $class->warning("No user record.");
+        $sth->finish();
         return undef;
     }
 
@@ -647,16 +676,50 @@ sub getCharacterByUserId
     $char->getLuck()->setBothValue($row->{a_luck});
     $char->getKikyou()->setBothValue($row->{a_kikyou});
     $char->getCharm()->setBothValue($row->{a_chrm});
+    $char->getStamina()->setBothValue($row->{stamina});
+    $char->getPosition()->setBothValue($row->{position});
 
     $char->setIsGm( $row->{is_gm} );
 
     $char->setVel( $row->{vel} );
     $char->setRel( $row->{rel} );
 
-    ## SetSkill
+    $sth->finish();
 
+    ## SetSkill
+    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+
+    $char->setExperiments( $class->loadExp( $char->getUserId()) );
 
     return $char;
+}
+
+sub loadExp
+{
+    my $class = shift;
+    my $user_id = shift;
+    my $exps = {};
+
+    my $get_base_sql = "
+        SELECT
+            b.type_id AS type_id,
+            b.exp     AS exp
+        FROM
+            t_user AS u JOIN t_user_exp AS b USING(user_id)
+        WHERE
+            u.user_id = ?";
+
+    my $sth  = $class->getDbHandler()->prepare($get_base_sql);
+    my $stat = $sth->execute(($user_id));
+
+    if ( $sth->rows > 0 )
+    {
+        $exps  = $sth->fetchall_hashref(("type_id"));
+    }
+
+    $sth->finish();
+
+    return $exps;
 }
 
 1;

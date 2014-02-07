@@ -137,8 +137,8 @@ if ( $act && exists $ITEM_ACTIONS{$act} )
 {
 #    &{$PRE_ITEM_ACTIONS{$act}}($at,$c);
     $out->{"PRE_RESULT"} .= &{$PRE_ITEM_ACTIONS{$act}}($at,$c) . "<br />\n";
-#    $out->{"PRE_RESULT"} .= join("<br />\n", map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid")) );
-    map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid"));
+    $out->{"PRE_RESULT"} .= join("<br />\n", map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid")) );
+#    map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid"));
     $out->{"PRE_RESULT"} .=  "<br />\n" . &{$POST_ITEM_ACTIONS{$act}}($at,$c);
 }
 
@@ -228,7 +228,7 @@ sub use_item
 {
     my $at = shift;
     my $c = shift;
-    return "use_item";
+    return ;
 }
 
 sub descr_item
@@ -241,12 +241,12 @@ sub descr_item
 
 sub pass_item
 {
-    return "pass_item";
+    return ;
 }
 
 sub mart_item
 {
-    return "mart_item";
+    return ;
 }
 
 sub sell_item
@@ -254,8 +254,9 @@ sub sell_item
     my $at = shift;
     my $item_id = shift;
 
-    $at->getStatusIo()->sellItem( $at->getOut()->{USER_ID}, $item_id);
-    return "sell_item";
+#    $at->getStatusIo()->sellItem( $at->getOut()->{USER_ID}, $item_id);
+    $at->getStatusIo()->sellItem( $item_id );
+    return ;
 }
 
 sub reject_item
@@ -263,8 +264,9 @@ sub reject_item
     my $at = shift;
     my $item_id = shift;
 
-    $at->getStatusIo()->rejectItem( $at->getOut()->{USER_ID}, $item_id);
-    return "reject_item";
+#    $at->getStatusIo()->rejectItem( $at->getOut()->{USER_ID}, $item_id);
+    $at->getStatusIo()->rejectItem( $item_id);
+    return ;
 }
 
 

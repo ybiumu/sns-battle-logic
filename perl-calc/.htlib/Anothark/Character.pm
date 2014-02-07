@@ -16,6 +16,7 @@ use Anothark::Skill;
 use Anothark::Skill::Exhibition;
 
 use Anothark::StatusManager;
+use Anothark::StackObject;
 
 use Anothark::Battle::BaseValue;
 use Anothark::Battle::StatusValue;
@@ -68,6 +69,17 @@ sub init
     $class->setRel(0);
     $class->setVel(0);
 
+
+    $class->setTrapStack( new Anothark::StackObject());
+    $class->setCoursStack( new Anothark::StackObject());
+#    $class->setStacks( new Anothark::StackObject() );
+# create StackObject
+#
+#  trap
+#  carse
+#  prepare
+#
+
     if ( exists $class->{without_skill})
     {
         $class->setCmd([
@@ -105,6 +117,7 @@ sub init
     $class->getDefence()->setBothValue( 0 );
 
     $class->getPosition()->setBothValue( "f" );
+
 }
 
 my $raw_data = undef;
@@ -484,6 +497,19 @@ sub getRel
 
 
 
+my $experiments = undef;
+sub setExperiments
+{
+    my $class = shift;
+    return $class->setAttribute( 'experiments', shift );
+}
+
+sub getExperiments
+{
+    return $_[0]->getAttribute( 'experiments' );
+}
+
+
 #my $type_experiment = undef;
 sub setTypeExperiment
 {
@@ -493,7 +519,7 @@ sub setTypeExperiment
 
 sub getTypeExperiment
 {
-    return $_[0]->getAttribute( 'type_experiment' );
+    return $_[0]->getExperiments()->{$_[1]}->{"exp"};
 }
 
 my $type_level = undef;
@@ -506,7 +532,11 @@ sub setTypeLevel
 sub getTypeLevel
 {
 #    return $_[0]->getAttribute( 'type_level' );
-    return 0;
+    my $class = shift;
+    my $type  = shift;
+    my $exp   = $class->getTypeExperiment($type);
+    my $lv    = int sqrt(($exp * 2 - ( $exp >= 1 ? 1 : 0 )));
+    return $lv;
 }
 
 
@@ -631,6 +661,47 @@ sub isSmallerThanHalf
     return ( $class->getHp()->cv() < $class->getHp()->mv() / 2 );
 }
 
+
+my $stacks = undef;
+my $trap_stack = undef;
+my $cours_stack = undef;
+sub setStacks
+{
+    my $class = shift;
+    return $class->setAttribute( 'stacks', shift );
+}
+
+sub getStacks
+{
+    return $_[0]->getAttribute( 'stacks' );
+}
+
+
+
+sub setTrapStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'trap_stack', shift );
+}
+
+sub getTrapStack
+{
+    return $_[0]->getAttribute( 'trap_stack' );
+}
+
+sub setCoursStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'cours_stack', shift );
+}
+
+sub getCoursStack
+{
+    return $_[0]->getAttribute( 'cours_stack' );
+}
+
+
+
 sub canMove
 {
     my $class = shift;
@@ -656,7 +727,7 @@ sub Damage
 
     $class->debug("Effect Target[$effect_target] DMG[$dmg]");
 
-    my $remain = $class->getAttribute($effect_target)->cv() - ( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
+    my $remain = $class->getAttribute($effect_target)->cv() - ( $dmg * (($skill->getEffectType() eq 1 || $skill->getEffectType() eq 2) ? -1 : 1) );
     if ( $skill->getEffectTargetType() == 3 )
     {
         if ( $remain > 0 )

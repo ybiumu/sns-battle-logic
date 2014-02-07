@@ -165,8 +165,8 @@ sub trading
     {
         # ŠŽ‹à\•ª
         my $s_io = $char->getStatusIo();
-        $s_io->spendMoney( $char->getId(), $total, $money_unit );
-        $s_io->getItem( $char->getId(), $item->getItemMasterId(), $num );
+        $s_io->spendMoney( $total, $money_unit );
+        $s_io->getItem( $item->getItemMasterId(), $num );
         $status = sprintf('%s‚ðw“ü‚µ‚Ü‚µ‚½', $item->getItemLabel());
     }
     else

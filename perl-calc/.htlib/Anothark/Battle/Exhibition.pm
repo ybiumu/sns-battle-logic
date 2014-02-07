@@ -24,17 +24,6 @@ sub doExhibitionMatch
 
     $me->setSide("p");
     setSkills($bs,$sl,$me);
-#    $bs->setUserId($me->getUserId());
-#    my $settings = $bs->getBattleSettings();
-#
-#    foreach my $set ( @{$settings} )
-#    {
-#        if ( $set->{position} > 0 && $set->{setting_id} == 2 )
-#        {
-#            $me->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
-#        }
-#    }
-#$battle->warning( "Append user.");
     $battle->appendCharacter( $me );
 
 #    my $p1 = $battle->getAt()->getPlayerByUserId(2);
@@ -44,18 +33,8 @@ sub doExhibitionMatch
         $p1->setSide("p");
         $p1->getAtack()->setBothValue(20);
         setSkills($bs,$sl,$p1);
-#        $bs->setUserId($p1->getUserId());
-#        $settings = $bs->getBattleSettings();
-#        foreach my $set ( @{$settings} )
-#        {
-#            if ( $set->{position} > 0 && $set->{setting_id} == 2 )
-#            {
-#                $p1->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
-#            }
-#        }
         $battle->appendCharacter( $p1 );
     }
-#    $me->getCmd()->[1] = $sl->loadSkill(1020);# Å¯¸ÙºÝÎÞ
     $me->getAtack()->setBothValue(15);
 
 
@@ -91,13 +70,9 @@ sub doExhibitionMatch
         [],
         $sl->loadSkill(1009),
         $sl->loadSkill(1009),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
         new Anothark::Skill( '¾ÙÌ¸¯·Ý¸Þ' ,{ skill_rate => 10,length_type => 1, range_type => 1,target_type => 2, effect_type => 1 } ),
         $sl->loadSkill(1009),
         $sl->loadSkill(1009),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
-#        new Anothark::Skill( '’´’áŽü”g' , { skill_rate => 6 ,length_type => 1, range_type => 2 } ),
     ]);
 
     $npc2->setSide("p");

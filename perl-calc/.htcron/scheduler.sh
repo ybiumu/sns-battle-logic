@@ -8,6 +8,11 @@ then
     /home/users/2/ciao.jp-anothark/web/.htcron/twitter.pl
 fi;
 
+if [ "x${HOUR}" != "x" -a "${HOUR}" == "04" ];
+then
+    /home/users/2/ciao.jp-anothark/web/.htcron/session_clean.sh;
+fi;
+
 
 # onetime scheduler
 ONETIME_PATH=/home/users/2/ciao.jp-anothark/web/.htcron/onetimes;

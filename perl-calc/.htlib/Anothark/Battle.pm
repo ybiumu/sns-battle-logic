@@ -79,7 +79,7 @@ my $target_map = {
 my $effect_str = {
     0 => {0 => "ÀŞÒ°¼Ş", 1 => "‰ñ•œ"},
     1 => {0 => "‰ñ•œ",   1 => "ÀŞÒ°¼Ş"},
-    2 => {0 => "",       1 => ""},
+    2 => {1 => "Œ¸­",       0 => "‘‰Á"},
     3 => {0 => "ã©‚ğdŠ|‚¯‚½" , 1 => "ã©‚ğdŠ|‚¯‚½"},
     4 => {0 => "ôæf‚ğdŠ|‚¯‚½" , 1 => "ôæf‚ğdŠ|‚¯‚½"},
     5 => {0 => "", 1 => ""},
@@ -402,7 +402,11 @@ sub resolveActions
             $class->getTurnText()->[$turn] .= sprintf(
                                                     $effect_template,
                                                     $symbol->{$char->getSide()}->{align},
-                                                    sprintf($dmg_str_template, $skill->getBaseElementName(), ( $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } ))
+                                                    sprintf(
+                                                        $dmg_str_template,
+                                                        $skill->getBaseElementName(),
+                                                        ( ( ( $skill->getEffectType() == 0 && $skill->getEffectTargetType() == 3 ) ? "" : $skill->getEffectTargetLabel() ) . $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } )
+                                                        )
                                               );
             $is_dmg = 1;
         }
@@ -491,6 +495,7 @@ sub chkCmdStack
     my $scene = shift;
     # Stacking
 
+#    $class->getActions()->{$scene}
     # resolve stacks
 }
 
@@ -504,6 +509,28 @@ sub chkScene
     $class->chkCmdStack($scene, $opt);
     $class->chkClear($scene, $opt);
 }
+
+#
+# $actions = {
+#   DAMAGED   => sub { return $class->setStackCmd(@_) },
+#   AFTER_CMD => sub { return $class->resolveStackCmd(@_) },
+#
+#
+# }
+#
+
+my $actions = undef;
+sub setActions
+{
+    my $class = shift;
+    return $class->setAttribute( 'actions', shift );
+}
+
+sub getActions
+{
+    return $_[0]->getAttribute( 'actions' );
+}
+
 
 sub doBattle
 {
@@ -558,13 +585,20 @@ sub checkExperiment
     foreach my $c ( @{$class->getPlayers()} )
     {
         my $cnts = $c->getUseElementCount();
+        my $exp_values = {};
         foreach my $type ( sort keys %{$cnts})
         {
+            # value
+            my $type_exp = ( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
+            $exp_values->{$type} = $type_exp;
+            # Str 
             $chk_str .= sprintf '%s‚Í%s‚Ìn—û‚ª%.2fã‚ª‚Á‚½<br />',
                             $c->getName(),
                             Anothark::Skill::typeId2typeName($type),
-                            ( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
+                            $type_exp;
         }
+        # Save
+        $c->getStatusIo()->updateExp($exp_values);
     }
     return $chk_str;
 }
@@ -779,7 +813,6 @@ sub doCmd
     }
 
 
-    $class->chkScene( AFTER_CMD ); 
     # Post Effect Check
     # Post Effect cmd
 
@@ -799,6 +832,10 @@ sub doCmd
         $class->getBeatFlag()->{$char->getSide()} = 1;
     }
 
+
+    # Exec after command;
+
+    $class->chkScene( AFTER_CMD ); 
 
 # cmd end
 }
@@ -870,7 +907,7 @@ sub doSkillUnit
             return ;
         }
 
-
+        # ’P‘Ì
         if ( $cmd->getRangeType() eq "1" )
         {
             # for single taggeting.
@@ -887,6 +924,7 @@ sub doSkillUnit
                 } @{$class->getLivingTargetsWithState( $char,$cmd )}
             );
         }
+        # “¯—ñ
         elsif( $cmd->getRangeType() eq "2" )
         {
             my $td = { f => 0, b => 0};
@@ -912,6 +950,9 @@ sub doSkillUnit
 
     my $is_count = 0;
 
+    # each effect 
+    # 0:UŒ‚,1:‰ñ•œ,2:•t—^,3:ã©,4:ôæf,5:ƒVƒŠ[ƒY,6:ƒ‰ƒ“ƒ_ƒ€
+    # ƒVƒŠ[ƒY
     if ( $cmd->getEffectType() eq "5" )
     {
         foreach my $child ( @{ $cmd->getChildren()})
@@ -919,6 +960,26 @@ sub doSkillUnit
             $is_count += $class->doSkillUnit($char,$child,$text_pointer);
         }
     }
+    # ƒ‰ƒ“ƒ_ƒ€
+    elsif ( $cmd->getEffectType() eq "6" )
+    {
+        my $children = $cmd->getChildren();
+        my $rnd = int( rand(scalar(@{$children})));
+        $is_count += $class->doSkillUnit($char,$children->[$rnd],$text_pointer);
+    }
+    # ôæf
+    elsif ( $cmd->getEffectType() eq "4" )
+    {
+        my $children = $cmd->getChildren();
+        # XXX set target
+    }
+    # ã©
+    elsif ( $cmd->getEffectType() eq "3" )
+    {
+        my $children = $cmd->getChildren();
+        # XXX set target
+    }
+    # ‘¼
     else
     {
         # ‘S‘ÌUŒ‚
@@ -927,7 +988,7 @@ sub doSkillUnit
             map { $is_count += $class->resolveActions($chars->{ $_ }, $cmd); } @{$class->getLivingTargetsWithState( $char,$cmd )};
         }
         # ©gUŒ‚
-        if ($cmd->getRangeType() eq "4" )
+        elsif ($cmd->getRangeType() eq "4" )
         {
             $is_count += $class->resolveActions($char, $cmd);
         }
@@ -960,6 +1021,9 @@ sub doSkillUnit
             }
             else
             {
+                $class->debug( "Not reached. “Í‚©‚È‚¢! ");
+                $class->debug( "XXX Stack dump XXX");
+#                map { $class->debug($_); } @{$cmd->dump()};
                 $$text_pointer .= sprintf($effect_template, $symbol->{$char->getSide()}->{align},sprintf( $effect_str_template, "“Í‚©‚È‚¢"));
             }
 
@@ -1139,7 +1203,14 @@ sub damageExec
     $base->setMainExpr(0);
     $base->setSubExpr(0);
     $base->setExprType(1);
-    $base->setRange( $base->RANGE_MAP->{$skill->getRangeTypeStr()} );
+    if ( $skill->getEffectType() == 1 )
+    {
+        $base->setRange( $base->RANGE_MAP->{$skill->getRangeTypeStr()} );
+    }
+    else
+    {
+        $base->setRange( 1.0 );
+    }
     $base->setRand($skill->getRandomAlias());
 
 
