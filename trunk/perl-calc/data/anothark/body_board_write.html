@@ -1,0 +1,14 @@
+<!-- ˆ¤ -->
+<div class="contents2">$out->{"RESULT_TITLE"}</div>
+<center>
+<a href="board.cgi?guid=ON&p=$out->{CPAGE}&t=$out->{BOARD_TYPE_ID}&oid=$out->{TARGET_USER_ID}">–ß‚é</a>
+</center>
+<form method="get" action="board.cgi">
+<input type="hidden" name="guid" value="ON" />
+<input type="hidden" name="t" value="$out->{BOARD_TYPE_ID}" />
+<input type="hidden" name="oid" value="$out->{TARGET_USER_ID}" />
+<input type="text" name="msg" size="40" value="$out->{CURRENT_TEXT}" /><input type="submit" value="‘—M" />
+</form>
+$out->{"RESULT"}<br />
+<br />
+
