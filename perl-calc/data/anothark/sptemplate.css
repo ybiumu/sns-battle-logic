@@ -7,6 +7,7 @@ max-width: 320px;
 margin: auto;
 */
 margin: 0;
+line-height: 150%;
 
 /*
 border-radius:2px;
@@ -23,6 +24,80 @@ form {
 img {
 	border:0;
 }
+
+
+a {
+    text-align: center;
+    vertical-align: middle;
+/*
+    display: block;
+    width: 100%;
+*/
+    padding: 5px;
+    text-decoration: none;
+/*
+    color: #ffffff;
+    color: #000000;
+*/
+    border-style: solid;
+    /*
+    border-color: #000000;
+    */
+    border-width: 1px;
+
+/*
+    text-shadow: 1px  1px 1px #000000,
+                -1px  1px 1px #000000,
+                 1px -1px 1px #000000,
+                -1px -1px 1px #000000;
+*/
+    border-radius: 7px;
+    box-shadow: 0px 0px 7px #000000;
+/*
+    background-image: -moz-linear-gradient(left top, #ededed, #a8a8a8);
+    background-image: -webkit-linear-gradient(left top, #ededed, #a8a8a8);
+    background-image: linear-gradient(left top, #ededed, #a8a8a8);
+*/
+    background-clip: padding-box;
+}
+
+div.content a {
+    text-align: center;
+    vertical-align: middle;
+/*
+    display: block;
+    width: 100%;
+*/
+    padding: 5px;
+    text-decoration: none;
+/*
+    color: #ffffff;
+*/
+    color: #000000;
+    border-style: solid;
+    border-color: #000000;
+    border-width: 1px;
+
+/*
+    text-shadow: 1px  1px 1px #000000,
+                -1px  1px 1px #000000,
+                 1px -1px 1px #000000,
+                -1px -1px 1px #000000;
+*/
+/*
+    border-radius: 7px;
+    box-shadow: 0px 0px 7px #000000;
+*/
+/*
+    background-image: -moz-linear-gradient(left top, #ededed, #a8a8a8);
+    background-image: -webkit-linear-gradient(left top, #ededed, #a8a8a8);
+    background-image: linear-gradient(left top, #ededed, #a8a8a8);
+*/
+/*
+    background-clip: padding-box;
+*/
+}
+
 
 a:link{color:#0048FF;}
 a:focus{color:#FF6600;}
@@ -296,7 +371,7 @@ footer div.pb div.body:nth-child(odd) {
 div.pb {
     color: #FFFFFF;
     text-align: center;
-    font-size: medium;
+    font-size: large;
 }
 div.pb a {
     /*
@@ -313,8 +388,8 @@ div.pb div.header {
     border-style: solid;
     border-color: #b0aa00;
     border-width: 2px 0px 2px 0px;
-    font-weight: bold;
 /*
+    font-weight: bold;
     background-color: #FCCA00;
 */
     background-color: #005DFC;

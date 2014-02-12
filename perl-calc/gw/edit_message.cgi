@@ -74,6 +74,8 @@ if ( $st == 1 )
     my $msg = $c->param("msg") || "";
     my $filter = new Anothark::TextFilter();
 
+    $msg = $filter->optimize($msg);
+
     if ( $filter->match( $msg ) )
     {
         $out->{"RESULT"} = '<span style="color:#ff0000;">‹ÖŽ~•¶Žš‚ª‘¶Ý‚µ‚Ü‚·!</span><br />';

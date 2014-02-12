@@ -448,6 +448,7 @@ sub setupBaseData
     $class->{out}->{PLACE} = $row->{node_name};
     $class->{out}->{NODE_ID} = $row->{node_id};
     $class->{out}->{USER_ID} = $row->{user_id};
+    $class->{out}->{USER_NAME} = $row->{user_name};
     $class->{out}->{VEL}     = $row->{vel};
     $class->{out}->{REL}     = $row->{rel};
     $class->{out}->{GM}      = $row->{is_gm};
@@ -581,6 +582,7 @@ sub getBaseDataByUserId
     $class->{out}->{PLACE} = $char->getNodeName();
     $class->{out}->{NODE_ID} = $char->getNodeId();
     $class->{out}->{USER_ID} = $user_id;
+    $class->{out}->{USER_NAME} = $char->getUserName();
     $class->{out}->{VEL}     = $char->getVel();
     $class->{out}->{REL}     = $char->getRel();
 

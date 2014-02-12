@@ -8,6 +8,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
+use Anothark::BoardManager;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -43,6 +44,8 @@ if ( ! $result )
 
 
 our $out = $at->getOut();
+my $board = new Anothark::BoardManager($db);
+my $my_user_id = $at->{out}->{USER_ID};
 
 
 # depend
@@ -56,7 +59,7 @@ my $version = "0.1a20120328";
 
 ## Main
 
-if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{user_id} )
+if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{USER_ID} )
 {
 
     # 他人のマイペ
@@ -66,7 +69,7 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{user_id} )
 
         $at->Critical();
 #        $at->Error();
-        $at->{out}->{RESULT} = "そのユーザーは存在しません";
+        $out->{RESULT} = "そのユーザーは存在しません";
     }
     else
     {
@@ -74,6 +77,20 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{user_id} )
     }
 }
 
+my $entry =  $board->readMyBoardOne( $my_user_id, $out->{USER_ID})->[0];
+
+if ( $entry )
+{
+    my $msg = $entry->{message};
+    $msg =~ s/\n/<br \/>/g;
+    $msg =~ s/ /&nbsp;/g;
+#$msg =~ s/&gt;&gt;(\d+)/<a href="board.cgi?guid=ON&t=$board_type_id&oid=$target_user_id&tid=$1">&gt;&gt;$1<\/a>/g;
+    $out->{BRD} .= sprintf
+        "<br />%s<br />(%s)<br />%s",
+        $entry->{user_name},
+        $entry->{last_update},
+        $msg;
+}
 
 
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');

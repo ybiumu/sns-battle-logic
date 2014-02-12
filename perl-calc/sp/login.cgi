@@ -48,7 +48,8 @@ eval {
     $twit->{oauth_urls}->{authorization_url}  = "https://api.twitter.com/oauth/authorize";
     $twit->{oauth_urls}->{access_token_url}   = "https://api.twitter.com/oauth/access_token";
     $twit->{oauth_urls}->{xauth_url}          = "https://api.twitter.com/oauth/access_token";
-    $auth_url = $twit->get_authorization_url( callback => $LocalConfig::BASE_URL . '/sp/callback.cgi' );
+##    $auth_url = $twit->get_authorization_url( callback => $LocalConfig::BASE_URL . '/sp/callback.cgi' );
+    $auth_url = $twit->get_authentication_url( callback => $LocalConfig::BASE_URL . '/sp/callback.cgi' );
 };
 
 my $err_msg = "";

@@ -122,6 +122,7 @@ sub init
 
 my $raw_data = undef;
 
+my $user_name = undef;
 my $hp = undef;
 my $stamina = undef;
 my $atack = undef;
@@ -351,6 +352,19 @@ sub getId
 {
     return $_[0]->getAttribute( 'id' );
 }
+
+
+sub setUserName
+{
+    my $class = shift;
+    return $class->setAttribute( 'user_name', shift );
+}
+
+sub getUserName
+{
+    return $_[0]->getAttribute( 'user_name' );
+}
+
 
 sub setSide
 {

@@ -590,12 +590,15 @@ sub checkExperiment
         {
             # value
             my $type_exp = ( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
-            $exp_values->{$type} = $type_exp;
-            # Str 
-            $chk_str .= sprintf '%s‚Í%s‚Ìn—û‚ª%.2fã‚ª‚Á‚½<br />',
-                            $c->getName(),
-                            Anothark::Skill::typeId2typeName($type),
-                            $type_exp;
+            if ( $type_exp )
+            {
+                $exp_values->{$type} = $type_exp;
+                # Str 
+                $chk_str .= sprintf '%s‚Í%s‚Ìn—û‚ª%.2fã‚ª‚Á‚½<br />',
+                                $c->getName(),
+                                Anothark::Skill::typeId2typeName($type),
+                                $type_exp;
+            }
         }
         # Save
         $c->getStatusIo()->updateExp($exp_values);
