@@ -6,9 +6,11 @@ use Net::Twitter::Lite;
 use CGI;
 use DbUtil;
 use LocalConfig;
+use LoggingObjMethod;
 
 
 my $db = DbUtil::getDbHandler();
+my $log = new LoggingObjMethod();
 use CGI::Session;
 
 my $cgi = new CGI;
@@ -54,10 +56,12 @@ $session->param(-name=>'pattern', -value=>"twauth");
 
 my $cookie = CGI::Cookie->new(-name => 'CGISESSID',
                              -value => $session->id(),
-                             -expires => '+1h',
+                             -expires => '+6h',
                              -path => '/sp'
                              );
 
+$log->warning("[callback.cgi] redirect $LocalConfig::BASE_URL/sp/mypage.cgi");
+$log->warning("[callback.cgi] set cookie $cookie");
 print $cgi->header(
   -cookie=>$cookie,
   -location => $LocalConfig::BASE_URL . "/sp/mypage.cgi"

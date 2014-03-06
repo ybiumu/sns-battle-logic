@@ -32,23 +32,37 @@ sub loadItem
 
     my $item = {};
 
-    my $sql = "SELECT * FROM t_item_master WHERE item_master_id = ?";
-    my $sth  = $class->getDbHandler()->prepare($sql);
-    my $stat = $sth->execute(($item_id));
-    if ( $sth->rows > 0 )
+    if ( not $class->loadFromCache( $item, $item_id, $drop_rate ) )
     {
-        $class->warning( "Find record for $item_id" );
-        $item  = $drop_rate ? new Anothark::Item::DropItem( $sth->fetchrow_hashref(), $drop_rate) : new Anothark::Item( $sth->fetchrow_hashref());
-        $item->setFieldNames( $sth->{"NAME"}  );
+        my $sql = "SELECT * FROM t_item_master WHERE item_master_id = ?";
+        my $sth  = $class->getDbHandler()->prepare($sql);
+        my $stat = $sth->execute(($item_id));
+        if ( $sth->rows > 0 )
+        {
+            $class->warning( "Find record for $item_id" );
+            $item  = $drop_rate ? new Anothark::Item::DropItem( $sth->fetchrow_hashref(), $drop_rate) : new Anothark::Item( $sth->fetchrow_hashref());
+            $item->setFieldNames( $sth->{"NAME"}  );
+        }
+        else
+        {
+            $class->warning( "No record for $item_id" );
+            $item = $drop_rate ? new Anothark::Item::DropItem() : new Anothark::Item();
+        }
+        $sth->finish();
     }
-    else
-    {
-        $class->warning( "No record for $item_id" );
-        $item = $drop_rate ? new Anothark::Item::DropItem() : new Anothark::Item();
-    }
-    $sth->finish();
 
     return $item; 
+}
+
+sub loadFromCache
+{
+    my $class = shift;
+    my $item    = shift;
+    my $item_id = shift;
+    my $drop_rate = shift || 0;
+
+    return 0;
+
 }
 
 

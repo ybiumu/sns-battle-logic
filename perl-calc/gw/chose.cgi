@@ -98,7 +98,7 @@ FROM
     t_selection AS s
     LEFT JOIN
     (
-        SELECT flag_id FROM t_user JOIN t_user_flagment USING(user_id) WHERE user_id = ? AND enable = 1
+        SELECT flag_id FROM t_user_flagment WHERE user_id = ? AND enable = 1
     ) AS flg USING(flag_id)
 WHERE
     s.node_id = ?

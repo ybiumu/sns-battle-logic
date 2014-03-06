@@ -31,6 +31,44 @@ sub new
 
 
 
+# Fri Feb 14 12:32:50 JST 2014
+# desc t_item_master;
+# +--------------------+-------------+------+-----+---------+----------------+
+# | Field              | Type        | Null | Key | Default | Extra          |
+# +--------------------+-------------+------+-----+---------+----------------+
+# | item_master_id     | int(11)     | NO   | PRI | NULL    | auto_increment |
+# | item_label         | varchar(32) | NO   | UNI | NULL    |                |
+# | item_descr         | tinytext    | YES  |     | NULL    |                |
+# | item_type_id       | int(11)     | NO   |     | NULL    |                |
+# | item_sub_type_id   | int(11)     | NO   |     | 0       |                |
+# | merge_number       | smallint(6) | NO   |     | 1       |                |
+# | item_selling_price | int(11)     | NO   |     | 0       |                |
+# | item_broken_range  | smallint(6) | NO   |     | 0       |                |
+# | item_broken_rate   | smallint(6) | NO   |     | 0       |                |
+# | use_effect_value   | int(11)     | NO   |     | 0       |                |
+# | use_effect_target  | smallint(6) | NO   |     | 0       |                |
+# | use_effect_range   | smallint(6) | NO   |     | 0       |                |
+# | is_external_exec   | tinyint(4)  | NO   |     | 0       |                |
+# | external_function  | varchar(45) | YES  |     | NULL    |                |
+# | max_hp             | smallint(6) | NO   |     | 0       |                |
+# | hp                 | smallint(6) | NO   |     | 0       |                |
+# | mp                 | smallint(6) | NO   |     | 0       |                |
+# | agl                | smallint(6) | NO   |     | 0       |                |
+# | kikyou             | smallint(6) | NO   |     | 0       |                |
+# | atack              | smallint(6) | NO   |     | 0       |                |
+# | def                | smallint(6) | NO   |     | 0       |                |
+# | chrm               | smallint(6) | NO   |     | 0       |                |
+# | chikaku            | smallint(6) | NO   |     | 0       |                |
+# | luck               | smallint(6) | NO   |     | 0       |                |
+# | kehai              | smallint(6) | NO   |     | 0       |                |
+# | rp                 | smallint(6) | NO   |     | 0       |                |
+# | stamina            | smallint(6) | NO   |     | 0       |                |
+# +--------------------+-------------+------+-----+---------+----------------+
+
+
+
+
+
 my $item_master_id = undef;
 my $item_label = undef;
 my $item_descr = undef;
@@ -43,6 +81,191 @@ my $item_broken_rate = undef;
 my $use_effect_value = undef;
 my $use_effect_target = undef;
 my $use_effect_range = undef;
+
+
+my $is_external_exec = undef;
+my $external_function = undef;
+my $max_hp = undef;
+my $hp = undef;
+my $mp = undef;
+my $agl = undef;
+my $kikyou = undef;
+my $atack = undef;
+my $def = undef;
+my $chrm = undef;
+my $chikaku = undef;
+my $luck = undef;
+my $kehai = undef;
+my $rp = undef;
+my $stamina = undef;
+
+sub setIsExternalExec
+{
+    my $class = shift;
+    return $class->setAttribute( 'is_external_exec', shift );
+}
+
+sub getIsExternalExec
+{
+    return $_[0]->getAttribute( 'is_external_exec' );
+}
+
+sub setExternalFunction
+{
+    my $class = shift;
+    return $class->setAttribute( 'external_function', shift );
+}
+
+sub getExternalFunction
+{
+    return $_[0]->getAttribute( 'external_function' );
+}
+
+sub setMaxHp
+{
+    my $class = shift;
+    return $class->setAttribute( 'max_hp', shift );
+}
+
+sub getMaxHp
+{
+    return $_[0]->getAttribute( 'max_hp' );
+}
+
+sub setHp
+{
+    my $class = shift;
+    return $class->setAttribute( 'hp', shift );
+}
+
+sub getHp
+{
+    return $_[0]->getAttribute( 'hp' );
+}
+
+sub setMp
+{
+    my $class = shift;
+    return $class->setAttribute( 'mp', shift );
+}
+
+sub getMp
+{
+    return $_[0]->getAttribute( 'mp' );
+}
+
+sub setAgl
+{
+    my $class = shift;
+    return $class->setAttribute( 'agl', shift );
+}
+
+sub getAgl
+{
+    return $_[0]->getAttribute( 'agl' );
+}
+
+sub setKikyou
+{
+    my $class = shift;
+    return $class->setAttribute( 'kikyou', shift );
+}
+
+sub getKikyou
+{
+    return $_[0]->getAttribute( 'kikyou' );
+}
+
+sub setAtack
+{
+    my $class = shift;
+    return $class->setAttribute( 'atack', shift );
+}
+
+sub getAtack
+{
+    return $_[0]->getAttribute( 'atack' );
+}
+
+sub setDef
+{
+    my $class = shift;
+    return $class->setAttribute( 'def', shift );
+}
+
+sub getDef
+{
+    return $_[0]->getAttribute( 'def' );
+}
+
+sub setChrm
+{
+    my $class = shift;
+    return $class->setAttribute( 'chrm', shift );
+}
+
+sub getChrm
+{
+    return $_[0]->getAttribute( 'chrm' );
+}
+
+sub setChikaku
+{
+    my $class = shift;
+    return $class->setAttribute( 'chikaku', shift );
+}
+
+sub getChikaku
+{
+    return $_[0]->getAttribute( 'chikaku' );
+}
+
+sub setLuck
+{
+    my $class = shift;
+    return $class->setAttribute( 'luck', shift );
+}
+
+sub getLuck
+{
+    return $_[0]->getAttribute( 'luck' );
+}
+
+sub setKehai
+{
+    my $class = shift;
+    return $class->setAttribute( 'kehai', shift );
+}
+
+sub getKehai
+{
+    return $_[0]->getAttribute( 'kehai' );
+}
+
+sub setRp
+{
+    my $class = shift;
+    return $class->setAttribute( 'rp', shift );
+}
+
+sub getRp
+{
+    return $_[0]->getAttribute( 'rp' );
+}
+
+sub setStamina
+{
+    my $class = shift;
+    return $class->setAttribute( 'stamina', shift );
+}
+
+sub getStamina
+{
+    return $_[0]->getAttribute( 'stamina' );
+}
+
+
+
 
 my $field_names = undef;
 

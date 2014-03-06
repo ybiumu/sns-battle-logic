@@ -16,6 +16,7 @@ use Anothark::Character::Player;
 use Anothark::Character::StatusIO;
 use base qw( LoggingObjMethod );
 
+use UniversalAnalytics;
 
 my $base = "template.html";
 my $css = "template.css";
@@ -308,6 +309,10 @@ sub output
     $class->printHeader();
 
     print $class->getBaseHtml();
+    if ( $class->getMobileUtil()->getBrowser() ne "P" )
+    {
+        UniversalAnalytics::report($class);
+    }
 }
 
 
@@ -400,6 +405,7 @@ sub loadBodyHtml
 
 # 自分のデータ
 # getBaseDataByUserIdに統合したい
+# -> けど自分以外で持ってきては行けないデータもある。継続。
 sub setupBaseData
 {
     my $class = shift;
@@ -424,7 +430,9 @@ sub setupBaseData
             s.a_kikyou AS a_kikyou,
             s.a_chrm   AS a_chrm,
             s.node_id AS node_id,
-            s.a_hp AS hp,n.node_name
+            s.a_hp AS hp,
+            b.uuid,
+            n.node_name
         FROM
             t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
     my $sth  = $class->getDbHandler()->prepare($get_base_sql);
@@ -435,8 +443,22 @@ sub setupBaseData
 
     if ( $sth->rows() == 0 )
     {
+        # Not registerd.
         $sth->finish();
         return $result;
+    }
+
+
+    if ( ! $row->{uuid} )
+    {
+        #
+        $class->{out}->{UUID} = UniversalAnalytics::gen_uuid();
+        my $uuid_update_sql = "UPDATE t_user SET uuid = ? WHERE user_id = ?";
+        $class->getDbHandler()->do( $uuid_update_sql, undef, $class->{out}->{UUID}, $row->{user_id});
+    }
+    else
+    {
+        $class->{out}->{UUID} = $row->{uuid}; 
     }
 
     $result = 1;
@@ -485,6 +507,10 @@ sub setupBaseData
 
     $class->setStatusIo( $class->{PLAYER}->getStatusIo() );
 #    $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+
+
+
+
 
     return $result;
 }
