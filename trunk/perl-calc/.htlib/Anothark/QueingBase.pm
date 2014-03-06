@@ -152,20 +152,20 @@ FROM
 WHERE u.user_id = ? ";
 
 our $flag_update = "
-INSERT INTO t_user_flagment(user_id,flag_id,enable)
-VALUES
-    SELECT
-        user_id,
-        append_flag_id,
-        1,
-    FROM
-        t_flag_append
-        LEFT JOIN
-        t_user_flagment AS u ON (append_flag_id = u.flag_id AND u.user_id = ? )
-    WHERE
-        node_id = ?
-        AND
-        event_id = ?
+INSERT IGNORE INTO t_user_flagment(user_id,flag_id,enable)
+SELECT
+    ? AS user_id,
+    append_flag_id,
+    1
+FROM
+    t_event_master AS e
+    JOIN
+    t_flag_append AS f
+    USING(event_id)
+WHERE
+    e.node_id = ?
+    AND
+    e.result_id = ?
 ";
 
 
@@ -265,6 +265,8 @@ our $up_rollback_sth;
 our $up_que_sth;
 our $result_sth_b;
 our $clear_current_result_sth;
+
+our $flagment_sth;
 
 sub doQueing
 {
@@ -430,6 +432,7 @@ sub doQueing
                     $pu->notice("Win status: " . $up_win_sth->execute(($user_id->[0])));
 #       $pu->notice($up_sth->execute(($carrier_id, $mob_uid)));
 
+                    $pu->notice("Flagment status: " . $flagment_sth->execute(($user_id->[0], $nnid, $rid)));
 
                 }
                 elsif( $battle->isDraw() )
@@ -480,6 +483,7 @@ sub openMainSth
     $up_rollback_sth = $db->prepare( $rollback_node_sql );
     $booking_sth = $db->prepare( $bookin_log_id );
     $result_sth_b = $db->prepare( $insert_battle );
+    $flagment_sth = $db->prepare($flag_update);
     if ( $class->getForce() )
     {
         $clear_current_result_sth = $db->prepare($clear_current_result_sql);
@@ -495,6 +499,7 @@ sub finishMainSth
     $up_rollback_sth->finish();
     $booking_sth->finish();
     $result_sth_b->finish();
+    $flagment_sth->finish();
     if ( defined $clear_current_result_sth )
     {
         $clear_current_result_sth->finish();

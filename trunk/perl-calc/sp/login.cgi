@@ -48,8 +48,8 @@ eval {
     $twit->{oauth_urls}->{authorization_url}  = "https://api.twitter.com/oauth/authorize";
     $twit->{oauth_urls}->{access_token_url}   = "https://api.twitter.com/oauth/access_token";
     $twit->{oauth_urls}->{xauth_url}          = "https://api.twitter.com/oauth/access_token";
-##    $auth_url = $twit->get_authorization_url( callback => $LocalConfig::BASE_URL . '/sp/callback.cgi' );
-    $auth_url = $twit->get_authentication_url( callback => $LocalConfig::BASE_URL . '/sp/callback.cgi' );
+    $auth_url = $twit->get_authorization_url( callback => $LocalConfig::BASE_URL . '/sp/callback.cgi' );
+##    $auth_url = $twit->get_authentication_url( callback => $LocalConfig::BASE_URL . '/sp/callback.cgi' );
 };
 
 my $err_msg = "";
@@ -63,6 +63,7 @@ if ($@)
 
 if ( $auth_url )
 {
+    $log->warning("[login.cgi] redirect :$auth_url");
     printf "Set-Cookie: %s\n", $cgi->cookie( -name => 'token', -value => $twit->request_token, -path => '/sp') ;
     printf "Set-Cookie: %s\n", $cgi->cookie( -name => 'token_secret', -value => $twit->request_token_secret, -path => '/sp') ;
     print $cgi->redirect(-uri => $auth_url);
@@ -88,6 +89,8 @@ else
 </body>
 </html>
 _HERE_
+
+    $log->warning("[login.cgi] Auth url failure.");
 }
 
 

@@ -12,6 +12,7 @@ use Anothark::BoardManager;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
+$at->warning("start mypage");
 $at->setPageUtil($pu);
 
 

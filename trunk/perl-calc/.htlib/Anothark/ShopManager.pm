@@ -80,6 +80,8 @@ FROM
     t_user_status AS s USING(user_id)
     JOIN t_shop_master AS p USING(node_id)
 WHERE user_id = ?
+    AND DATE(NOW()) BETWEEN p.open_date AND p.close_date
+    AND TIME(NOW()) BETWEEN p.open_time AND p.close_time
 ";
 
 sub getShopList

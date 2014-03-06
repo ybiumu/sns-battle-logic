@@ -74,7 +74,7 @@ sub parseUserAgent
             if ( $sid eq $session->id)
             {
                 # Updage available time.
-                $session->expire("+1h");
+                $session->expire("+2h");
 
                 if ( $session->param('pattern') eq "twauth" )
                 {
