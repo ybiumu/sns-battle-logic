@@ -25,6 +25,7 @@ sub doExhibitionMatch
     $me->setSide("p");
     setSkills($bs,$sl,$me);
     $battle->appendCharacter( $me );
+    $battle->setBgid($node_id);
 
 #    my $p1 = $battle->getAt()->getPlayerByUserId(2);
     my $p1 = $battle->getAt()->getPlayerByUserId(101);
@@ -80,18 +81,6 @@ sub doExhibitionMatch
     $battle->appendCharacter( $npc2 );
 
 
-#    my $encounts = {
-#        0 => sub { gemStone(@_) },
-#        1 => sub { gemStone(@_) },
-#        2 => sub { gemStone(@_) },
-#        3 => sub { hagis(@_) },
-#        4 => sub { hagis(@_) },
-#        5 => sub { hagis(@_) },
-#        6 => sub { hagis(@_) },
-#        7 => sub { golem(@_) },
-#        8 => sub { golem(@_) },
-#        9 => sub { zwei(@_) },
-#    };
 
 
     my $base_encounts = [
@@ -112,7 +101,7 @@ sub doExhibitionMatch
             (sub { enemy003(@_)}) x 5,
             (sub { enemy004(@_)}) x 3,
             (sub { enemy005(@_)}) x 2,
-            (sub { enemy006(@_)} ) x 1,
+            (sub { enemy006(@_)}) x 1,
        ],
     };
 
@@ -146,10 +135,16 @@ sub doExhibitionMatch
 }
 
 
+sub enemy007
+{
+    gemStone(@_);
+}
+
 
 sub gemStone
 {
     my $battle = shift;
+    $battle->setEgid(7);
 #    $battle->warning( "Call gemStone");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
@@ -187,9 +182,15 @@ sub gemStone
     $sl->finish();
 }
 
+sub enemy008
+{
+    zwei(@_);
+}
+
 sub zwei
 {
     my $battle = shift;
+    $battle->setEgid(8);
 #    $battle->warning( "Call zwei");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
@@ -270,10 +271,16 @@ sub zwei
     $sl->finish();
 }
 
+sub enemy009
+{
+    hagis(@_);
+}
+
 sub hagis
 {
 #    $battle->warning( "Call hhagis");
     my $battle = shift;
+    $battle->setEgid(9);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -304,10 +311,15 @@ sub hagis
     $sl->finish();
 }
 
+sub enemy010
+{
+    golem(@_);
+}
 
 sub golem
 {
     my $battle = shift;
+    $battle->setEgid(10);
 #    $battle->warning( "Call golem");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
@@ -397,6 +409,7 @@ sub golem
 sub enemy001
 {
     my $battle = shift;
+    $battle->setEgid(1);
 #    $battle->warning( "Call hhagis");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
@@ -443,6 +456,7 @@ sub enemy001
 sub enemy002
 {
     my $battle = shift;
+    $battle->setEgid(2);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -480,6 +494,7 @@ sub enemy002
 sub enemy003
 {
     my $battle = shift;
+    $battle->setEgid(3);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -519,6 +534,7 @@ sub enemy003
 sub enemy004
 {
     my $battle = shift;
+    $battle->setEgid(4);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -559,6 +575,7 @@ sub enemy004
 sub enemy005
 {
     my $battle = shift;
+    $battle->setEgid(5);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);
@@ -600,6 +617,7 @@ sub enemy005
 sub enemy006
 {
     my $battle = shift;
+    $battle->setEgid(6);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
     my $il = new Anothark::ItemLoader($db);

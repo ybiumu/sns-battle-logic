@@ -8,6 +8,15 @@ use CGI::Session;
 use LoggingObjMethod;
 use base qw( LoggingObjMethod );
 
+# carrier is authetication provider.
+our $carrier_str = {
+    0  => "Unknown",
+    1  => "DoCoMo/FP",
+    2  => "KDDI/FP",
+    3  => "SoftBank/FP",
+    4  => "Willcom/FP",
+    11 => "Twitter",
+};
 
 my $browser = undef;
 my $carrier_id = undef;
@@ -23,6 +32,13 @@ sub new
 
 #    $self->init();
     return $self;
+}
+
+sub getCarrierStr
+{
+    my $class = shift;
+    my $carrier_id = shift;
+    return $carrier_str->{$carrier_id};
 }
 
 sub init

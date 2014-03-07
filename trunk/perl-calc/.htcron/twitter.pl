@@ -94,8 +94,9 @@ my $msg_map = {
     70 => '十分楽しめるﾆｬ!',
  99999 => '全部お目にかかれるかﾆｬ?',
 };
+my $lpurl = "http://goo.gl/KtUZ5D";
 
-my $format = '%s現在のﾃｽﾄ参加者数は%s人ﾆｬ!%s%s';
+my $format = '%s現在のﾃｽﾄ参加者数は%s人ﾆｬ!%s%s %s';
 my @dt     = localtime;
 my $dtstr  = sprintf('%s年%s月%s日', $dt[5]+1900, $dt[4]+1, $dt[3]);
 my $select_sql = "SELECT COUNT(*) AS c FROM t_user";
@@ -114,7 +115,9 @@ my $string = sprintf(
     $dtstr,
     $r->{c},
     sprintf($random_info->{$rand}->{format}, $r2->{c2}),
-    $msg_map->{(sort { $b <=> $a } grep { $_ <= $r2->{c2}} ( keys %{$msg_map} ))[0]});
+    $msg_map->{(sort { $b <=> $a } grep { $_ <= $r2->{c2}} ( keys %{$msg_map} ))[0]},
+    $lpurl
+    );
 $part_sth->finish();
 $rand_sth->finish();
 

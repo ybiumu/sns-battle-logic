@@ -31,12 +31,11 @@ my $ad_str = "";
 my $disable = 1;
 my $start_node_id = 5;
 
-my $reg_count = 1;
 
 {
-    my $sth_reg  = $db->prepare("SELECT cnt FROM regist_count WHERE cnt < ?");
-    my $stat_reg = $sth_reg->execute(($reg_count));
-    my $row_reg  = $sth_reg->fetchrow_arrayref();
+    my $sth_reg  = $db->prepare("SELECT cnt FROM regist_count WHERE cnt > 0");
+    my $stat_reg = $sth_reg->execute();
+#    my $row_reg  = $sth_reg->fetchrow_arrayref();
     my $rownum_reg = $sth_reg->rows();
     $pu->debug("regnum [$rownum_reg]");
     $sth_reg->finish();
@@ -137,7 +136,7 @@ if ( $rownum > 0 )
 }
 elsif ( $c->param("commit") eq "OK" )
 {
-    $sth  = $db->prepare("INSERT INTO t_user SET carrier_id = ?, uid = ?, user_name = ?, face_type = ?, hair_type = ?, gender = ? ");
+    $sth  = $db->prepare("INSERT INTO t_user SET carrier_id = ?, uid = ?, user_name = ?, face_type = ?, hair_type = ?, gender = ?, create_date = NOW() ");
     $stat = $sth->execute( $carrier_id, $mob_uid, $c->param("name"), $c->param("face"), $c->param("hair"), $c->param("gender") );
     my $id = $db->{'mysql_insertid'};
     my $sth2 = $db->prepare("INSERT INTO t_user_status(user_id,node_id) VALUES(?,?);");
@@ -173,7 +172,7 @@ elsif ( $c->param("commit") eq "OK" )
     $at->setBody("body_setup_ok.html");
 
     {
-        my $sth_reg  = $db->prepare("UPDATE regist_count SET cnt = cnt + 1;");
+        my $sth_reg  = $db->prepare("UPDATE regist_count SET cnt = cnt - 1;");
         my $stat_reg = $sth_reg->execute();
         $sth_reg->finish();
     }

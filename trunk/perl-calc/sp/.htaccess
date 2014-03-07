@@ -1,18 +1,90 @@
-AuthType Basic
-AuthName "oauth debug"
-AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
-AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
-require valid-user
+#AuthType Basic
+#AuthName "oauth debug"
+#AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
+#AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
+#require valid-user
 #require group admin
 
 
-ErrorDocument 403 /.hterror/notmobile.html
+ErrorDocument 403 /.hterror/ismobile.html
 ErrorDocument 401 /.hterror/notpermit.html
 
 Order Allow,deny
 Allow from all
 #Order Allow,deny
 #Allow from all
+
+
+#
+# DoCoMo
+Deny from 210.153.84.0/24
+Deny from 210.136.161.0/24
+Deny from 210.153.86.0/24
+Deny from 124.146.174.0/24
+Deny from 124.146.175.0/24
+Deny from 202.229.176.0/24
+Deny from 202.229.177.0/24
+Deny from 202.229.178.0/24
+
+#
+# Au
+Deny from 111.107.116.0/26
+Deny from 111.107.116.64/26
+Deny from 111.107.116.192/28
+Deny from 210.230.128.224/28
+Deny from 121.111.227.160/27
+Deny from 61.117.1.0/28
+Deny from 219.108.158.0/27
+Deny from 219.125.146.0/28
+Deny from 61.117.2.32/29
+Deny from 61.117.2.40/29
+Deny from 219.108.158.40/29
+Deny from 219.125.148.0/25
+Deny from 222.5.63.0/25
+Deny from 222.5.63.128/25
+Deny from 222.5.62.128/25
+Deny from 59.135.38.128/25
+Deny from 219.108.157.0/25
+Deny from 219.125.145.0/25
+Deny from 121.111.231.0/25
+Deny from 121.111.227.0/25
+Deny from 118.152.214.192/26
+Deny from 118.159.131.0/25
+Deny from 118.159.133.0/25
+Deny from 118.159.132.160/27
+Deny from 111.86.142.0/26
+Deny from 111.86.141.64/26
+Deny from 111.86.141.128/26
+Deny from 111.86.141.192/26
+Deny from 118.159.133.192/26
+Deny from 111.86.143.192/27
+Deny from 111.86.143.224/27
+Deny from 111.86.147.0/27
+Deny from 111.86.142.128/27
+Deny from 111.86.142.160/27
+Deny from 111.86.142.192/27
+Deny from 111.86.142.224/27
+Deny from 111.86.143.0/27
+Deny from 111.86.143.32/27
+Deny from 111.86.147.32/27
+Deny from 111.86.147.64/27
+Deny from 111.86.147.96/27
+Deny from 111.86.147.128/27
+Deny from 111.86.147.160/27
+Deny from 111.86.147.192/27
+Deny from 111.86.147.224/27
+
+# SoftBank
+Deny from 123.108.237.112/28
+Deny from 123.108.239.224/28
+Deny from 202.253.96.144/28
+Deny from 202.253.99.144/28
+Deny from 210.228.189.188/30
+Deny from 123.108.237.0/27
+Deny from 202.253.96.224/27
+Deny from 210.146.7.192/26
+
+
 
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
