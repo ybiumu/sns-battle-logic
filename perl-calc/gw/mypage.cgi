@@ -9,6 +9,7 @@ use Avatar;
 use PageUtil;
 use AaTemplate;
 use Anothark::BoardManager;
+use UniversalAnalytics;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -97,6 +98,8 @@ if ( $entry )
 $pu->output_log(qq["$ENV{REMOTE_ADDR}" "$ENV{HTTP_USER_AGENT}" ], '"'.join("&", ( map{ sprintf("%s=%s",$_,$c->param($_)) } ($c->param) ) ) .'"');
 
 
+#$out->{AVATAR} = UniversalAnalytics::urlenc($out->{HAIR} . $out->{FACE});
+$out->{AVATAR} = $out->{HAIR} . $out->{FACE};
 
 
 $at->setup();

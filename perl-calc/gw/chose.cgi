@@ -135,6 +135,7 @@ if ( $rownum == 1 )
     $out->{NODE_DESCR} = $row->{node_descr};
     $out->{NODE_NAME}  = $row->{node_name};
     $out->{SELECTION_ID} = $row->{selection_id};
+    $out->{BGID} = sprintf "%05s", $out->{NODE_ID};
 
     my $r_sel = {};
     if ( $out->{SELECTION_ID} ne "" )

@@ -97,6 +97,7 @@ $out->{SCENARIO_ID}  = $scenario_id;
 $out->{LAST_UPDATE}  = $last_update;
 $out->{USE_LINK}     = $use_link ? "›" : "~" ;
 
+$out->{BGID} = sprintf "%05s", $out->{NODE_ID};
 
 ##############
 ### output ###

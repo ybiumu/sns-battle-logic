@@ -10,6 +10,8 @@
 ErrorDocument 403 /.hterror/notmobile.html
 ErrorDocument 401 /.hterror/notpermit.html
 
+DirectoryIndex index.html index.cgi
+
 Order Deny,Allow
 Deny from all
 #Order Allow,deny

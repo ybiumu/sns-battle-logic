@@ -36,6 +36,8 @@ my $party_img = undef;
 my $current_turn = undef;
 my $current_actor = undef;
 my $beat_flag = undef;
+my $bgid = undef;
+my $egid = undef;
 
 my $stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s<br />';
 my $debug_stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s(RT:%s/AT:%s/DF:%s[EXP:%s])<br />';
@@ -539,12 +541,21 @@ sub doBattle
     my $chars = $class->getCharacter();
     my $enemy_party = $class->getPartyName();
     my $enemy_img = $class->getPartyImg();
+    my $bgid = $class->getBgid();
+    my $egid = $class->getEgid();
 
     $class->getTurnText()->[0] = sprintf(
         "<div class=\"contents_e1\">%s</div><img class=\"dispimg\" src=\"img/%s.jpg\" />",
         $enemy_party,
         $enemy_img
     );
+
+#    $class->getTurnText()->[0] = sprintf(
+#        '<div class="contents_e1">%s</div><img class="dispimg" src="http://dummyimage.com/230x160/bbb/000.jpg&text=bgid_%05s.egid_%05s" />',
+#        $enemy_party,
+#        $bgid, $egid
+#    );
+
     foreach my $turn  ( 1 .. 5 )
     {
 
@@ -1282,4 +1293,31 @@ sub isReach
 #    );
     return $result;
 }
+
+
+
+sub setBgid
+{
+    my $class = shift;
+    return $class->setAttribute( 'bgid', shift );
+}
+
+sub getBgid
+{
+    return $_[0]->getAttribute( 'bgid' );
+}
+
+
+sub setEgid
+{
+    my $class = shift;
+    return $class->setAttribute( 'egid', shift );
+}
+
+sub getEgid
+{
+    return $_[0]->getAttribute( 'egid' );
+}
+
+
 1;
