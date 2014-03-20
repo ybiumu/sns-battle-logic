@@ -10,6 +10,7 @@ use LoggingObjMethod;
 use Anothark::Item;
 use Anothark::Item::DropItem;
 use Anothark::Item::ShopItem;
+use Anothark::Item::UserItem;
 use base qw( LoggingObjMethod );
 sub new
 {
@@ -70,28 +71,36 @@ sub loadUserItem
 {
     my $class = shift;
     my $user_id = shift;
-    my $item_id = shift;
+#    my $item_id = shift;
+    my @itemids = @_;
 
-    my $item = {};
+#    my $item = {};
 
 #    my $sql = "SELECT * FROM t_item_master WHERE item_master_id = ?";
-    my $sql = " SELECT m.* FROM t_user_item AS ui JOIN t_item_master AS m USING( item_master_id ) WHERE ui.user_id = ? AND ui.item_id = ? ";
+    my $sql = " SELECT m.*,ui.* FROM t_user_item AS ui JOIN t_item_master AS m USING( item_master_id ) WHERE ui.user_id = ? AND ui.item_id = ? ";
     my $sth  = $class->getDbHandler()->prepare($sql);
-    my $stat = $sth->execute(($user_id,$item_id));
-    if ( $sth->rows > 0 )
+#    my $stat = $sth->execute(($user_id,$item_id));
+    my @item_refs;
+    foreach my $item_id (@itemids)
     {
-        $class->warning( "Find record for $item_id" );
-        $item  = new Anothark::Item( $sth->fetchrow_hashref());
-        $item->setFieldNames( $sth->{"NAME"}  );
-    }
-    else
-    {
-        $class->warning( "No record for $item_id");
-        $item = new Anothark::Item();
+        my $item = {};
+        my $stat = $sth->execute(($user_id,$item_id));
+        if ( $sth->rows > 0 )
+        {
+            $class->warning( "Find record for $item_id" );
+            $item  = new Anothark::Item::UserItem( $sth->fetchrow_hashref());
+            $item->setFieldNames( $sth->{"NAME"}  );
+        }
+        else
+        {
+            $class->warning( "No record for $item_id");
+            $item = new Anothark::Item::UserItem();
+        }
+        push(@item_refs, $item);
     }
     $sth->finish();
 
-    return $item; 
+    return wantarray ? @item_refs : $item_refs[0]; 
 }
 
 sub getItemList

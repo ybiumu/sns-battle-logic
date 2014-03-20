@@ -49,6 +49,11 @@ if ( ! $result )
 
 
 our $out = $at->getOut();
+unless ( $out->{GM} )
+{
+    print $c->header( -status=>"404" );
+    exit 1;
+}
 
 ##############
 ### depend ###

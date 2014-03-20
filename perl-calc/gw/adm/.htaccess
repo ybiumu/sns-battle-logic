@@ -1,10 +1,10 @@
-AuthType Basic
-AuthName "Admin only"
-#AuthName "maintenance"
-AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
-AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
-#require valid-user
-require group admin
+#AuthType Basic
+#AuthName "Admin only"
+##AuthName "maintenance"
+#AuthUserFile /home/users/2/ciao.jp-anothark/web/.htlog/.htpasswd
+#AuthGroupFile /home/users/2/ciao.jp-anothark/web/.htlog/.htgroups
+##require valid-user
+#require group admin
 
 
 ErrorDocument 403 /.hterror/notmobile.html

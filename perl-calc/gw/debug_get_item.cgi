@@ -24,6 +24,7 @@ my $ad_str = "";
 
 # init check
 my $result = $at->setupBaseData();
+my $c = new CGI();
 
 if ( ! $result )
 {
@@ -52,7 +53,6 @@ my $carrier_id   = $mu->getCarrierId();
 $pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
 my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
 my $mob_uid = $mu->get_muid();
-my $c = new CGI();
 
 
 
@@ -76,7 +76,7 @@ my $user_id = $row->{user_id};
 my $num = $c->param("n") || 0;
 my $item_id = $c->param("imi") || 0;
 #my $s_io = new Anothark::Character::StatusIO($db);
-my $s_io = $at->getStatusIo()
+my $s_io = $at->getStatusIo();
 
 #$s_io->getItem($user_id, $item_id, $num);
 $s_io->getItem($item_id, $num);

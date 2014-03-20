@@ -55,6 +55,11 @@ my $inc = $c->param("inc");
 my $dec = $c->param("dec");
 
 our $out = $at->getOut();
+unless ( $out->{GM} )
+{
+    print $c->header( -status=>"404 Not found" );
+    exit 1;
+}
 
 $out->{RESULT} = "";
 if ( $inc )
@@ -95,8 +100,8 @@ foreach my $u ( @{$users} )
     $out->{NEW_MEMBERS} .= sprintf(
         qq|<div class="item_%s">%s%s<br />[<a href='../mypage.cgi?user_id=%s&guid=ON'>%s</a>](%s)&nbsp;%s<br />From:&nbsp;%s</div>\n|,
         $oddeven[$lines%2],
-        Avatar::Face::TYPE->{$u->{face_type}},
         Avatar::Hair::TYPE->{$u->{hair_type}},
+        Avatar::Face::TYPE->{$u->{face_type}},
         $u->{user_id}, $u->{user_id},
         $u->{create_date},
         $u->{user_name},
