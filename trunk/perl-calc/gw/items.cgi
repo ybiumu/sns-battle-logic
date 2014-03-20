@@ -71,6 +71,7 @@ $at->setPageName("ｱｲﾃﾑ");
 my $version = "0.1a20120328";
 
 
+our @oddeven = ( "odd", "even" );
 
 
 # ActionTypeCheck
@@ -81,6 +82,8 @@ our %PRE_ITEM_ACTIONS = (
     mart   => sub { return pre_mart_item(@_); },
     sell   => sub { return pre_sell_item(@_); },
     reject => sub { return pre_reject_item(@_); },
+    merge  => sub { return pre_merge_item(@_); },
+    sep  => sub { return pre_sep_item(@_); },
 );
 our %ITEM_ACTIONS = (
     use    => sub { return use_item(@_); },
@@ -89,6 +92,8 @@ our %ITEM_ACTIONS = (
     mart   => sub { return mart_item(@_); },
     sell   => sub { return sell_item(@_); },
     reject => sub { return reject_item(@_); },
+    merge  => sub { return merge_item(@_); },
+    sep  => sub { return sep_item(@_); },
 );
 our %POST_ITEM_ACTIONS = (
     use    => sub { return post_use_item(@_); },
@@ -97,6 +102,12 @@ our %POST_ITEM_ACTIONS = (
     mart   => sub { return post_mart_item(@_); },
     sell   => sub { return post_sell_item(@_); },
     reject => sub { return post_reject_item(@_); },
+    merge  => sub { return post_merge_item(@_); },
+    sep  => sub { return post_sep_item(@_); },
+);
+
+our %LIST_MANAGE = (
+    merge  => 1,
 );
 
 ############
@@ -132,12 +143,21 @@ my $user_id = $out->{USER_ID};
 
 
 my $act = $c->param("act") || "";
+our $done = $c->param("done") || "";
+
 $out->{"PRE_RESULT"} = "";
 if ( $act && exists $ITEM_ACTIONS{$act} ) 
 {
 #    &{$PRE_ITEM_ACTIONS{$act}}($at,$c);
     $out->{"PRE_RESULT"} .= &{$PRE_ITEM_ACTIONS{$act}}($at,$c) . "<br />\n";
-    $out->{"PRE_RESULT"} .= join("<br />\n", map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid")) );
+    if ( exists $LIST_MANAGE{$act} )
+    {
+        $out->{"PRE_RESULT"} .= sprintf "%s<br />\n", &{$ITEM_ACTIONS{$act}}($at, ($c->param("iid")));
+    }
+    else
+    {
+        $out->{"PRE_RESULT"} .= join("<br />\n", map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid")) );
+    }
 #    map{ &{$ITEM_ACTIONS{$act}}($at,$_) } ($c->param("iid"));
     $out->{"PRE_RESULT"} .=  "<br />\n" . &{$POST_ITEM_ACTIONS{$act}}($at,$c);
 }
@@ -151,11 +171,10 @@ if ( $depth > 0 )
 }
 else
 {
-    my $having_item_sql = "SELECT i.item_label, u.item_id FROM t_user_item AS u JOIN t_item_master AS i USING( item_master_id ) WHERE u.user_id = ? AND u.delete_flag = 0 ORDER BY item_master_id,item_id";
+    my $having_item_sql = "SELECT i.item_label, u.item_id,u.merged_number,i.merge_number FROM t_user_item AS u JOIN t_item_master AS i USING( item_master_id ) WHERE u.user_id = ? AND u.delete_flag = 0 ORDER BY item_master_id,item_id";
     my $item_sth = $db->prepare($having_item_sql);
     my $stat_item = $item_sth->execute(($user_id));
 
-    my @oddeven = ( "odd", "even" );
 
     $out->{RESULT_TITLE} = "道具";
     my $lines = 0;
@@ -176,7 +195,7 @@ else
                 last;
             }
 #        $out->{RESULT} .= sprintf("<input type=\"checkbox\" name=\"i_%s\" />&nbsp;%s<br />\n",$row->{item_id}, $row->{item_label})
-            $out->{RESULT} .= sprintf("<div class=\"item_%s\"><input type=\"checkbox\" name=\"iid\" value=\"%s\" />&nbsp;%s</div>\n",$oddeven[$lines%2], $row->{item_id}, $row->{item_label})
+            $out->{RESULT} .= sprintf("<div class=\"item_%s\"><input type=\"checkbox\" name=\"iid\" value=\"%s\" />&nbsp;%s&nbsp;%s</div>\n",$oddeven[$lines%2], $row->{item_id}, $row->{item_label}, $row->{merge_number} > 1 ? sprintf ("x%s", $row->{merged_number}) : "")
         }
 #    $out->{RESULT} .= "<input type=\"submit\" name=\"use\" value=\"5.使う\" /><input type=\"submit\" name=\"descr\" value=\"見る\" /><input type=\"submit\" name=\"pass\" value=\"渡す\" /><br /><input type=\"submit\" name=\"mart\" value=\"ﾊﾞｻﾞｰに出す\" /><input type=\"submit\" name=\"sell\" value=\"ｼｮｯﾌﾟに売る\" /><input type=\"submit\" name=\"reject\" value=\"捨てる\" /></form>\n";
         $out->{RESULT} .= <<_HERE_
@@ -255,8 +274,8 @@ sub sell_item
     my $item_id = shift;
 
 #    $at->getStatusIo()->sellItem( $at->getOut()->{USER_ID}, $item_id);
-    $at->getStatusIo()->sellItem( $item_id );
-    return ;
+    my $result = $at->getStatusIo()->sellItem( $item_id );
+    return $result ;
 }
 
 sub reject_item
@@ -265,12 +284,43 @@ sub reject_item
     my $item_id = shift;
 
 #    $at->getStatusIo()->rejectItem( $at->getOut()->{USER_ID}, $item_id);
-    $at->getStatusIo()->rejectItem( $item_id);
+    $result = $at->getStatusIo()->rejectItem( $item_id);
+    return $result;
+}
+
+
+sub merge_item
+{
+    my $at = shift;
+    my @itemids = @_ ;
+
+#    $at->getStatusIo()->rejectItem( $at->getOut()->{USER_ID}, $item_id);
+    $at->getStatusIo()->mergeItem( @itemids );
     return ;
 }
 
 
-
+sub sep_item
+{
+    if ( $done )
+    {
+        return "sep_item_done"
+    }
+    my $at = shift;
+    my @itemids = @_;
+    my $return_str = '<div class="contents3">取り出す個数を入力して下さい</div>';
+    my $lines = 0;
+    map {
+        $return_str .= sprintf(
+                qq|<div class="item_%s">%s x%s <input type="text" name="isep_%s" value="0" size="2" maxlength="2" /></div>\n|,
+                $oddeven[$lines++%2],
+                $_->getItemLabel(),
+                $_->getMergedNumber(),
+                $_->getItemId(),
+        );
+    } grep { $_->getMergeNumber() > 1 } $il->loadUserItem($at->getOut()->{USER_ID}, @itemids);
+    return $return_str;
+}
 
 sub pre_use_item
 {
@@ -309,6 +359,29 @@ sub pre_reject_item
     return "pre_reject_item";
 }
 
+sub pre_merge_item
+{
+    return "pre_merge_item";
+}
+
+
+sub pre_sep_item
+{
+    my $at = shift;
+    my $c = shift;
+    if ( not $done )
+    {
+        $depth = 1;
+        $at->setBody("body_item_sep.html");
+        $at->setPageName("ｱｲﾃﾑ&gt;分ける");
+        $il = new Anothark::ItemLoader( $at->getDbHandler() );
+#    $pre_sth = $at->getDbHandler()->prepare($sql);
+    }
+    else
+    {
+    }
+    return "pre_sep_item";
+}
 
 
 sub post_use_item
@@ -339,5 +412,24 @@ sub post_sell_item
 sub post_reject_item
 {
     return "post_reject_item";
+}
+
+
+sub post_merge_item
+{
+    return "post_merge_item";
+}
+
+sub post_sep_item
+{
+    my $at = shift;
+    my $c = shift;
+    if ( $done )
+    {
+        my $targets = { map { my $key = $_;$key =~ /isep_(\d+)$/g; $1 => $c->param($key)} grep { /^isep_/} $c->all_parameters() };
+        $at->getStatusIo()->sepItem( $targets );
+        return 'ｱｲﾃﾑを取り出しました'; 
+    }
+    return "post_sep_item";
 }
 

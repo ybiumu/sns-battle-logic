@@ -9,6 +9,7 @@ use DbUtil;
 use MobileUtil;
 use PageUtil;
 use AaTemplate;
+use Encode;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -85,6 +86,9 @@ my $random_info = {
     },
 };
 
+
+my $get_notice_sql = "SELECT notice,public_datetime FROM t_notice WHERE public_datetime BETWEEN  now() - interval 2 hour AND now() + interval 2 hour AND delete_flag = 0 ORDER BY public_datetime DESC LIMIT 1;";
+
 my $msg_map = {
     0  => '全然ﾀﾞﾒだﾆｬ…',
     1  => '無いよりﾏｼだﾆｬ。',
@@ -96,30 +100,50 @@ my $msg_map = {
 };
 my $lpurl = "http://goo.gl/KtUZ5D";
 
-my $format = '%s現在のﾃｽﾄ参加者数は%s人ﾆｬ!%s%s %s';
-my @dt     = localtime;
-my $dtstr  = sprintf('%s年%s月%s日', $dt[5]+1900, $dt[4]+1, $dt[3]);
-my $select_sql = "SELECT COUNT(*) AS c FROM t_user";
-my $part_sth = $db->prepare( $select_sql );
-my $query_result = $part_sth->execute();
-#warn "[QR] query_result";
-my $r = $part_sth->fetchrow_hashref();
+my $string = "";
 
-my $rand = int(rand(5));
-my $rand_sth = $db->prepare( $random_info->{$rand}->{sql} );
-my $rand_result = $rand_sth->execute();
+my $notice_sth = $db->prepare( $get_notice_sql );
+my $notice_result = $notice_sth->execute();
+if ( $notice_sth->rows() == 1 )
+{
+    my $format = '%s より、『%s』ﾆｬ! %s';
+    my $r = $notice_sth->fetchrow_hashref();
+    Encode::from_to($r->{notice}, "shiftjis","utf8");
+    $string = sprintf(
+        $format,
+        $r->{public_datetime},
+        $r->{notice},
+        $lpurl
+        );
+}
+else
+{
+    my $format = '%s現在のﾃｽﾄ参加者数は%s人ﾆｬ!%s%s %s';
+    my @dt     = localtime;
+    my $dtstr  = sprintf('%s年%s月%s日', $dt[5]+1900, $dt[4]+1, $dt[3]);
+    my $select_sql = "SELECT COUNT(*) AS c FROM t_user";
+    my $part_sth = $db->prepare( $select_sql );
+    my $query_result = $part_sth->execute();
 #warn "[QR] query_result";
-my $r2 = $rand_sth->fetchrow_hashref();
-my $string = sprintf(
-    $format,
-    $dtstr,
-    $r->{c},
-    sprintf($random_info->{$rand}->{format}, $r2->{c2}),
-    $msg_map->{(sort { $b <=> $a } grep { $_ <= $r2->{c2}} ( keys %{$msg_map} ))[0]},
-    $lpurl
-    );
-$part_sth->finish();
-$rand_sth->finish();
+    my $r = $part_sth->fetchrow_hashref();
+
+    my $rand = int(rand(5));
+    my $rand_sth = $db->prepare( $random_info->{$rand}->{sql} );
+    my $rand_result = $rand_sth->execute();
+#warn "[QR] query_result";
+    my $r2 = $rand_sth->fetchrow_hashref();
+    $string = sprintf(
+        $format,
+        $dtstr,
+        $r->{c},
+        sprintf($random_info->{$rand}->{format}, $r2->{c2}),
+        $msg_map->{(sort { $b <=> $a } grep { $_ <= $r2->{c2}} ( keys %{$msg_map} ))[0]},
+        $lpurl
+        );
+    $part_sth->finish();
+    $rand_sth->finish();
+}
+$notice_sth->finish();
 
 #warn "$string";
 $pu->output_log(sprintf( "%s", $string));

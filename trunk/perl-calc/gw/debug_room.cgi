@@ -33,6 +33,8 @@ my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
 #my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
+my $adm_only = "adm/admin_room.cgi?guid=ON";
+
 
 ##################
 ### init check ###
@@ -49,6 +51,10 @@ if ( ! $result )
 
 
 our $out = $at->getOut();
+unless ( $out->{GM} )
+{
+    $adm_only = "mypage.cgi?guid=ON";
+}
 
 ##############
 ### depend ###
@@ -64,6 +70,7 @@ my $version = "0.1a20130415";
 ############
 
 
+$out->{ADMIN_ONLY} = $adm_only;
 
 
 
