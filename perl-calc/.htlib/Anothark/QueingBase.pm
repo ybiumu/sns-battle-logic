@@ -373,7 +373,8 @@ sub doQueing
             if ( $egid > 0 )
             {
                 my $battle = new Anothark::Battle( $at );
-                my $me = $at->getPlayerByUserId($user_id->[0]);
+#                my $me = $at->getPlayerByUserId($user_id->[0]);
+                my $me = $at->getBattlePlayerByUserId($user_id->[0]);
                 my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me, $nnid );
 
 

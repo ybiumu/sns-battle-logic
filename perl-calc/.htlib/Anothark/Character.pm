@@ -742,7 +742,7 @@ sub Damage
     $class->debug("Effect Target[$effect_target] DMG[$dmg]");
 
     my $remain = $class->getAttribute($effect_target)->cv() - ( $dmg * (($skill->getEffectType() eq 1 || $skill->getEffectType() eq 2) ? -1 : 1) );
-    if ( $skill->getEffectTargetType() == 3 )
+    if ( $skill->getEffectType() eq "0"  && $skill->getEffectTargetType() == 3 )
     {
         if ( $remain > 0 )
         {

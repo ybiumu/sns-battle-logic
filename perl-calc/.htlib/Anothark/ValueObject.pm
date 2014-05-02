@@ -72,6 +72,15 @@ sub getCurrentValue
     return $_[0]->getAttribute( 'current_value' );
 }
 
+
+sub addBoth
+{
+    my $class = shift;
+    my $value = shift;
+    $class->addMax($value);
+    $class->addCurrent($value);
+}
+
 # Synonim
 sub current
 {

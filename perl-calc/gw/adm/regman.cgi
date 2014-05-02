@@ -22,7 +22,7 @@ my $db = DbUtil::getDbHandler();
 my $mu = new MobileUtil();
 
 $at->setDbHandler($db);
-$at->setMobileUtil($mu);
+$at->setAdminUtil($mu);
 
 my $ad_str = "";
 
@@ -55,11 +55,11 @@ my $inc = $c->param("inc");
 my $dec = $c->param("dec");
 
 our $out = $at->getOut();
-unless ( $out->{GM} )
-{
-    print $c->header( -status=>"404 Not found" );
-    exit 1;
-}
+#unless ( $out->{GM} )
+#{
+#    print $c->header( -status=>"404 Not found" );
+#    exit 1;
+#}
 
 $out->{RESULT} = "";
 if ( $inc )
@@ -81,7 +81,6 @@ $out->{CURRENT} = sprintf ('c“o˜^” %d l', $cnt);
 ##############
 ### depend ###
 ##############
-$at->setBase("adm_template.html");
 $at->setBody("body_admin_regman.html");
 $at->setPageName("ŠÇ— - “ü‰ïŠÇ—");
 my $version = "0.1a20130415";

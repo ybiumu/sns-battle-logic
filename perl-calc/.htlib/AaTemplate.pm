@@ -8,6 +8,7 @@ $|=1;
 use strict;
 
 
+use CGI;
 use LoggingObjMethod;
 use Avatar;
 use LocalConfig;
@@ -25,6 +26,7 @@ my $spbase = "sptemplate.html";
 my $spcss = "sptemplate.css";
 
 my $sp_admin = "adm_sptemplate.html";
+my $admin    = "adm_template.html";
 
 my $body = undef;
 my $base_html = undef;
@@ -37,6 +39,9 @@ my $mobile_util = undef;
 
 my $db_handler = undef;
 my $out = {};
+
+
+my $strict = 0;
 
 my $ad_str = undef;
 my $page_name = "No Name";
@@ -58,6 +63,7 @@ sub init
     $class->setBase($base);
     $class->setCss($css);
     $class->setTaskStr($task_str);
+    $class->setStrict($strict );
 }
 
 
@@ -216,6 +222,7 @@ sub setMobileUtil
 {
     my $class = shift;
     my $mu = $class->setAttribute( 'mobile_util', shift );
+    $class->setStrict(0);
     if ( $mu->getBrowser() eq "P")
     {
         $class->setBase( $spbase );
@@ -223,6 +230,38 @@ sub setMobileUtil
     }
     return $mu;
 }
+
+sub setAdminUtil
+{
+    my $class = shift;
+    my $mu = $class->setAttribute( 'mobile_util', shift );
+    $class->setStrict(1);
+    if ( $mu->getBrowser() eq "P")
+    {
+        $class->setBase( $sp_admin );
+        $class->setCss( $spcss );
+    }
+    else
+    {
+        $class->setBase( $admin );
+        $class->setCss( $spcss );
+    }
+
+    return $mu;
+}
+
+
+sub setStrict
+{
+    my $class = shift;
+    return $class->setAttribute( 'strict', shift );
+}
+
+sub getStrict
+{
+    return $_[0]->getAttribute( 'strict' );
+}
+
 
 sub getMobileUtil
 {
@@ -410,102 +449,157 @@ sub setupBaseData
 {
     my $class = shift;
     my $without_skill = shift || 0;
-    my $result = 0;
-    my $get_base_sql = "
-        SELECT
-            b.user_id AS user_id,
-            b.user_name AS user_name,
-            mn.rel AS rel,
-            mn.vel AS vel,
-            b.msg AS msg,
-            b.face_type AS face_type,
-            b.hair_type AS hair_type,
-            b.is_gm AS is_gm,
-            s.a_max_hp AS max_hp,
-            s.rp AS rp,
-            s.a_agl AS a_agl,
-            s.a_kehai AS a_kehai,
-            s.a_chikaku AS a_chikaku,
-            s.a_luck AS a_luck,
-            s.a_kikyou AS a_kikyou,
-            s.a_chrm   AS a_chrm,
-            s.node_id AS node_id,
-            s.a_hp AS hp,
-            b.uuid,
-            n.node_name
-        FROM
-            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
-    my $sth  = $class->getDbHandler()->prepare($get_base_sql);
-    my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
-    my $row  = $sth->fetchrow_hashref();
-
-    $class->notice(qq["Already registed check: " ], sprintf("carrier: %s, uid: %s, row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $sth->rows() ));
-
-    if ( $sth->rows() == 0 )
+    my $template = "";
+    if ($without_skill)
     {
-        # Not registerd.
-        $sth->finish();
-        return $result;
-    }
-
-
-    if ( ! $row->{uuid} )
-    {
-        #
-        $class->{out}->{UUID} = UniversalAnalytics::gen_uuid();
-        my $uuid_update_sql = "UPDATE t_user SET uuid = ? WHERE user_id = ?";
-        $class->getDbHandler()->do( $uuid_update_sql, undef, $class->{out}->{UUID}, $row->{user_id});
+        $template = new Anothark::Character::Player( {without_skill => 1} );
     }
     else
     {
-        $class->{out}->{UUID} = $row->{uuid}; 
+        $template = new Anothark::Character::Player();
+    }
+    my $result = 0;
+    my $char = $class->getMyCharacter( $template );
+#    my $get_base_sql = "
+#        SELECT
+#            b.user_id AS user_id,
+#            b.user_name AS user_name,
+#            mn.rel AS rel,
+#            mn.vel AS vel,
+#            b.msg AS msg,
+#            b.face_type AS face_type,
+#            b.hair_type AS hair_type,
+#            b.is_gm AS is_gm,
+#            s.a_max_hp AS max_hp,
+#            s.rp AS rp,
+#            s.a_agl AS a_agl,
+#            s.a_kehai AS a_kehai,
+#            s.a_chikaku AS a_chikaku,
+#            s.a_luck AS a_luck,
+#            s.a_kikyou AS a_kikyou,
+#            s.a_chrm   AS a_chrm,
+#            s.node_id AS node_id,
+#            s.a_hp AS hp,
+#            b.uuid,
+#            n.node_name
+#        FROM
+#            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
+#    my $sth  = $class->getDbHandler()->prepare($get_base_sql);
+#    my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
+#    my $row  = $sth->fetchrow_hashref();
+#
+#    $class->notice(qq["Already registed check: " ], sprintf("carrier: %s, uid: %s, row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $sth->rows() ));
+
+
+    if ( not $char )
+    {
+        # Not registerd.
+        return $result;
     }
 
+    if ( $class->getStrict() && not $char->getIsGm )
+    {
+        print CGI->header( -status => "404");
+        exit 1;
+    }
+
+#    if ( ! $row->{uuid} )
+#    {
+#        #
+#        $class->{out}->{UUID} = UniversalAnalytics::gen_uuid();
+#        my $uuid_update_sql = "UPDATE t_user SET uuid = ? WHERE user_id = ?";
+#        $class->getDbHandler()->do( $uuid_update_sql, undef, $class->{out}->{UUID}, $row->{user_id});
+#    }
+#    else
+#    {
+#        $class->{out}->{UUID} = $row->{uuid}; 
+#    }
+
+    $class->loadEquipData( $char );
+    my $user_id = $char->getUserId();
+
     $result = 1;
-    $class->{out}->{NAME} = sprintf("(%s)%s%s",$row->{user_id} , $row->{is_gm} ? $gm_img : "", $row->{user_name});
+#    $class->{out}->{NAME} = sprintf("(%s)%s%s",$row->{user_id} , $row->{is_gm} ? $gm_img : "", $row->{user_name});
+#
+#    $class->{out}->{V_HP} =  $row->{hp};
+#    $class->{out}->{V_MHP} = $row->{max_hp};
+#    $class->{out}->{MSG}   = $row->{msg};
+#    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
+#    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
+#    $class->{out}->{PLACE} = $row->{node_name};
+#    $class->{out}->{NODE_ID} = $row->{node_id};
+#    $class->{out}->{USER_ID} = $row->{user_id};
+#    $class->{out}->{USER_NAME} = $row->{user_name};
+#    $class->{out}->{VEL}     = $row->{vel};
+#    $class->{out}->{REL}     = $row->{rel};
+#    $class->{out}->{GM}      = $row->{is_gm};
+#
+#
+#
+#    $class->{out}->{V_CON} = $row->{rp};
+#    $class->{out}->{V_ATK} = 0;
+#    $class->{out}->{V_MAG} = 0;
+#    $class->{out}->{V_DEF} = 0;
+#    $class->{out}->{V_AGL} = $row->{a_agl};
+#    $class->{out}->{V_KHI} = $row->{a_kehai};
+#    $class->{out}->{V_SNC} = $row->{a_chikaku};
+#    $class->{out}->{V_LUK} = $row->{a_luck};
+#    $class->{out}->{V_HMT} = $row->{a_kikyou};
+#    $class->{out}->{V_CHR} = $row->{a_chrm};
+    $class->{out}->{NAME} = sprintf("(%s)%s%s", $user_id, $char->getIsGm() ? $gm_img : "", $char->getName());
+    $class->{out}->{V_HP} =  $char->getHp()->current();
+    $class->{out}->{V_MHP} = $char->getHp()->max();
+    $class->{out}->{MSG}   = $char->getMsg();
+    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$char->getFaceType()};
+    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$char->getHairType()};
+    $class->{out}->{PLACE} = $char->getNodeName();
+    $class->{out}->{NODE_ID} = $char->getNodeId();
+    $class->{out}->{USER_ID} = $user_id;
+    $class->{out}->{USER_NAME} = $char->getUserName();
+    $class->{out}->{VEL}     = $char->getVel();
+    $class->{out}->{REL}     = $char->getRel();
+    $class->{out}->{GM}      = $char->getIsGm();
 
-    $class->{out}->{V_HP} =  $row->{hp};
-    $class->{out}->{V_MHP} = $row->{max_hp};
-    $class->{out}->{MSG}   = $row->{msg};
-    $class->{out}->{PLACE} = $row->{node_name};
-    $class->{out}->{NODE_ID} = $row->{node_id};
-    $class->{out}->{USER_ID} = $row->{user_id};
-    $class->{out}->{USER_NAME} = $row->{user_name};
-    $class->{out}->{VEL}     = $row->{vel};
-    $class->{out}->{REL}     = $row->{rel};
-    $class->{out}->{GM}      = $row->{is_gm};
+
+
+    $class->{out}->{V_CON} = $char->getConcentration()->current();
+    $class->{out}->{V_ATK} = $char->getAtack()->current();
+    $class->{out}->{V_MAG} = $char->getMagic()->current();
+    $class->{out}->{V_DEF} = $char->getDefence()->current();
+    $class->{out}->{V_AGL} = $char->getAgility()->current();
+    $class->{out}->{V_KHI} = $char->getKehai()->current();
+    $class->{out}->{V_SNC} = $char->getChikaku()->current();
+    $class->{out}->{V_LUK} = $char->getLuck()->current();
+    $class->{out}->{V_HMT} = $char->getKikyou()->current();
+    $class->{out}->{V_CHR} = $char->getCharm()->current();
 
 
 
-    $class->{out}->{V_CON} = $row->{rp};
-    $class->{out}->{V_ATK} = 0;
-    $class->{out}->{V_MAG} = 0;
-    $class->{out}->{V_DEF} = 0;
-    $class->{out}->{V_AGL} = $row->{a_agl};
-    $class->{out}->{V_KHI} = $row->{a_kehai};
-    $class->{out}->{V_SNC} = $row->{a_chikaku};
-    $class->{out}->{V_LUK} = $row->{a_luck};
-    $class->{out}->{V_HMT} = $row->{a_kikyou};
-    $class->{out}->{V_CHR} = $row->{a_chrm};
 
-
-    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
-    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
-
-
-    $class->{PLAYER} = $class->getPlayerByUserId( $row->{user_id},$without_skill );
-    $sth->finish();
+#    $class->{PLAYER} = $class->getPlayerByUserId( $row->{user_id},$without_skill );
+    $class->{PLAYER} = $char;
+#    $sth->finish();
+#    $class->{out}->{EXP}   = join(
+#        "<br />\n",
+#        map {
+#            sprintf "%s Lv%s (%s)", 
+#            Anothark::Skill::typeId2typeName2($_),
+#            $class->{PLAYER}->getTypeLevel($_),
+#            int $class->{PLAYER}->getTypeExperiment($_),
+#        } sort keys %{$class->{PLAYER}->getExperiments() }
+#    );
     $class->{out}->{EXP}   = join(
         "<br />\n",
         map {
             sprintf "%s Lv%s (%s)", 
             Anothark::Skill::typeId2typeName2($_),
-            $class->{PLAYER}->getTypeLevel($_),
-            int $class->{PLAYER}->getTypeExperiment($_),
-        } sort keys %{$class->{PLAYER}->getExperiments() }
+            $char->getTypeLevel($_),
+            int $char->getTypeExperiment($_),
+        } sort keys %{$char->getExperiments() }
     );
 
-    $class->setStatusIo( $class->{PLAYER}->getStatusIo() );
+    $class->setStatusIo( $char->getStatusIo() );
+#    $class->setStatusIo( $class->{PLAYER}->getStatusIo() );
 #    $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
 
@@ -555,6 +649,100 @@ sub Critical
 }
 
 
+sub loadEquipData
+{
+    my $class = shift;
+    my $char  = shift;
+    my $user_id = $char->getUserId();
+    my $sql = <<_SQL_;
+SELECT
+    SUM(im.max_hp) AS max_hp,
+    SUM(im.hp) AS hp,
+    SUM(im.mp) AS magic,
+    SUM(im.agl) AS agl,
+    SUM(im.kikyou) AS kikyou,
+    SUM(im.atack) AS atack,
+    SUM(im.def) AS def,
+    SUM(im.chrm) AS chrm,
+    SUM(im.chikaku) AS chikaku,
+    SUM(im.luck) AS luck,
+    SUM(im.kehai) AS kehai,
+    SUM(im.rp) AS rp,
+    SUM(im.stamina) AS stamina
+FROM
+    (
+        SELECT
+            pos.user_id,
+            pos.position,
+            pos.equip,
+            ui.item_id,
+            CASE WHEN pos.position = 9 THEN pos.equip
+            ELSE ui.item_master_id
+            END AS item_master_id
+        FROM
+            (
+                SELECT
+                    u.user_id,
+                    p.position,
+                    CASE
+                    WHEN p.position = 1 THEN ue.pos_1
+                    WHEN p.position = 2 THEN ue.pos_2
+                    WHEN p.position = 3 THEN ue.pos_3
+                    WHEN p.position = 4 THEN ue.pos_4
+                    WHEN p.position = 5 THEN ue.pos_5
+                    WHEN p.position = 6 THEN ue.pos_6
+                    WHEN p.position = 7 THEN ue.pos_7
+                    WHEN p.position = 8 THEN ue.pos_8
+                    WHEN p.position = 9 THEN ue.pos_9
+                    END AS equip
+                FROM
+                    t_user AS u
+                    JOIN
+                    (
+                        pivot_equip AS p
+                        JOIN
+                        t_user_equip AS ue
+                    )
+                    USING(user_id)
+                WHERE
+                    u.user_id = ?
+            ) AS pos
+            LEFT JOIN
+            t_user_item ui
+            ON( pos.position < 9 AND ui.user_id = pos.user_id AND ui.item_id = pos.equip AND ui.delete_flag = 0 )
+    ) AS base
+    JOIN
+    t_item_master im
+    USING ( item_master_id )
+_SQL_
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+    my $stat = $sth->execute(($user_id));
+    my $row  = $sth->fetchrow_hashref();
+
+    $char->getHp()->addBoth($row->{max_hp});
+    map {
+        warn "[KEY] $_ [add] $row->{$_} [BASE] $char->{$_}->{max_value}";
+        $char->{$_}->addBoth( $row->{$_} )
+#    } sort keys %{$row};
+    } grep { not /^max_hp$/ } sort keys %{$row};
+
+}
+
+sub getBattlePlayerByUserId
+{
+    my $class   = shift;
+    my $user_id = shift;
+    my $w       = shift || 0;
+    my $char = $class->getPlayerByUserId( $user_id, $w );
+    # Load Equip
+    $class->warning( "load equip [$user_id]" );
+
+    $class->loadEquipData( $char );
+
+    return $char;
+}
+
 sub getPlayerByUserId
 {
     my $class   = shift;
@@ -596,6 +784,7 @@ sub getBaseDataByUserId
         return $result;
     }
 
+    $class->loadEquipData( $char );
 
 
     $result = 1;
@@ -611,6 +800,9 @@ sub getBaseDataByUserId
     $class->{out}->{USER_NAME} = $char->getUserName();
     $class->{out}->{VEL}     = $char->getVel();
     $class->{out}->{REL}     = $char->getRel();
+    $class->{out}->{GM}      = $char->getIsGm();
+
+
 
     $class->{out}->{V_CON} = $char->getConcentration()->current();
     $class->{out}->{V_ATK} = $char->getAtack()->current();
@@ -635,6 +827,105 @@ sub getBaseDataByUserId
     );
 
     return $result;
+}
+
+
+sub getMyCharacter
+{
+    my $class   = shift;
+#    my $user_id = shift;
+    my $char    = shift || new Anothark::Character::Player();
+    my $get_base_sql = "
+        SELECT
+            b.user_id AS user_id,
+            b.user_name AS user_name,
+            mn.rel AS rel,
+            mn.vel AS vel,
+            b.msg AS msg,
+            b.face_type AS face_type,
+            b.hair_type AS hair_type,
+            b.is_gm AS is_gm,
+            s.a_max_hp AS max_hp,
+            s.rp AS rp,
+            s.a_agl AS a_agl,
+            s.a_kehai AS a_kehai,
+            s.a_chikaku AS a_chikaku,
+            s.a_luck AS a_luck,
+            s.a_kikyou AS a_kikyou,
+            s.a_chrm   AS a_chrm,
+            s.node_id AS node_id,
+            s.a_hp AS hp,
+            s.a_atack AS atack,
+            s.a_def AS def,
+            s.stamina AS stamina,
+            s.position_code AS position,
+            b.uuid,
+            n.node_name
+        FROM
+            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
+    my $sth  = $class->getDbHandler()->prepare($get_base_sql);
+    my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
+    my $row  = $sth->fetchrow_hashref();
+
+    $class->notice(qq["Already registed check: " ], sprintf("carrier: %s, uid: %s, row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $sth->rows() ));
+
+    if ( $sth->rows() == 0 )
+    {
+        $class->warning("No user record.");
+        $sth->finish();
+        return undef;
+    }
+
+
+    if ( ! $row->{uuid} )
+    {
+        #
+        $class->{out}->{UUID} = UniversalAnalytics::gen_uuid();
+        my $uuid_update_sql = "UPDATE t_user SET uuid = ? WHERE user_id = ?";
+        $class->getDbHandler()->do( $uuid_update_sql, undef, $class->{out}->{UUID}, $row->{user_id});
+    }
+    else
+    {
+        $class->{out}->{UUID} = $row->{uuid}; 
+    }
+
+    $char->setName($row->{user_name});
+    $char->getHp()->setCurrentValue($row->{hp});
+    $char->getHp()->setMaxValue($row->{max_hp});
+    $char->setMsg($row->{msg});
+    $char->setFaceType($row->{face_type});
+    $char->setHairType($row->{hair_type});
+    $char->setId($row->{user_id});
+    $class->debug("Record user_id: " . $row->{user_id});
+    $class->debug("getId:" . $char->getId() . " getUserId:" . $char->getUserId());
+    $char->setNodeName(  $row->{node_name} );
+    $char->setNodeId(  $row->{node_id} );
+    $char->getConcentration()->setBothValue($row->{rp});
+    $char->getAtack()->setBothValue($row->{atack});
+    $char->getMagic()->setBothValue(0);
+    $char->getDefence()->setBothValue($row->{def});
+    $char->getAgility()->setBothValue($row->{a_agl});
+    $char->getKehai()->setBothValue($row->{a_kehai});
+    $char->getChikaku()->setBothValue($row->{a_chikaku});
+    $char->getLuck()->setBothValue($row->{a_luck});
+    $char->getKikyou()->setBothValue($row->{a_kikyou});
+    $char->getCharm()->setBothValue($row->{a_chrm});
+    $char->getStamina()->setBothValue($row->{stamina});
+    $char->getPosition()->setBothValue($row->{position});
+
+    $char->setIsGm( $row->{is_gm} );
+
+    $char->setVel( $row->{vel} );
+    $char->setRel( $row->{rel} );
+
+    $sth->finish();
+
+    ## SetSkill
+    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+
+    $char->setExperiments( $class->loadExp( $char->getUserId()) );
+
+    return $char;
 }
 
 

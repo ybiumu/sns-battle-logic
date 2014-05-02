@@ -22,13 +22,16 @@ sub doExhibitionMatch
     my $il = new Anothark::ItemLoader($db);
     my $bs = new Anothark::BattleSetting($db);
 
+#    $battle->getAt()->loadEquipData( $me );
+
     $me->setSide("p");
     setSkills($bs,$sl,$me);
     $battle->appendCharacter( $me );
     $battle->setBgid($node_id);
 
 #    my $p1 = $battle->getAt()->getPlayerByUserId(2);
-    my $p1 = $battle->getAt()->getPlayerByUserId(101);
+#    my $p1 = $battle->getAt()->getPlayerByUserId(101);
+    my $p1 = $battle->getAt()->getBattlePlayerByUserId(101);
     if ( defined  $p1 )
     {
         $p1->setSide("p");
@@ -209,7 +212,7 @@ sub zwei
         $sl->loadSkill(1012),
         $sl->loadSkill(1013),
         $sl->loadSkill(1014),
-        $sl->loadSkill(1015),
+        $sl->loadSkill(1073),
 #        new Anothark::Skill( 'ÌÞ¯¸½Ï¯¼­'    , {skill_rate => 7 ,length_type => 1 }),
 #        new Anothark::Skill( '²Ý»°ÄÏ°¶°'    , {skill_rate => 7 ,length_type => 1, base_element => 0 }),
 #        new Anothark::Skill( 'ÌÞ¯¸Ø¯ËßÝ¸Þ'  , {skill_rate => 7 ,length_type => 3, range_type => 2, base_element => 1 }),
@@ -233,7 +236,7 @@ sub zwei
         $sl->loadSkill(1016),
         $sl->loadSkill(1017),
         $sl->loadSkill(1016),
-        $sl->loadSkill(1017),
+        $sl->loadSkill(1073),
         $sl->loadSkill(1015),
 #        new Anothark::Skill( 'Ã¨°Ì×¯ÄÞ'    , {skill_rate => 4  ,length_type => 2, range_type => 2, base_element => 12 }),
 #        new Anothark::Skill( 'Êß°Ìª¸Ä½Ï²Ù' , {skill_rate => 10 ,length_type => 3, base_element => -1 }),
@@ -253,7 +256,7 @@ sub zwei
         [],
         $sl->loadSkill(1017),
         $sl->loadSkill(1016),
-        $sl->loadSkill(1017),
+        $sl->loadSkill(1073),
         $sl->loadSkill(1016),
         $sl->loadSkill(1015),
 #        new Anothark::Skill( 'Êß°Ìª¸Ä½Ï²Ù' , {skill_rate => 10 ,length_type => 3, base_element => -1 }),
