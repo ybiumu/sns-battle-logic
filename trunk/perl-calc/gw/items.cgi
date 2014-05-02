@@ -171,6 +171,11 @@ if ( $depth > 0 )
 }
 else
 {
+
+    # Equip.
+    $out->{"EQUIP"} = "";
+
+
     my $having_item_sql = "SELECT i.item_label, u.item_id,u.merged_number,i.merge_number FROM t_user_item AS u JOIN t_item_master AS i USING( item_master_id ) WHERE u.user_id = ? AND u.delete_flag = 0 ORDER BY item_master_id,item_id";
     my $item_sth = $db->prepare($having_item_sql);
     my $stat_item = $item_sth->execute(($user_id));

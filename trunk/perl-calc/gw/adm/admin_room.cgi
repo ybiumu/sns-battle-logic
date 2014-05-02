@@ -20,7 +20,7 @@ my $db = DbUtil::getDbHandler();
 my $mu = new MobileUtil();
 
 $at->setDbHandler($db);
-$at->setMobileUtil($mu);
+$at->setAdminUtil($mu);
 
 my $ad_str = "";
 
@@ -49,16 +49,15 @@ if ( ! $result )
 
 
 our $out = $at->getOut();
-unless ( $out->{GM} )
-{
-    print $c->header( -status=>"404" );
-    exit 1;
-}
+#unless ( $out->{GM} )
+#{
+#    print $c->header( -status=>"404" );
+#    exit 1;
+#}
 
 ##############
 ### depend ###
 ##############
-$at->setBase("adm_template.html");
 $at->setBody("body_admin_room.html");
 $at->setPageName("ŠÇ—Íß°¼Ş");
 my $version = "0.1a20130415";

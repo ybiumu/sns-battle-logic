@@ -43,6 +43,57 @@ readBoard(board_id,page_id )
 SELECT SQL_CALC_FOUND_ROWS last_update, user_name, message FROM t_boards JOIN t_user USING(user_id) WHERE board_id = ? LIMIT 10 OFFSET 1 + ( 10 * ? )
 =cut
 
+sub getBoardDescr
+{
+    my $class = shift;
+    my $board_id = shift;
+    my $results = {};
+
+    my $sql = "SELECT * FROM t_board_map WHERE board_id = ? ";
+
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+
+    my $stat = $sth->execute(($board_id));
+    if ( $sth->rows > 0 )
+    {
+        $results = $sth->fetchrow_hashref();
+    }
+    $sth->finish();
+
+    return $results;
+}
+
+sub getNodeBoard
+{
+    my $class = shift;
+    my $node_id = shift;
+
+    my $board_id = undef;
+    my $results = {
+        3 => undef,
+        4 => undef,
+    };
+
+    my $sql = "SELECT b.board_id FROM t_board_map AS b JOIN t_node_master n  ON ( b.owner_id = n.parent_node_id ) WHERE n.node_id = ? AND b.board_type_id = ? ";
+
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+
+    foreach my $type_id ( sort keys %{$results} )
+    {
+        my $stat = $sth->execute(($node_id, $type_id));
+        if ( $sth->rows > 0 )
+        {
+#        $shop_list = $sth->fetchall_hashref(("shop_id"));
+            $results->{$type_id} = $sth->fetchrow_hashref()->{board_id};
+        }
+    }
+    $sth->finish();
+
+    return $results;
+}
+
 sub getOwnersBoard
 {
     my $class = shift;

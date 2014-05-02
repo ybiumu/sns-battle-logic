@@ -601,7 +601,7 @@ sub checkExperiment
         {
             # value
             my $type_exp = ( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
-            if ( $type_exp )
+            if ( $type_exp > 0 )
             {
                 $exp_values->{$type} = $type_exp;
                 # Str 
