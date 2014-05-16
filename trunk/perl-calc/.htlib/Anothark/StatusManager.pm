@@ -49,7 +49,11 @@ my $stat_master = {
 
 use constant BLANK => 6;
 use constant POISON => 14;
+use constant DOWN => 2;
+use constant LIFT => 1;
+use constant TURN => 29;
 
+use constant DIE => 27;
 
 use constant NOT_STATUS  => 0;
 use constant JUST_STATUS => 1;
@@ -190,6 +194,21 @@ sub clearPoison
     $_[0]->clearStat( POISON, JUST_STATUS );
 }
 
+
+sub isDie
+{
+    return $_[0]->isStatTrue( DIE, JUST_STATUS );
+}
+
+sub setDie
+{
+    $_[0]->appendStatus(DIE, JUST_STATUS);
+}
+
+sub clearDie
+{
+    $_[0]->clearStatus(DIE, JUST_STATUS);
+}
 
 
 1;

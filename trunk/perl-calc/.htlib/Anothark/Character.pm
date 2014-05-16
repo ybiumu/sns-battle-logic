@@ -47,6 +47,8 @@ sub init
     my $class = shift;
     $class->SUPER::init();
     $class->warning( "Call init");
+    $class->setTemplate("character");
+    $class->setEquipSkillId(0);
     $class->setUseElementCount({});
     $class->setStatus( new Anothark::StatusManager() );
     $class->setRawData( new Anothark::ValueObject() );
@@ -70,9 +72,15 @@ sub init
     $class->setVel(0);
 
 
+    $class->setChainStack(0);
     $class->setTrapStack( new Anothark::StackObject());
-    $class->setCoursStack( new Anothark::StackObject());
-#    $class->setStacks( new Anothark::StackObject() );
+    $class->setCurseStack( new Anothark::StackObject());
+    # 解決用
+    $class->setStacks( new Anothark::StackObject() );
+
+    $class->setResolveChainStack(0);
+    $class->setResolveTrapStack( new Anothark::StackObject());
+    $class->setResolveCurseStack( new Anothark::StackObject());
 # create StackObject
 #
 #  trap
@@ -95,11 +103,11 @@ sub init
             new Anothark::Skill::Exhibition("lost_memorys"),
             new Anothark::Skill::Exhibition("zoom_punch"),
             new Anothark::Skill::Exhibition("zoom_punch"),
-#        new Anothark::Skill( 'ｽﾞｰﾑﾊﾟﾝﾁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ｽﾞｰﾑﾊﾟﾝﾁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ｽﾞｰﾑﾊﾟﾝﾁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ｽﾞｰﾑﾊﾟﾝﾁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ｽﾞｰﾑﾊﾟﾝﾁ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
+#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
         ]);
     }
 
@@ -123,14 +131,24 @@ sub init
 my $raw_data = undef;
 
 my $user_name = undef;
+
 my $hp = undef;
 my $stamina = undef;
 my $atack = undef;
 my $magic = undef;
 my $def = undef;
 my $rp = undef;
+my $agl = undef;
+my $luck = undef;
+my $kehai = undef;
+my $chikaku = undef;
+my $kikyou = undef;
+my $chrm = undef;
+
 
 my $side = undef;
+
+
 my $id = undef;
 my $name = undef;
 my $msg = undef;
@@ -140,12 +158,6 @@ my $use_elelment_count = undef;
 my $face_type = undef;
 my $hair_type = undef;
 
-my $agl = undef;
-my $luck = undef;
-my $kehai = undef;
-my $chikaku = undef;
-my $kikyou = undef;
-my $chrm = undef;
 
 my $cmd = undef;
 
@@ -372,7 +384,13 @@ sub setSide
     my $side_str = shift;
     if ( $side_str =~ /^[ep]$/ )
     {
+        $class->setTextSide($side_str);
         return $class->setAttribute( 'side', $side_str );
+    }
+    elsif( $side_str eq "n" )
+    {
+        $class->setTextSide($side_str);
+        return $class->getSide();
     }
     else
     {
@@ -390,6 +408,20 @@ sub getReverseSide
 {
     return ($_[0]->getSide() eq "p" ? "e" : "p");
 }
+
+
+my $text_side = undef;
+sub setTextSide
+{
+    my $class = shift;
+    return $class->setAttribute( 'text_side', shift );
+}
+
+sub getTextSide
+{
+    return $_[0]->getAttribute( 'text_side' );
+}
+
 
 
 sub setPosition
@@ -638,7 +670,7 @@ sub getTargetingValue
             + ( ( $t_kehai / 100 ) + ( $dv < 0 ? 0: $dv ) )
     );
 
-#    $class->warning( sprintf("[%s の ﾀｰｹﾞｯﾄ値: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_chrm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv));
+#    $class->warning( sprintf("[%s の ターゲット値: %s/%s/%s : %s/%s/%s : %s/%s]", $class->getName(), $t_hp, $t_chrm, $t_kehai, $damage,$p_sence, $p_odd, $dv,$tv));
 
     return $tv;
 }
@@ -676,9 +708,17 @@ sub isSmallerThanHalf
 }
 
 
+my $equip_skill_id = undef;
+
 my $stacks = undef;
 my $trap_stack = undef;
-my $cours_stack = undef;
+my $curse_stack = undef;
+my $chain_stack = undef;
+
+my $resolve_chain_stack = undef;
+my $resolve_trap_stack = undef;
+my $resolve_curse_stack = undef;
+
 sub setStacks
 {
     my $class = shift;
@@ -688,6 +728,46 @@ sub setStacks
 sub getStacks
 {
     return $_[0]->getAttribute( 'stacks' );
+}
+
+
+
+sub setResolveCurseStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'resolve_curse_stack', shift );
+}
+
+sub getResolveCurseStack
+{
+    return $_[0]->getAttribute( 'resolve_curse_stack' );
+}
+
+sub setResolveTrapStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'resolve_trap_stack', shift );
+}
+
+sub getResolveTrapStack
+{
+    return $_[0]->getAttribute( 'resolve_trap_stack' );
+}
+
+sub setResolveChainStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'resolve_chain_stack', shift );
+}
+
+sub getResolveChainStack
+{
+    return $_[0]->getAttribute( 'resolve_chain_stack' );
+}
+
+sub incrResolveChainStack
+{
+    $_[0]->{'resolve_chain_stack'} = $_[0]->{'chain_stack'} + 1;
 }
 
 
@@ -703,17 +783,41 @@ sub getTrapStack
     return $_[0]->getAttribute( 'trap_stack' );
 }
 
-sub setCoursStack
+sub setCurseStack
 {
     my $class = shift;
-    return $class->setAttribute( 'cours_stack', shift );
+    return $class->setAttribute( 'curse_stack', shift );
 }
 
-sub getCoursStack
+sub getCurseStack
 {
-    return $_[0]->getAttribute( 'cours_stack' );
+    return $_[0]->getAttribute( 'curse_stack' );
 }
 
+
+sub setChainStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'chain_stack', shift );
+}
+
+sub getChainStack
+{
+    return $_[0]->getAttribute( 'chain_stack' );
+}
+
+
+
+sub setEquipSkillId
+{
+    my $class = shift;
+    return $class->setAttribute( 'equip_skill_id', shift );
+}
+
+sub getEquipSkillId
+{
+    return $_[0]->getAttribute( 'equip_skill_id' );
+}
 
 
 sub canMove
@@ -737,11 +841,13 @@ sub Damage
     my $class = shift;
     my $skill = shift;
     my $dmg   = shift;
+    my $char  = shift;
     my $effect_target = $skill->getEffectTargetTypeByKey();
 
     $class->debug("Effect Target[$effect_target] DMG[$dmg]");
 
     my $remain = $class->getAttribute($effect_target)->cv() - ( $dmg * (($skill->getEffectType() eq 1 || $skill->getEffectType() eq 2) ? -1 : 1) );
+    # HPにダメージ 
     if ( $skill->getEffectType() eq "0"  && $skill->getEffectTargetType() == 3 )
     {
         if ( $remain > 0 )
@@ -750,6 +856,21 @@ sub Damage
             my $cbase =  ($dmg * 10 ) / $class->getAttribute($effect_target)->cv();
             $cbase += 1 if ( int($cbase) != $cbase  );
             $class->getConcentration->addCurrent( int($cbase) );
+        }
+        if ( $dmg )
+        {
+            $class->setDamaged(1);
+            # この時点でStackを移動
+            # 無名キャラがダメージ発生源ではないこと
+            $class->incrResolveChainStack();
+            if ( $char->getTemplate() ne "virtual" )
+            {
+                $class->getResolveCurseStack()->stackArray(
+                    map {
+                        $_->getSkill()->getTargetType() eq 1 ? $_->setTo( $char ) : $_->setTo( $class ); $_; 
+                    } $class->getCurseStack()->resolveAll()
+                );
+            }
         }
     }
 
@@ -772,6 +893,22 @@ sub Damage
 }
 
 
+sub Die
+{
+    my $class = shift;
+
+    $class->debug("Die character");
+
+    # 死んだら呪詛解除
+    $class->getResolveCurseStack()->clearStack();
+
+    # 昏睡罠
+    $class->getResolveTrapStack()->stackArray( $class->getTrapStack()->filter("trap_die")->resolveAll() );
+
+    $class->getStatus()->setDie();
+
+}
+
 #sub GenericDamage
 #{
 #    my $class = shift;
@@ -780,6 +917,41 @@ sub Damage
 #    my $remain = $class->getAttribute($effect_target)->cv() - $dmg;
 #    return $class->getAttribute($effect_target)->setCurrentValue( $remain > 0 ? $remain : 0 );
 #}
+
+
+my $template = undef;
+sub setTemplate
+{
+    my $class = shift;
+    return $class->setAttribute( 'template', shift );
+}
+
+sub getTemplate
+{
+    return $_[0]->getAttribute( 'template' );
+}
+
+
+my $damaged = undef;
+sub setDamaged
+{
+    my $class = shift;
+    return $class->setAttribute( 'damaged', shift );
+}
+
+sub getDamaged
+{
+    return $_[0]->getAttribute( 'damaged' );
+}
+
+# 呼ばれたら必ずクリア
+sub damaged
+{
+    my $class = shift;
+    my $current = $class->getDamaged();
+    $class->setDamaged(0);
+    return $current;
+}
 
 1;
 

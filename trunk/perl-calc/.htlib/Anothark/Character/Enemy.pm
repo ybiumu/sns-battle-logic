@@ -38,6 +38,7 @@ sub init
     my $class = shift;
     $class->SUPER::init();
     $class->debug( "Call child init");
+    $class->setTemplate("enemy");
     $class->setDropItems([
         new Anothark::Item::DropItem( {item_master_id => 5, item_label => '‹•‹U‚ÌŒ‡•Ð' } , 50)
     ]);

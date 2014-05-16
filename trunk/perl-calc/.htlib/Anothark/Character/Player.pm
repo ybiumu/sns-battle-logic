@@ -37,6 +37,7 @@ sub init
 #    $class->warning( "Call child init");
     my $class = shift;
     $class->SUPER::init();
+    $class->setTemplate("player");
 
 
 }

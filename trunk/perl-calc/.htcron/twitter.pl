@@ -142,6 +142,11 @@ else
         );
     $part_sth->finish();
     $rand_sth->finish();
+
+
+    # とりあえずボットぽいのやめ。
+    $db->disconnect();
+    exit;
 }
 $notice_sth->finish();
 

@@ -2,6 +2,8 @@ package Anothark::BattleStack;
 #
 # 愛
 #
+# フィールド用のスタック
+#
 $|=1;
 use strict;
 use Encode;

@@ -39,8 +39,16 @@ sub getMemory
 sub stackOne
 {
     my $class = shift;
-    push(@{$class->getMemory()},shift);
+    my $stack = shift;
+    $class->error("[STACKED] ", join (",", map { sprintf("[%s]=[%s]", $_, $stack->{$_}) } keys %{$stack} ) );
+    push(@{$class->getMemory()},$stack);
 
+}
+
+sub isRemain
+{
+    $_[0]->error("[CALL IS_REMAIN]: " . scalar(@{$_[0]->getMemory()}));
+    return scalar(@{$_[0]->getMemory()})
 }
 
 sub stackArray
@@ -68,6 +76,18 @@ sub resolveAll
     my $stack_list =  $class->getMemory();
     $class->clearStack();
     return @{$stack_list};
+}
+
+sub filter
+{
+    my $class = shift;
+    my $filter_key = shift;
+    my $new_object = new Anothark::StackObject();
+    $new_object->stackArray( grep { $_->{name} eq $filter_key } @{$class->getMemory()} );
+    my @remain = grep { $_->{name} ne $filter_key } @{$class->getMemory()};
+    $class->clearStack();
+    $class->stackArray(@remain);
+    return $new_object;
 }
 
 1;

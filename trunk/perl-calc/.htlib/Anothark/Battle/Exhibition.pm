@@ -35,11 +35,11 @@ sub doExhibitionMatch
     if ( defined  $p1 )
     {
         $p1->setSide("p");
-        $p1->getAtack()->setBothValue(20);
+#        $p1->getAtack()->setBothValue(20);
         setSkills($bs,$sl,$p1);
         $battle->appendCharacter( $p1 );
     }
-    $me->getAtack()->setBothValue(15);
+#    $me->getAtack()->setBothValue(15);
 
 
 #$battle->warning( "Append hagis1.");
@@ -50,9 +50,14 @@ sub doExhibitionMatch
     $npc1->getHp()->setBothValue(50);
     $npc1->getAtack()->setBothValue(20);
     $npc1->gDef()->setBothValue(10);
+    my $n1t = new Anothark::Skill( 'ÕŒ‚‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
+    my $ts1 = $sl->loadSkill(1010);
+    $ts1->setTargetType(4);
+    $n1t->appendChild( $ts1  );
     $npc1->setCmd([
         [],
-        $sl->loadSkill(1010),
+#        $sl->loadSkill(1010),
+        $n1t,
         $sl->loadSkill(1010),
         $sl->loadSkill(1010),
         $sl->loadSkill(1010),
@@ -70,11 +75,21 @@ sub doExhibitionMatch
     $npc2->getHp()->setBothValue(25);
     $npc2->getAtack()->setBothValue(10);
     $npc2->gDef()->setBothValue(5);
+#    my $t3s = new Anothark::Skill( '¾ÙÌ¸¯·Ý¸Þ' ,{ skill_rate => 10,length_type => 1, range_type => 1,target_type => 2, effect_type => 1 } );
+    my $t3s = new Anothark::Skill( '’á‰¹‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
+    my $ts2 = $sl->loadSkill(1009);
+    $ts2->setTargetType(4);
+    $t3s->appendChild( $ts2 );
+
+    my $t4s = new Anothark::Skill( 'GŽè‚Ì•Ç' ,{ skill_rate => 0,length_type => 3, range_type => 3,target_type => 2, effect_type => 4 } );
+    my $ts3 = new Anothark::Skill( '½×¯ÌßÃÝÀ¸Ù' ,{ skill_rate => 1.5 ,length_type => 2, range_type => 1,target_type => 1, effect_type => 0, power_source => 6, base_element => 2 } );
+    $t4s->appendChild( $ts3 );
+
     $npc2->setCmd([
         [],
+        $t4s,,
+        $t3s,
         $sl->loadSkill(1009),
-        $sl->loadSkill(1009),
-        new Anothark::Skill( '¾ÙÌ¸¯·Ý¸Þ' ,{ skill_rate => 10,length_type => 1, range_type => 1,target_type => 2, effect_type => 1 } ),
         $sl->loadSkill(1009),
         $sl->loadSkill(1009),
     ]);
@@ -692,6 +707,11 @@ sub setSkills
                     $char->getCmd()->[$set->{position}] = $sl->loadSkill( 40 + ( $set->{info} > 0 ? $set->{info} : 2 ) );
                     $char->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
                     $char->getCmd()->[$set->{position}]->setIsSkill(0);
+                }
+                elsif ( $set->{setting_id} == 1 && $char->getEquipSkillId() )
+                {
+                    $char->error( "[ATACK SKILL ID] (" .$char->getEquipSkillId() . ")" );
+                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( $char->getEquipSkillId() );
                 }
                 else
                 {

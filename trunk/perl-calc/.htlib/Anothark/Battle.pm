@@ -10,21 +10,18 @@ use Encode;
 use LoggingObjMethod;
 use base qw( LoggingObjMethod );
 
-use Anothark::Battle::BaseValue;
-use Anothark::Battle::TargetValue;
-use Anothark::Battle::StatusValue;
 use Anothark::Skill;
+use Anothark::Battle::DamageExec;
+use Anothark::Character::Virtual;
 
 use constant DEBUG => 1;
 
 use constant BEFORE_START_TURN => "before_start_turn";
 use constant BEFORE_CMD        => "before_cmd";
 use constant AFTER_CMD         => "after_cmd";
+use constant AFTER_TARGET      => "after_target";
 use constant DAMAGED           => "damaged";
 
-our $base   = new Anothark::Battle::BaseValue();
-our $status = new Anothark::Battle::StatusValue();
-our $target_value = new Anothark::Battle::TargetValue();
 
 my $battle_end = undef;
 my $logger = undef;
@@ -42,11 +39,16 @@ my $egid = undef;
 my $stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s<br />';
 my $debug_stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s(RT:%s/AT:%s/DF:%s[EXP:%s])<br />';
 my $act_template = '<div style="text-align:%s;color:%s;">%s%s</div>';
+my $delay_template = '<div style="text-align:center;color:#2faf2f;">%s%s</div>';
+my $chain_template = '<div style="text-align:%s;color:#af2f2f;">-*&nbsp;%s連携&nbsp;*-</div>';
 my $cmd_template = '<div style="text-align:%s;color:%s;" class="act_%s" >%s%s!</div>';
 my $target_template = '<div style="text-align:%s">⇒%s</div>';
 my $effect_template = '<div style="text-align:%s">%s</div>';
 my $dmg_str_template = '[%s]%s!';
 my $effect_str_template = '%s!';
+
+my $debug_template = '<div style="text-align:center;border: solid black 1px;background-color:#afafaf">%s(%s/%s)</div>';
+
 my $party_level = undef;
 
 my $symbol = {
@@ -67,6 +69,15 @@ my $symbol = {
         head_pas  => "∵",
         align => "left",
         color => "#ff0000",
+    },
+    n => {
+        head      => "■",
+        head_nml  => "",
+        head_pri  => "▼",
+        head_cut  => "▲",
+        head_pas  => "∵",
+        align => "center",
+        color => "#2faf2f",
     },
 };
 my $side_value = {
@@ -192,8 +203,10 @@ sub getCurrentActor
 
 sub popCurrentActor
 {
-    pop(@{$_[0]->getAttribute( 'current_actor' )})
+    return pop(@{$_[0]->getAttribute( 'current_actor' )})
 }
+
+
 
 sub appendCharacter
 {
@@ -255,6 +268,24 @@ sub getLiving
     $class->setLivingOrder([ sort { $side_value->{$char->{$b}->getSide()} <=> $side_value->{$char->{$a}->getSide()} } grep { $char->{$_}->isLiving() } keys %{$char} ]);
 }
 
+sub getDamaged
+{
+    my $class = shift;
+    my $char = $class->getCharacter();
+    return (
+        map
+        {
+            $char->{$_}
+        }
+#        sort {
+#            $side_value->{$char->{$b}->getSide()} <=> $side_value->{$char->{$a}->getSide()}
+#        }
+        grep {
+            $char->{$_}->damaged()
+        }
+        keys %{$char}
+    );
+}
 
 sub getLivingTargets
 {
@@ -353,10 +384,15 @@ sub resolveActions
     my $target = shift;
     my $skill  = shift;
     my $turn   = $class->getCurrentTurn();
-    my $char   = $class->getCurrentActor();
+#    my $char   = $class->getCurrentActor();
+    my $char   = $class->getCurrentResolve();
 #    my $skill  = $char->getCmd()->[$turn];
+
+    # Chain
+    $class->getTurnText()->[$turn] .= sprintf($chain_template,  $symbol->{$char->getTextSide()}->{align},$target->getChainStack()+1) if ($target->getChainStack());
+
     # Target
-    $class->getTurnText()->[$turn] .= sprintf($target_template, $symbol->{$char->getSide()}->{align},$target->getName());
+    $class->getTurnText()->[$turn] .= sprintf($target_template, $symbol->{$char->getTextSide()}->{align},$target->getName());
 
 
     # Interlapt Check
@@ -368,14 +404,15 @@ sub resolveActions
     ##  Do Damages ##
     # Search effect range.
     # Dmg
-    my $dmg = $class->damageExec($char, $target, $skill );
+    my $dmg_obj = new Anothark::Battle::DamageExec($char, $target, $skill );
+    my $dmg = $dmg_obj->damageExec();
     if (! $skill->isSkill() )
     {
         if( $skill->getNoSkillType() == 4 ) # 移動
         {
             $class->getTurnText()->[$turn] .= sprintf(
                                                     $effect_template,
-                                                    $symbol->{$char->getSide()}->{align},
+                                                    $symbol->{$char->getTextSide()}->{align},
                                                     sprintf($effect_str_template, "移動した")
                                               );
         }
@@ -383,18 +420,48 @@ sub resolveActions
         {
             $class->getTurnText()->[$turn] .= sprintf(
                                                     $effect_template,
-                                                    $symbol->{$char->getSide()}->{align},
+                                                    $symbol->{$char->getTextSide()}->{align},
                                                     sprintf($effect_str_template, "集中")
                                               );
         }
     }
     else
     {
-        if ( $dmg == 0 )
+        if ( $skill->getEffectType() eq "3" ||  $skill->getEffectType() eq "4" )
+        {
+            # Curseになんかしらスタック
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf($effect_str_template, "呪詛を仕掛けた")
+                                              );
+            $dmg_obj->setSkill( @{$skill->getChildren()}[0] );
+            # この時点で詠唱者のステータスをコピー
+            $dmg_obj->setFrom( new Anothark::Character::Virtual() );
+            $dmg_obj->getFrom()->setBaseChar( $char );
+            $dmg_obj->getFrom()->setSameCmd( $dmg_obj->getSkill() );
+            $dmg_obj->getFrom()->setName( $skill->getName() );
+            # 設置対象者のサイドを設定
+            $dmg_obj->getFrom()->setSide( $target->getSide() );
+            $dmg_obj->getFrom()->setTextSide( "n" );
+            $target->getCurseStack()->stackOne($dmg_obj);
+            $is_dmg = 1; # 熟練対象
+
+            if ( $class->getAt()->{PLAYER}->getIsGm() )
+            {
+                $class->getTurnText()->[$turn]  .= sprintf(
+                    $debug_template,
+                    $dmg_obj->getFrom->getName(),
+                    $dmg_obj->getSkill()->getPowerSourceByKey(),
+                    $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
+                );
+            }
+        }
+        elsif ( $dmg == 0 )
         {
             $class->getTurnText()->[$turn] .= sprintf(
                                                     $effect_template,
-                                                    $symbol->{$char->getSide()}->{align},
+                                                    $symbol->{$char->getTextSide()}->{align},
                                                     sprintf($effect_str_template, "効果なし")
                                               );
             $is_dmg = 1;
@@ -403,7 +470,7 @@ sub resolveActions
         {
             $class->getTurnText()->[$turn] .= sprintf(
                                                     $effect_template,
-                                                    $symbol->{$char->getSide()}->{align},
+                                                    $symbol->{$char->getTextSide()}->{align},
                                                     sprintf(
                                                         $dmg_str_template,
                                                         $skill->getBaseElementName(),
@@ -414,19 +481,22 @@ sub resolveActions
         }
     }
 #    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
-    $target->Damage( $skill,$dmg );
+    $target->Damage( $skill,$dmg , $char );
 
 
     if( not $target->isLiving() )
     {
         $class->getTurnText()->[$turn] .= sprintf(
                                             $effect_template,
-                                            $symbol->{$char->getSide()}->{align}, "　⇒⇒倒れた")
+                                            $symbol->{$char->getTextSide()}->{align}, "　⇒⇒倒れた");
+        $target->Die();
     }
     else
     {
         if ( $dmg > 0 )
         {
+#            # ここで発動はしない。ダメージのフラグを載せるだけ
+# フラグもやんない
             $class->chkScene(DAMAGED,{ char => $char });
         }
     }
@@ -435,6 +505,31 @@ sub resolveActions
 }
 
 
+# 連携の継続判定
+sub continueChain
+{
+    my $class = shift;
+    my $cmd   = shift;
+    my @targets = @_;
+    my $char   = $class->getCharacter();
+    if ( $cmd->getEffectType() eq "3" || $cmd->getEffectType() eq "4" )
+    {
+        @targets = ();
+    }
+
+    my $targets = { map { $_ => 1 } @targets };
+    map {
+        if ( not exists $targets->{$char->{$_}->getId()} )
+        {
+            $char->{$_}->setResolveChainStack(0);
+        }
+        elsif( $char->{$_}->getChainStack() eq $char->{$_}->getResolveChainStack() )
+        {
+            $char->{$_}->setResolveChainStack(0);
+        }
+        $char->{$_}->setChainStack( $char->{$_}->getResolveChainStack() );
+    } @{$class->getLiving()};
+}
 
 sub getSameRangeTargets
 {
@@ -483,6 +578,11 @@ sub chkEffect
 {
     my $class = shift;
     my $scene = shift;
+    my $opt   = shift;
+#    if ( $scene eq DAMAGED && exists $opt->{char} )
+#    {
+#        $opt->{char}->setDamaged(1);
+#    }
 }
 
 sub chkClear
@@ -495,11 +595,71 @@ sub chkCmdStack
 {
     my $class = shift;
     my $scene = shift;
+    my $opt   = shift;
     # Stacking
 
+    $class->error("[chkCmdStack] start.[$scene]");
+
+#    if ( $scene eq AFTER_CMD && exists $opt->{char} )
+    if ( $scene eq AFTER_CMD )
+    {
+        $class->error("[AFTER_CMD] start.");
+
+        my @damaged = $class->getDamaged();
+        # 呪詛のスタック解決
+        foreach my $char ( @damaged )
+        {
+#            my $stack = $char->getStacks()->filter("curse");
+            $class->error("[DAMAGED] " . $char->getName() . " start.");
+            my $stack = $char->getResolveCurseStack();
+            while( $stack->isRemain() )
+            {
+                my $res = $stack->resolveOne();
+                $class->pushResolveStack($res);
+                $class->doDelaiedCmd()
+
+            }
+            $class->error("[DAMAGED] " . $char->getName() . " done.");
+        }
+    }
 #    $class->getActions()->{$scene}
     # resolve stacks
 }
+
+
+
+my $resolve_stack = undef;
+my $current_resolve = undef;
+
+sub initResolveStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'resolve_stack', [] );
+}
+sub pushResolveStack
+{
+    my $class = shift;
+    return push( @{$class->getAttribute( 'resolve_stack')}, shift );
+}
+
+sub popResolveStack
+{
+    return pop(@{$_[0]->getAttribute( 'resolve_stack' )});
+}
+
+
+
+sub setCurrentResolve
+{
+    my $class = shift;
+    return $class->setAttribute( 'current_resolve', shift );
+}
+
+sub getCurrentResolve
+{
+    return $_[0]->getAttribute( 'current_resolve' );
+}
+
 
 
 sub chkScene
@@ -695,6 +855,7 @@ sub doTurn
     $class->getTurnText()->[$turn] .= "<hr /><div style=\"text-align:center;color:#ff0000;\">Turn $turn</div>";
     $class->warning( "TURN [$turn]");
 
+    # 毒とか
     $class->chkScene( BEFORE_START_TURN ); 
 
     if ( DEBUG )
@@ -706,8 +867,8 @@ sub doTurn
             my $cnts = $c->getUseElementCount();
             $class->getTurnText()->[$turn] .= sprintf(
                 $debug_stat_template,
-                $symbol->{$chars->{$cs}->getSide()}->{color},
-                $symbol->{$chars->{$cs}->getSide()}->{head},
+                $symbol->{$chars->{$cs}->getTextSide()}->{color},
+                $symbol->{$chars->{$cs}->getTextSide()}->{head},
                 $chars->{$cs}->getName(), $chars->{$cs}->getPointStr(), "",
                 $chars->{$cs}->getHp()->current(),
                 $chars->{$cs}->getHp()->max(),
@@ -735,8 +896,8 @@ sub doTurn
             # status
             $class->getTurnText()->[$turn] .= sprintf(
                 $stat_template,
-                $symbol->{$chars->{$cs}->getSide()}->{color},
-                $symbol->{$chars->{$cs}->getSide()}->{head},
+                $symbol->{$chars->{$cs}->getTextSide()}->{color},
+                $symbol->{$chars->{$cs}->getTextSide()}->{head},
                 $chars->{$cs}->getName(), $chars->{$cs}->getPointStr(), "",
                 $chars->{$cs}->getHp()->current(),
                 $chars->{$cs}->getHp()->max(),
@@ -751,6 +912,9 @@ sub doTurn
         # Name
         next if ( not $char->isLiving() );
         $class->setCurrentActor($char);
+        # アクティブ毎に解決スタックを初期化
+        $class->initResolveStack();
+        $class->pushResolveStack($char);
         $class->doTurnCmd();
 
         last if $class->battleEnd()
@@ -772,12 +936,13 @@ sub doTurnCmd
 {
     my $class = shift;
     my $turn  = $class->getCurrentTurn();
-    my $char  = $class->getCurrentActor();
+#    my $char  = $class->getCurrentActor();
+    my $char  = $class->setCurrentResolve($class->popResolveStack());
     $class->getTurnText()->[$turn] .= sprintf(
         $act_template,
-        $symbol->{$char->getSide()}->{align},
-        $symbol->{$char->getSide()}->{color},
-        $symbol->{$char->getSide()}->{head},
+        $symbol->{$char->getTextSide()}->{align},
+        $symbol->{$char->getTextSide()}->{color},
+        $symbol->{$char->getTextSide()}->{head},
         $char->getName(),
     );
 
@@ -803,11 +968,51 @@ sub doPrepareCmd
     $class->doCmd();
 }
 
+# 罠とか呪詛とか遅発とか
+sub doDelaiedCmd
+{
+    my $class    = shift;
+    my $turn     = $class->getCurrentTurn();
+    my $dmg_obj  = $class->popResolveStack();
+    my $char     = $dmg_obj->getFrom();
+    my $target   = $dmg_obj->getTo();
+    $class->setCurrentResolve( $char );
+    $class->error("[Delaied Char] " . ref $char );
+
+    if ( $target->isLiving() )
+    {
+        $class->getTurnText()->[$turn] .= sprintf(
+#        $delay_template, # TODO 呪詛用テンプレート作成
+            $act_template, 
+            $symbol->{$char->getTextSide()}->{align},
+            $symbol->{$char->getTextSide()}->{color},
+            $symbol->{$char->getTextSide()}->{head_pas},
+            $char->getName(), #呪詛名と記号
+        );
+
+        $class->doCmd( $char, $target );
+
+
+        my $chars = $class->getCharacter();
+
+        # Living forward check
+        foreach my $side ( sort{ $side_value->{$b} <=> $side_value->{$a} } keys %{$side_value} )
+        {
+            # Point Check
+            if ( not scalar($class->getLivingCharactersBySide($side)) )
+            {
+                map { $chars->{$_}->getPosition()->setCurrentValue("f") } $class->getLivingFrontCharactersBySide($side);
+            }
+        }
+    }
+}
+
 sub doCmd
 {
     my $class = shift;
     my $char  = shift;
-    my $stacks = [];
+    my $force_target = shift || 0;
+#    my $stacks = [];
     my $turn   = $class->getCurrentTurn();
     my $chars  = $class->getCharacter();
 
@@ -816,11 +1021,13 @@ sub doCmd
     my $text_pointer = \$class->getTurnText()->[$turn];
     my $cmd = $char->getCmd()->[$turn];
 
-    $class->chkScene( BEFORE_CMD ); 
+    # 連携継続とか、遅発とか
+# ここか？ターゲッティング後じゃ？
+    $class->chkScene( BEFORE_CMD, { cmd => $cmd } ); 
 
     if( $char->canMove() )
     {
-        $class->doSkillUnit($char,$cmd,$text_pointer );
+        $class->doSkillUnitBase($char,$cmd,$text_pointer,$force_target );
     }
     else
     {
@@ -829,6 +1036,9 @@ sub doCmd
 
     # Post Effect Check
     # Post Effect cmd
+
+    # TODO
+    # post effect
 
     # Win Lose check
     # last if end;
@@ -848,55 +1058,144 @@ sub doCmd
 
 
     # Exec after command;
-
+#    # スタックとか乗せる前に
+#    $class->popResolveStack();
     $class->chkScene( AFTER_CMD ); 
 
 # cmd end
 }
 
 
-sub doSkillUnit
+sub doPreTargeting
 {
     my $class = shift;
     my $char  = shift;
     my $cmd   = shift;
     my $text_pointer = shift;
+    my $force_target = shift || 0;
     my $chars  = $class->getCharacter();
 
-    #　　- ｽｷﾙ発動準備
-    #　　　　- 仮効果算出
-    #　　　　- 仮効果をもとにﾀｰｹﾞｯﾃｨﾝｸﾞ決定
-    #　　　　- 仮効果をもとに割り込み処理
-    #　　　　　　- ﾌﾟﾘﾍﾟｱｶｯﾄ
-    #　　　　　　　　- [object:skill_flow]
-    #　　　　- 遅発処理
-    #　　　　　　[object:skill_flow]
-    #　　　　- 
-    #　　　　　　[object:skill_flow]
-    #　　　　- phase in
-
-
-
-    #　　- ｽｷﾙ発動
-    #　　- ﾀｰｹﾞｯﾃｨﾝｸﾞ
-
-    # Targeting
-
-    $$text_pointer .= sprintf(
-        $cmd_template,
-        $symbol->{$char->getSide()}->{align},
-        $symbol->{$char->getSide()}->{color},
-        $symbol->{$char->getSide()}->{head_nml},
-        $cmd->getName(),
-    );
-
-    $class->warning( "Run Cmd id is [". $cmd->getSkillId() ."]");
 
     my @target_order = ();
 
 #################
 ### TARGETING ###
 #################
+
+    # TODO
+    #
+    # 再帰的にターゲッティングをして、CUTを確定させないといけない
+    #
+    #
+
+    # 全体攻撃
+    if ($cmd->getRangeType() eq "3" )
+    {
+        # Do Not anything
+    }
+    # 自身攻撃
+    elsif ($cmd->getRangeType() eq "4" )
+    {
+        # Do Not anything
+    }
+    # 単体・同列
+    else
+    {
+
+        if ( $char->canTarget() )
+        {
+        }
+        else
+        {
+#            $$text_pointer .= 'ﾌﾞﾗﾝｸで狙えない';
+            return ;
+        }
+
+        my $dmg_obj = new Anothark::Battle::DamageExec();
+
+        # 単体
+        if ( $cmd->getRangeType() eq "1" )
+        {
+            if ( $force_target )
+            {
+                @target_order = ( $force_target->getId() );
+            }
+            else
+            {
+                # for single taggeting.
+                @target_order = (
+                    sort {
+                        $chars->{$b}->getTargetingValue(
+                            $dmg_obj->damageExecBase( $char, $chars->{$b} , $cmd), $char->gCkk()->cv(), $char->gKky()->cv()
+                        )
+                        <=>
+                        $chars->{$a}->getTargetingValue(
+                            $dmg_obj->damageExecBase( $char, $chars->{$a}, $cmd ) , $char->gCkk()->cv(), $char->gKky()->cv()
+                        )
+                        or $chars->{$a}->getId() <=> $chars->{$b}->getId()
+                    } @{$class->getLivingTargetsWithState( $char,$cmd )}
+                );
+            }
+        }
+        # 同列
+        elsif( $cmd->getRangeType() eq "2" )
+        {
+            if ( $force_target )
+            {
+                @target_order = (
+                    grep {
+#                        $class->error("$_/$force_target");
+                        $chars->{$_}->getPoint()
+                        eq
+                        $chars->{$force_target->getId()}->getPoint()
+                    }
+                    @{$class->getLivingTargetsWithState( $char,$cmd )}
+                );
+            }
+            else
+            {
+                my $td = { f => 0, b => 0};
+                map {
+                    $td->{$chars->{$_}->getPoint()} +=  $dmg_obj->damageExecBase( $char, $chars->{$_},$cmd ), $char->gCkk()->cv(), $char->gKky()->cv()
+                } @{$class->getLivingTargetsWithState( $char,$cmd )};
+                my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
+                @target_order = (
+                    grep {
+                        $chars->{$_}->getPoint() eq $point
+                    }
+                    @{$class->getLivingTargetsWithState( $char,$cmd )}
+                );
+            }
+        }
+
+    }
+
+    return @target_order;
+
+}
+
+
+sub doTargeting
+{
+    my $class = shift;
+    my $char  = shift;
+    my $cmd   = shift;
+    my $text_pointer = shift;
+    my $force_target = shift || 0;
+    my $chars  = $class->getCharacter();
+
+
+    my @target_order = ();
+
+#################
+### TARGETING ###
+#################
+
+    # TODO
+    #
+    # 再帰的にターゲッティングをして、CUTを確定させないといけない
+    #
+    #
 
     # 全体攻撃
     if ($cmd->getRangeType() eq "3" )
@@ -921,40 +1220,287 @@ sub doSkillUnit
             return ;
         }
 
+        my $dmg_obj = new Anothark::Battle::DamageExec();
+
+
+        if ( $class->getAt()->{PLAYER}->getIsGm() )
+        {
+            $$text_pointer .= sprintf(
+                $debug_template,
+                $char->getName(),
+                $cmd->getPowerSourceByKey(),
+                $char->getAttribute($cmd->getPowerSourceByKey())->cv(),
+            );
+        }
+
         # 単体
         if ( $cmd->getRangeType() eq "1" )
         {
-            # for single taggeting.
-            @target_order = (
-                sort {
-                    $chars->{$b}->getTargetingValue(
-                        $class->damageExec( $char, $chars->{$b} , $cmd), $char->gCkk()->cv(), $char->gKky()->cv()
-                    )
-                    <=>
-                    $chars->{$a}->getTargetingValue(
-                        $class->damageExec( $char, $chars->{$a}, $cmd ) , $char->gCkk()->cv(), $char->gKky()->cv()
-                    )
-                    or $chars->{$a}->getId() <=> $chars->{$b}->getId()
-                } @{$class->getLivingTargetsWithState( $char,$cmd )}
-            );
+            if ( $force_target )
+            {
+                @target_order = ( $force_target->getId() );
+            }
+            else
+            {
+                # for single taggeting.
+                @target_order = (
+                    sort {
+                        $chars->{$b}->getTargetingValue(
+                            $dmg_obj->damageExecBase( $char, $chars->{$b} , $cmd), $char->gCkk()->cv(), $char->gKky()->cv()
+                        )
+                        <=>
+                        $chars->{$a}->getTargetingValue(
+                            $dmg_obj->damageExecBase( $char, $chars->{$a}, $cmd ) , $char->gCkk()->cv(), $char->gKky()->cv()
+                        )
+                        or $chars->{$a}->getId() <=> $chars->{$b}->getId()
+                    } @{$class->getLivingTargetsWithState( $char,$cmd )}
+                );
+            }
         }
         # 同列
         elsif( $cmd->getRangeType() eq "2" )
         {
-            my $td = { f => 0, b => 0};
-            map {
-                $td->{$chars->{$_}->getPoint()} +=  $class->damageExec( $char, $chars->{$_},$cmd ), $char->gCkk()->cv(), $char->gKky()->cv()
-            } @{$class->getLivingTargetsWithState( $char,$cmd )};
-            my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
-            @target_order = (
-                grep {
-                    $chars->{$_}->getPoint() eq $point
+            if ( $force_target )
+            {
+                @target_order = (
+                    grep {
+#                        $class->error("$_/$force_target");
+                        $chars->{$_}->getPoint()
+                        eq
+                        $chars->{$force_target->getId()}->getPoint()
+                    }
+                    @{$class->getLivingTargetsWithState( $char,$cmd )}
+                );
+
+                if ( $class->getAt()->{PLAYER}->getIsGm() )
+                {
+                    $$text_pointer .= sprintf(
+                        $debug_template,
+                        $char->getName(),
+                        $force_target->getName(),
+                        join(",", @{$class->getLivingTargetsWithState( $char,$cmd )}),
+                    );
                 }
-                @{$class->getLivingTargetsWithState( $char,$cmd )}
-            );
+
+            }
+            else
+            {
+                my $td = { f => 0, b => 0};
+                map {
+                    $td->{$chars->{$_}->getPoint()} +=  $dmg_obj->damageExecBase( $char, $chars->{$_},$cmd ), $char->gCkk()->cv(), $char->gKky()->cv()
+                } @{$class->getLivingTargetsWithState( $char,$cmd )};
+                my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
+                @target_order = (
+                    grep {
+                        $chars->{$_}->getPoint() eq $point
+                    }
+                    @{$class->getLivingTargetsWithState( $char,$cmd )}
+                );
+            }
         }
 
     }
+
+    return @target_order;
+
+}
+
+
+sub doSkillUnitBase
+{
+    my $class = shift;
+    my $char  = shift;
+    my $cmd   = shift;
+    my $text_pointer = shift;
+    my $force_target = shift || 0;
+    my $chars  = $class->getCharacter();
+
+    #　　- ｽｷﾙ発動準備
+    #　　　　- 仮効果算出
+    #　　　　- 仮効果をもとにﾀｰｹﾞｯﾃｨﾝｸﾞ決定
+    #　　　　- 仮効果をもとに割り込み処理
+    #　　　　　　- ﾌﾟﾘﾍﾟｱｶｯﾄ
+    #　　　　　　　　- [object:skill_flow]
+    #　　　　- 遅発処理
+    #　　　　　　[object:skill_flow]
+    #　　　　- 
+    #　　　　　　[object:skill_flow]
+    #　　　　- phase in
+
+
+
+    #　　- ｽｷﾙ発動
+    #　　- ﾀｰｹﾞｯﾃｨﾝｸﾞ
+
+    # Targeting
+
+#    $$text_pointer .= sprintf(
+#        $cmd_template,
+#        $symbol->{$char->getTextSide()}->{align},
+#        $symbol->{$char->getTextSide()}->{color},
+#        $symbol->{$char->getTextSide()}->{head_nml},
+#        $cmd->getName(),
+#    );
+
+    $class->warning( "Run Cmd id is [". $cmd->getSkillId() ."]");
+
+#    my @target_order = ();
+#
+##################
+#### TARGETING ###
+##################
+#
+#    # 全体攻撃
+#    if ($cmd->getRangeType() eq "3" )
+#    {
+#        # Do Not anything
+#    }
+#    # 自身攻撃
+#    elsif ($cmd->getRangeType() eq "4" )
+#    {
+#        # Do Not anything
+#    }
+#    # 単体・同列
+#    else
+#    {
+#
+#        if ( $char->canTarget() )
+#        {
+#        }
+#        else
+#        {
+#            $$text_pointer .= 'ﾌﾞﾗﾝｸで狙えない';
+#            return ;
+#        }
+#
+#        my $dmg_obj = new Anothark::Battle::DamageExec();
+#
+#        # 単体
+#        if ( $cmd->getRangeType() eq "1" )
+#        {
+#            if ( $force_target )
+#            {
+#                @target_order = ( $force_target->getId() );
+#            }
+#            else
+#            {
+#                # for single taggeting.
+#                @target_order = (
+#                    sort {
+#                        $chars->{$b}->getTargetingValue(
+#                            $dmg_obj->damageExecBase( $char, $chars->{$b} , $cmd), $char->gCkk()->cv(), $char->gKky()->cv()
+#                        )
+#                        <=>
+#                        $chars->{$a}->getTargetingValue(
+#                            $dmg_obj->damageExecBase( $char, $chars->{$a}, $cmd ) , $char->gCkk()->cv(), $char->gKky()->cv()
+#                        )
+#                        or $chars->{$a}->getId() <=> $chars->{$b}->getId()
+#                    } @{$class->getLivingTargetsWithState( $char,$cmd )}
+#                );
+#            }
+#        }
+#        # 同列
+#        elsif( $cmd->getRangeType() eq "2" )
+#        {
+#            if ( $force_target )
+#            {
+#                @target_order = (
+#                    grep {
+##                        $class->error("$_/$force_target");
+#                        $chars->{$_}->getPoint()
+#                        eq
+#                        $chars->{$force_target->getId()}->getPoint()
+#                    }
+#                    @{$class->getLivingTargetsWithState( $char,$cmd )}
+#                );
+#            }
+#            else
+#            {
+#                my $td = { f => 0, b => 0};
+#                map {
+#                    $td->{$chars->{$_}->getPoint()} +=  $dmg_obj->damageExecBase( $char, $chars->{$_},$cmd ), $char->gCkk()->cv(), $char->gKky()->cv()
+#                } @{$class->getLivingTargetsWithState( $char,$cmd )};
+#                my $point = (sort { $td->{$b} <=> $td->{$a} } %{$td})[0];
+#                @target_order = (
+#                    grep {
+#                        $chars->{$_}->getPoint() eq $point
+#                    }
+#                    @{$class->getLivingTargetsWithState( $char,$cmd )}
+#                );
+#            }
+#        }
+#
+#    }
+
+
+
+    my @target_order = $class->doPreTargeting( $char, $cmd, $text_pointer, $force_target);
+    # 呪詛設置・罠設置以外は連携継続のチェック対象
+    # TODO ここをもっと厚く
+    $class->continueChain($cmd,@target_order);
+    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    {
+        map{
+            $$text_pointer .= sprintf(
+                $debug_template,
+                $chars->{$_}->getName(),
+                $chars->{$_}->getChainStack(),
+                $chars->{$_}->getResolveChainStack(),
+            );
+        } @{$class->getLiving()};
+    }
+    # CUT 割り込み
+    $class->chkScene( AFTER_TARGET, { cmd => $cmd } ); 
+    $class->doSkillUnit( $char, $cmd, $text_pointer, $force_target);
+
+}
+
+sub doSkillUnit
+{
+    my $class = shift;
+    my $char  = shift;
+    my $cmd   = shift;
+    my $text_pointer = shift;
+    my $force_target = shift || 0;
+    my $chars  = $class->getCharacter();
+
+    #　　- ｽｷﾙ発動準備
+    #　　　　- 仮効果算出
+    #　　　　- 仮効果をもとにﾀｰｹﾞｯﾃｨﾝｸﾞ決定
+    #　　　　- 仮効果をもとに割り込み処理
+    #　　　　　　- ﾌﾟﾘﾍﾟｱｶｯﾄ
+    #　　　　　　　　- [object:skill_flow]
+    #　　　　- 遅発処理
+    #　　　　　　[object:skill_flow]
+    #　　　　- 
+    #　　　　　　[object:skill_flow]
+    #　　　　- phase in
+
+
+
+    #　　- ｽｷﾙ発動
+    #　　- ﾀｰｹﾞｯﾃｨﾝｸﾞ
+
+    # Targeting
+
+    $$text_pointer .= sprintf(
+        $cmd_template,
+        $symbol->{$char->getTextSide()}->{align},
+        $symbol->{$char->getTextSide()}->{color},
+        $symbol->{$char->getTextSide()}->{head_nml},
+        $cmd->getName(),
+    );
+
+    $class->warning( "Run Cmd id is [". $cmd->getSkillId() ."]");
+
+
+
+    my @target_order = $class->doTargeting( $char, $cmd, $text_pointer, $force_target);
+
+#
+#    # CUT 割り込み
+#    $class->chkScene( AFTER_TARGET, { cmd => $cmd } ); 
+
 
 ########################
 ###  Resolve Damages ###
@@ -969,7 +1515,7 @@ sub doSkillUnit
     # シリーズ
     if ( $cmd->getEffectType() eq "5" )
     {
-        foreach my $child ( @{ $cmd->getChildren()})
+        foreach my $child ( sort { $a->getSequenceId() <=> $b->getSequenceId() } @{ $cmd->getChildren()})
         {
             $is_count += $class->doSkillUnit($char,$child,$text_pointer);
         }
@@ -981,12 +1527,13 @@ sub doSkillUnit
         my $rnd = int( rand(scalar(@{$children})));
         $is_count += $class->doSkillUnit($char,$children->[$rnd],$text_pointer);
     }
-    # 呪詛
-    elsif ( $cmd->getEffectType() eq "4" )
-    {
-        my $children = $cmd->getChildren();
-        # XXX set target
-    }
+#    # 呪詛
+# XXX 呪詛もresolveActionsで受ける
+#    elsif ( $cmd->getEffectType() eq "4" )
+#    {
+#        my $children = $cmd->getChildren();
+#        # XXX set target
+#    }
     # 罠
     elsif ( $cmd->getEffectType() eq "3" )
     {
@@ -999,7 +1546,9 @@ sub doSkillUnit
         # 全体攻撃
         if ($cmd->getRangeType() eq "3" )
         {
-            map { $is_count += $class->resolveActions($chars->{ $_ }, $cmd); } @{$class->getLivingTargetsWithState( $char,$cmd )};
+            map {
+                $is_count += $class->resolveActions($chars->{ $_ }, $cmd);
+            } @{$class->getLivingTargetsWithState( $char,$cmd )};
         }
         # 自身攻撃
         elsif ($cmd->getRangeType() eq "4" )
@@ -1038,9 +1587,8 @@ sub doSkillUnit
                 $class->debug( "Not reached. 届かない! ");
                 $class->debug( "XXX Stack dump XXX");
 #                map { $class->debug($_); } @{$cmd->dump()};
-                $$text_pointer .= sprintf($effect_template, $symbol->{$char->getSide()}->{align},sprintf( $effect_str_template, "届かない"));
+                $$text_pointer .= sprintf($effect_template, $symbol->{$char->getTextSide()}->{align},sprintf( $effect_str_template, "届かない"));
             }
-
         }
     }
 
@@ -1048,6 +1596,7 @@ sub doSkillUnit
 
 
     my $raise_parent = 0;
+    # 子供の処理
     if ( $cmd->getParentSkillId() ne "0" )
     {
         $raise_parent = $is_count;
@@ -1055,10 +1604,16 @@ sub doSkillUnit
         $class->warning( "No Count!");
     }
 
-    if ( $is_count )
+    # 最上位の処理
+    if ( $cmd->getParentSkillId() eq "0" )
     {
-        $char->countupElementCount($cmd->getTypeId());
-        $char->countupElementCount($cmd->getSubTypeId());
+        if ( $is_count )
+        {
+            $char->countupElementCount($cmd->getTypeId());
+            $char->countupElementCount($cmd->getSubTypeId());
+        }
+
+
     }
 
     return $raise_parent;
@@ -1179,106 +1734,6 @@ sub getResultText
     return "<center>YouWin!</center><br /><center>************</center><br />";
 }
 
-sub damageExec
-{
-    # 後解決の呪詛なども検討しないといけない
-    # シリーズも
-    my $class = shift;
-    my $from  = shift;
-    my $to    = shift;
-
-    my $skill = shift;
-
-#    my $turn  = $class->getCurrentTurn();
-#    my $skill = $from->getCmd()->[$turn];
-
-#    $base->setPs(1);
-{
-    $class->warning( sprintf("
-    [Char]     : %s
-    [SkillName]: %s
-    [PSname]   : %s
-    [Value]    : %s
-    [rate]     : %s
-    [Id]       : %s/%s
-    [RT]       : %s
-    ",
-     $from->getName(),
-     $skill->getSkillName(),
-     $skill->getPowerSourceByKey(),
-     $from->getAttribute($skill->getPowerSourceByKey())->cv(),
-     $skill->getSkillRate(),
-     $skill->getSkillId(), $skill->getParentSkillId(),
-     $from->getConcentration()->cv()
-    ));
-}
-    $base->setPs( $from->getAttribute($skill->getPowerSourceByKey())->cv() );
-    $base->setSr( $skill->getSkillRate() );
-    $base->setMainExpr(0);
-    $base->setSubExpr(0);
-    $base->setExprType(1);
-    if ( $skill->getEffectType() == 1 )
-    {
-        $base->setRange( $base->RANGE_MAP->{$skill->getRangeTypeStr()} );
-    }
-    else
-    {
-        $base->setRange( 1.0 );
-    }
-    $base->setRand($skill->getRandomAlias());
-
-
-
-
-    $status->setMainRegist(0);
-    $status->setSubRegist(0);
-    $status->setRegistType(0);
-    $status->setSeedRateType(0);
-    $status->setStatMatchNum(0);
-    $status->setStone(0);
-    $status->setSleep(0);
-    $status->setSerialRegist(0);
-
-    $target_value->setConcent( $from->getConcentration()->cv());
-    $target_value->setPlaceVal(0);
-    $target_value->setPlaceVector(1);
-    $target_value->setChain(1);
-
-    my $tmp_value = $base->calc() * $status->calc() * $target_value->calc();
-    $class->warning( sprintf "Damage [%s/%s/%s]",$base->calc(), $status->calc(), $target_value->calc());
-
-    return $class->getRealDamage( $tmp_value, ( $skill->getEffectTargetType() == 3 ? $to->gDef()->cv()  : 0 ), 1 );
-#    return getRealDamage( $skill->getSkillRate(), $to->gDef()->cv(), 0 ); 耐性は仮の値
-}
-
-sub getRealDamage
-{
-#    return getRealDamageSimple(@_);
-    my $class = shift;
-    return $class->calcDeffence(@_);
-}
-
-sub getRealDamageSimple
-{
-    my $dmg = shift;
-    my $df  = shift;
-
-    my $r   = $dmg - ( $df / 2 );
-    return $r > 0 ? $r : 0;
-}
-
-
-sub calcDeffence
-{
-    my $class = shift;
-    my $tmp_value  = shift;
-    my $ap         = shift;
-    my $tmp_regist = shift;
-    return 0 if ( $tmp_regist == 0 );
-    my $value = sprintf "%d", ($tmp_value - ( ( abs($tmp_value) < abs($ap/2) ? $tmp_value : ($ap/2)) * ( $tmp_regist / abs( $tmp_regist) ) ) );
-    $class->warning( "   [CalResult] : $value");
-    return $value;
-}
 
 sub isReach
 {
