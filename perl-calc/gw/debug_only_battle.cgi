@@ -68,7 +68,8 @@ my $mob_uid = $mu->get_muid();
 ### Battle ###
 ##############
     my $battle = new Anothark::Battle( $at );
-    my $me = $at->getPlayerByUserId($out->{USER_ID});
+#    my $me = $at->getPlayerByUserId($out->{USER_ID});
+    my $me = $at->getBattlePlayerByUserId($out->{USER_ID});
 #    my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me ,6,6);
     my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me,4 );
 #    my $battle_html = $battle->getBattleText();

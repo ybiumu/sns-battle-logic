@@ -244,7 +244,7 @@ sub setAdminUtil
     else
     {
         $class->setBase( $admin );
-        $class->setCss( $spcss );
+        $class->setCss( $css );
     }
 
     return $mu;
@@ -668,7 +668,8 @@ SELECT
     SUM(im.luck) AS luck,
     SUM(im.kehai) AS kehai,
     SUM(im.rp) AS rp,
-    SUM(im.stamina) AS stamina
+    SUM(im.stamina) AS stamina,
+    SUM( im.equip_skill_id ) AS equip_skill_id
 FROM
     (
         SELECT
@@ -721,11 +722,11 @@ _SQL_
     my $row  = $sth->fetchrow_hashref();
 
     $char->getHp()->addBoth($row->{max_hp});
+    $char->setEquipSkillId( $row->{equip_skill_id} );
     map {
         warn "[KEY] $_ [add] $row->{$_} [BASE] $char->{$_}->{max_value}";
         $char->{$_}->addBoth( $row->{$_} )
-#    } sort keys %{$row};
-    } grep { not /^max_hp$/ } sort keys %{$row};
+    } grep { ( not /^max_hp$/ ) && ( not /^equip_skill_id$/ ) } sort keys %{$row};
 
 }
 

@@ -1,0 +1,40 @@
+<div class="contents2">管理 - ﾉｰﾄﾞ設定</div>
+$out->{difference}
+<hr />
+$out->{RESULT}
+<form action="edit_node.cgi?guid=ON" method="post">
+<input type="hidden" size="4" maxlength="4" name="node_id" value="$out->{node_id}" />
+<input type="hidden" name="guid" value="ON" />
+<input type="hidden" name="act" value="save" />
+$out->{save_form}
+</form>
+
+<form action="edit_node.cgi?guid=ON" method="post">
+<input type="hidden" name="guid" value="ON" />
+ﾉｰﾄﾞID：<input type="hidden" size="4" maxlength="4" name="node_id" value="$out->{node_id}" />$out->{node_id}<br />
+ﾉｰﾄﾞ名：<input type="text" size="20" name="node_name" value="$out->{node_name}" /><br />
+ｲﾒｰｼﾞ ：<input type="text" size="20" name="node_img" value="$out->{node_img}" /><br />
+<img class="dispimg" src="../imgld.cgi?guid=on&i=$out->{node_img}" />
+<br />
+説明文：<textarea name="node_descr" >$out->{node_descr}</textarea><br />
+ｼﾅﾘｵ　：<span style="font-size:medium"><select name="scenario_id">
+$out->{select_str_scenario_id}
+</select></span><br />
+拠点　：<span style="font-size:medium"><select name="use_link">
+<option value="0"$out->{_use_link}->{0}>×</option>
+<option value="1"$out->{_use_link}->{1}>○</option>
+</select></span><br />
+滞在　：<span style="font-size:medium"><select name="can_stay">
+<option value="0"$out->{_can_stay}->{0}>×</option>
+<option value="1"$out->{_can_stay}->{1}>○</option>
+</select></span><br />
+親　　：<span style="font-size:medium"><select name="parent_node_id">
+$out->{select_str_parent_node_id}
+</select></span><br />
+板状態：<br />$out->{stat_board}
+統治：なし<br />
+最終更新日：$out->{last_update}<br />
+<input type="hidden" name="act" value="saveconfirm" />
+<input type="submit" name="calc" value="8.保存"  accesskey="8" />
+</form>
+<div class="contents">version</div>

@@ -2,6 +2,7 @@
 
 
 HOUR=$(date +"%H");
+DAY=$(date +"%d");
 
 #if [ "x${HOUR}" != "x" -a "${HOUR}" == "00" -o  "${HOUR}" == "04"  -o  "${HOUR}" == "08" -o  "${HOUR}" == "12" -o  "${HOUR}" == "16" -o  "${HOUR}" == "20" ];
 if [ "x${HOUR}" != "x" -a "${HOUR}" == "00" ];
@@ -12,6 +13,11 @@ fi;
 if [ "x${HOUR}" != "x" -a "${HOUR}" == "04" ];
 then
     /home/users/2/ciao.jp-anothark/web/.htcron/session_clean.sh;
+fi;
+
+if [ "x${HOUR}" != "x" -a "${HOUR}" == "04" -a "x${DAY}" != "x" -a "${DAY}" == "04" ];
+then
+    /home/users/2/ciao.jp-anothark/web/.htcron/monthly_bat.pl;
 fi;
 
 
