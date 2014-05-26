@@ -5,10 +5,12 @@ use strict;
 use Anothark::Battle;
 use Anothark::Character;
 use Anothark::Character::Enemy;
+use Anothark::Character::Npc;
 use Anothark::Skill;
 use Anothark::SkillLoader;
 use Anothark::ItemLoader;
 use Anothark::BattleSetting;
+use Anothark::Party;
 
 sub doExhibitionMatch
 {
@@ -18,57 +20,69 @@ sub doExhibitionMatch
     my $force_node = shift;
     my $db       = $battle->getAt()->getDbHandler();
 
+    $battle->setBgid($node_id);
+
+# XXX ‚±‚±‚©‚ç LoadParty‚Ì”Íáe
+    my $party = new Anothark::Party();
+# loadParty(Party);
+#
+# loadBattleParty(Party, Battle);
+# $battle->party( $pl->loadBattlePartyByUserId( $me ) );
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+#    my $il = new Anothark::ItemLoader($db);
     my $bs = new Anothark::BattleSetting($db);
 
 #    $battle->getAt()->loadEquipData( $me );
 
-    $me->setSide("p");
-    setSkills($bs,$sl,$me);
-    $battle->appendCharacter( $me );
-    $battle->setBgid($node_id);
+#    $me->setSide("p");
+    $me->setSkills($bs,$sl);
+    $party->setMember1($me);
+#    $battle->appendCharacter( $me );
 
 #    my $p1 = $battle->getAt()->getPlayerByUserId(2);
 #    my $p1 = $battle->getAt()->getPlayerByUserId(101);
-    my $p1 = $battle->getAt()->getBattlePlayerByUserId(101);
-    if ( defined  $p1 )
+    my $p2 = $battle->getAt()->getBattlePlayerByUserId(101);
+    if ( defined  $p2 )
     {
-        $p1->setSide("p");
+#        $p1->setSide("p");
 #        $p1->getAtack()->setBothValue(20);
-        setSkills($bs,$sl,$p1);
-        $battle->appendCharacter( $p1 );
+        $p2->setSkills($bs,$sl);
+        $party->setMember2($p2);
+#        $battle->appendCharacter( $p1 );
     }
 #    $me->getAtack()->setBothValue(15);
 
 
 #$battle->warning( "Append hagis1.");
-    my $npc1 = new Anothark::Character();
+    my $npc1 = new Anothark::Character::Npc();
 #$battle->warning( "Append hagis1 done.");
     $npc1->setId("hagis1");
     $npc1->setName("íŽmÊ·Þ½");
     $npc1->getHp()->setBothValue(50);
     $npc1->getAtack()->setBothValue(20);
     $npc1->gDef()->setBothValue(10);
-    my $n1t = new Anothark::Skill( 'ÕŒ‚‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
-    my $ts1 = $sl->loadSkill(1010);
-    $ts1->setTargetType(4);
-    $n1t->appendChild( $ts1  );
+
+    $npc1->getPosition()->setBothValue("f");
+#    my $n1t = new Anothark::Skill( 'ÕŒ‚‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
+#    my $ts1 = $sl->loadSkill(1010);
+#    $ts1->setTargetType(4);
+#    $n1t->appendChild( $ts1  );
+
     $npc1->setCmd([
         [],
-#        $sl->loadSkill(1010),
-        $n1t,
+        $sl->loadSkill(1082),
+#        $n1t,
         $sl->loadSkill(1010),
         $sl->loadSkill(1010),
         $sl->loadSkill(1010),
         $sl->loadSkill(1010),
     ]);
-    $npc1->setSide("p");
-    $npc1->getPosition()->setBothValue("f");
-    $battle->appendCharacter( $npc1 );
+#    $npc1->setSide("p");
+#    $battle->appendCharacter( $npc1 );
+    $party->setNpc1($npc1);
 
 #$battle->warning( "Append hagis2.";
-    my $npc2 = new Anothark::Character();
+    my $npc2 = new Anothark::Character::Npc();
 #$battle->warning( "Append hagis2 done.";
     $npc2->setId("hagis2");
     $npc2->setName("‰°•aÊ·Þ½");
@@ -76,31 +90,39 @@ sub doExhibitionMatch
     $npc2->getAtack()->setBothValue(10);
     $npc2->gDef()->setBothValue(5);
 #    my $t3s = new Anothark::Skill( '¾ÙÌ¸¯·Ý¸Þ' ,{ skill_rate => 10,length_type => 1, range_type => 1,target_type => 2, effect_type => 1 } );
-    my $t3s = new Anothark::Skill( '’á‰¹‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
-    my $ts2 = $sl->loadSkill(1009);
-    $ts2->setTargetType(4);
-    $t3s->appendChild( $ts2 );
+#    my $t3s = new Anothark::Skill( '’á‰¹‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
+#    my $ts2 = $sl->loadSkill(1009);
+#    $ts2->setTargetType(4);
+#    $t3s->appendChild( $ts2 );
 
-    my $t4s = new Anothark::Skill( 'GŽè‚Ì•Ç' ,{ skill_rate => 0,length_type => 3, range_type => 3,target_type => 2, effect_type => 4 } );
-    my $ts3 = new Anothark::Skill( '½×¯ÌßÃÝÀ¸Ù' ,{ skill_rate => 1.5 ,length_type => 2, range_type => 1,target_type => 1, effect_type => 0, power_source => 6, base_element => 2 } );
-    $t4s->appendChild( $ts3 );
+    $npc2->getPosition()->setBothValue("b");
+#    my $t4s = new Anothark::Skill( 'GŽè‚Ì•Ç' ,{ skill_rate => 0,length_type => 3, range_type => 3,target_type => 2, effect_type => 4 } );
+#    my $ts3 = new Anothark::Skill( '½×¯ÌßÃÝÀ¸Ù' ,{ skill_rate => 1.5 ,length_type => 2, range_type => 1,target_type => 1, effect_type => 0, power_source => 6, base_element => 2 } );
+#    $t4s->appendChild( $ts3 );
 
     $npc2->setCmd([
         [],
-        $t4s,,
-        $t3s,
+#        $t4s,
+#        $t3s,
+        $sl->loadSkill(1086),
+        $sl->loadSkill(1084),
         $sl->loadSkill(1009),
         $sl->loadSkill(1009),
         $sl->loadSkill(1009),
     ]);
 
-    $npc2->setSide("p");
-    $npc2->getPosition()->setBothValue("b");
-    $battle->appendCharacter( $npc2 );
+#    $npc2->setSide("p");
+#    $battle->appendCharacter( $npc2 );
+    $party->setNpc2($npc2);
 
 
+    $party->execToMembers( 'setSide', 'p' );
+
+    $battle->party($party);
+## XXX ‚±‚±‚Ü‚Å LoadParty‚Ì”Íáe
 
 
+## XXX ‚±‚±‚©‚ç ƒGƒ“ƒJƒEƒ“ƒgˆ—
     my $base_encounts = [
         sub { hagis(@_) },
         sub { hagis(@_) },
@@ -145,6 +167,14 @@ sub doExhibitionMatch
     $battle->warning( "total_count[$total_count] rnd[$rnd]");
 #$battle->warning( "Do encount.");
     &{$encounts->[$rnd]}( $battle );
+
+# $epid = execEncount();
+# my $enemy_party = $pl->loadEnemtParty( $epid );
+# $battle->encount( $enemy_party );
+# ## onliner
+# $battle->encount( $pl->loadEnemyParty( execEncount() ) );
+
+## XXX ‚±‚±‚Ü‚ÅƒGƒ“ƒJƒEƒ“ƒgˆ—
 
     $battle->doBattle();
 
@@ -676,55 +706,55 @@ sub enemy006
 }
 
 
-sub setSkills
-{
-    my $bs   = shift;
-    my $sl   = shift;
-    my $char = shift;
-
-    $bs->setUserId( $char->getUserId());
-    my $settings = $bs->getBattleSettings();
-
-    if ( $settings )
-    {
-        $bs->notice("FOUND ! [" . $char->getUserId() .  "]");
-        foreach my $set ( @{$settings} )
-        {
-            if ( $set->{position} > 0 )
-            {
-                if ($set->{setting_id} == 2 )
-                {
-                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
-                }
-                elsif ( $set->{setting_id} == 3 )
-                {
-                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 31 );
-                    $char->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
-                    $char->getCmd()->[$set->{position}]->setIsSkill(0);
-                }
-                elsif ( $set->{setting_id} == 4 )
-                {
-                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 40 + ( $set->{info} > 0 ? $set->{info} : 2 ) );
-                    $char->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
-                    $char->getCmd()->[$set->{position}]->setIsSkill(0);
-                }
-                elsif ( $set->{setting_id} == 1 && $char->getEquipSkillId() )
-                {
-                    $char->error( "[ATACK SKILL ID] (" .$char->getEquipSkillId() . ")" );
-                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( $char->getEquipSkillId() );
-                }
-                else
-                {
-                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 1001 );
-                }
-            }
-        }
-    }
-    else
-    {
-        $bs->warning("No settings found ! [" . $char->getUserId() .  "]");
-    }
-}
+#sub setSkills
+#{
+#    my $bs   = shift;
+#    my $sl   = shift;
+#    my $char = shift;
+#
+#    $bs->setUserId( $char->getUserId());
+#    my $settings = $bs->getBattleSettings();
+#
+#    if ( $settings )
+#    {
+#        $bs->notice("FOUND ! [" . $char->getUserId() .  "]");
+#        foreach my $set ( @{$settings} )
+#        {
+#            if ( $set->{position} > 0 )
+#            {
+#                if ($set->{setting_id} == 2 )
+#                {
+#                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
+#                }
+#                elsif ( $set->{setting_id} == 3 )
+#                {
+#                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 31 );
+#                    $char->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
+#                    $char->getCmd()->[$set->{position}]->setIsSkill(0);
+#                }
+#                elsif ( $set->{setting_id} == 4 )
+#                {
+#                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 40 + ( $set->{info} > 0 ? $set->{info} : 2 ) );
+#                    $char->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
+#                    $char->getCmd()->[$set->{position}]->setIsSkill(0);
+#                }
+#                elsif ( $set->{setting_id} == 1 && $char->getEquipSkillId() )
+#                {
+#                    $char->error( "[ATACK SKILL ID] (" .$char->getEquipSkillId() . ")" );
+#                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( $char->getEquipSkillId() );
+#                }
+#                else
+#                {
+#                    $char->getCmd()->[$set->{position}] = $sl->loadSkill( 1001 );
+#                }
+#            }
+#        }
+#    }
+#    else
+#    {
+#        $bs->warning("No settings found ! [" . $char->getUserId() .  "]");
+#    }
+#}
 
 1;
 
