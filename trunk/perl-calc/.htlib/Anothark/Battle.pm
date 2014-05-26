@@ -388,11 +388,11 @@ sub resolveActions
     my $char   = $class->getCurrentResolve();
 #    my $skill  = $char->getCmd()->[$turn];
 
-    # Chain
-    $class->getTurnText()->[$turn] .= sprintf($chain_template,  $symbol->{$char->getTextSide()}->{align},$target->getChainStack()+1) if ($target->getChainStack());
-
     # Target
     $class->getTurnText()->[$turn] .= sprintf($target_template, $symbol->{$char->getTextSide()}->{align},$target->getName());
+
+    # Chain
+    $class->getTurnText()->[$turn] .= sprintf($chain_template,  $symbol->{$char->getTextSide()}->{align},$target->getChainStack()+1) if ($target->getChainStack());
 
 
     # Interlapt Check
@@ -427,7 +427,37 @@ sub resolveActions
     }
     else
     {
-        if ( $skill->getEffectType() eq "3" ||  $skill->getEffectType() eq "4" )
+        if ( $skill->getEffectType() eq "3" )
+        {
+            # Trapにスタック
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf($effect_str_template, "罠を仕掛けた")
+                                              );
+            $dmg_obj->setSkill( @{$skill->getChildren()}[0] );
+            # この時点で詠唱者のステータスをコピー
+            $dmg_obj->setFrom( new Anothark::Character::Virtual() );
+            $dmg_obj->getFrom()->setBaseChar( $char );
+            $dmg_obj->getFrom()->setSameCmd( $dmg_obj->getSkill() );
+            $dmg_obj->getFrom()->setName( $skill->getName() );
+            # 設置対象者のサイドを設定
+            $dmg_obj->getFrom()->setSide( $target->getSide() );
+            $dmg_obj->getFrom()->setTextSide( "n" );
+            $target->getTrapStack()->stackOne($dmg_obj);
+            $is_dmg = 1; # 熟練対象
+
+            if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
+            {
+                $class->getTurnText()->[$turn]  .= sprintf(
+                    $debug_template,
+                    $dmg_obj->getFrom->getName(),
+                    $dmg_obj->getSkill()->getPowerSourceByKey(),
+                    $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
+                );
+            }
+        }
+        elsif ( $skill->getEffectType() eq "4" )
         {
             # Curseになんかしらスタック
             $class->getTurnText()->[$turn] .= sprintf(
@@ -447,7 +477,7 @@ sub resolveActions
             $target->getCurseStack()->stackOne($dmg_obj);
             $is_dmg = 1; # 熟練対象
 
-            if ( $class->getAt()->{PLAYER}->getIsGm() )
+            if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
             {
                 $class->getTurnText()->[$turn]  .= sprintf(
                     $debug_template,
@@ -574,6 +604,62 @@ sub having_bit
     return ($s == (hex($k) & $s) ? 1 : 0 ) 
 }
 
+
+my $resolve_stack = undef;
+my $current_resolve = undef;
+
+sub initResolveStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'resolve_stack', [] );
+}
+sub pushResolveStack
+{
+    my $class = shift;
+    return push( @{$class->getAttribute( 'resolve_stack')}, shift );
+}
+
+sub popResolveStack
+{
+    return pop(@{$_[0]->getAttribute( 'resolve_stack' )});
+}
+
+
+
+sub setCurrentResolve
+{
+    my $class = shift;
+    return $class->setAttribute( 'current_resolve', shift );
+}
+
+sub getCurrentResolve
+{
+    return $_[0]->getAttribute( 'current_resolve' );
+}
+
+
+
+sub chkScene
+{
+    my $class = shift;
+    my $scene = shift;
+    my $opt   = shift;
+    $class->chkEffect($scene, $opt);
+    $class->chkCmdStack($scene, $opt);
+    $class->chkClear($scene, $opt);
+}
+
+#
+# $actions = {
+#   DAMAGED   => sub { return $class->setStackCmd(@_) },
+#   AFTER_CMD => sub { return $class->resolveStackCmd(@_) },
+#
+#
+# }
+#
+
+
+
 sub chkEffect
 {
     my $class = shift;
@@ -628,58 +714,11 @@ sub chkCmdStack
 
 
 
-my $resolve_stack = undef;
-my $current_resolve = undef;
-
-sub initResolveStack
-{
-    my $class = shift;
-    return $class->setAttribute( 'resolve_stack', [] );
-}
-sub pushResolveStack
-{
-    my $class = shift;
-    return push( @{$class->getAttribute( 'resolve_stack')}, shift );
-}
-
-sub popResolveStack
-{
-    return pop(@{$_[0]->getAttribute( 'resolve_stack' )});
-}
 
 
 
-sub setCurrentResolve
-{
-    my $class = shift;
-    return $class->setAttribute( 'current_resolve', shift );
-}
-
-sub getCurrentResolve
-{
-    return $_[0]->getAttribute( 'current_resolve' );
-}
 
 
-
-sub chkScene
-{
-    my $class = shift;
-    my $scene = shift;
-    my $opt   = shift;
-    $class->chkEffect($scene, $opt);
-    $class->chkCmdStack($scene, $opt);
-    $class->chkClear($scene, $opt);
-}
-
-#
-# $actions = {
-#   DAMAGED   => sub { return $class->setStackCmd(@_) },
-#   AFTER_CMD => sub { return $class->resolveStackCmd(@_) },
-#
-#
-# }
-#
 
 my $actions = undef;
 sub setActions
@@ -1774,5 +1813,17 @@ sub getEgid
     return $_[0]->getAttribute( 'egid' );
 }
 
+sub party
+{
+    my $class = shift;
+    my $party = shift;
+    map { $class->appendCharacter($_) } $party->getPartyCharacter();
+}
+
+sub encount
+{
+    my $class = shift;
+    my $party = shift;
+}
 
 1;
