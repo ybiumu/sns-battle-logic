@@ -71,16 +71,28 @@ if( $offset !~ /^[1-9]\d*$/ )
 
 ## get recent result_id
 #my $get_recent_result_id_sql = "SELECT MAX(result_log_id) AS result_log_id, COUNT(result_log_id) AS number FROM t_user AS b JOIN t_result_log AS r USING( user_id )  WHERE b.carrier_id = ? AND b.uid = ? AND r.sequence_id <> 0;";
+#my $get_recent_result_id_sql = "SELECT MAX(result_log_id) AS result_log_id, MAX(sequence_id) AS number FROM t_user AS b JOIN t_result_log AS r USING( user_id )  WHERE b.carrier_id = ? AND b.uid = ? AND r.sequence_id <> 0 GROUP BY result_log_id desc HAVING result_log_id = MAX(result_log_id) LIMIT 1";
 my $get_recent_result_id_sql = "SELECT MAX(result_log_id) AS result_log_id, MAX(sequence_id) AS number FROM t_user AS b JOIN t_result_log AS r USING( user_id )  WHERE b.carrier_id = ? AND b.uid = ? AND r.sequence_id <> 0 GROUP BY result_log_id desc HAVING result_log_id = MAX(result_log_id) LIMIT 1";
-my $pre_sth = $db->prepare($get_recent_result_id_sql);
-my $pre_stat = $pre_sth->execute(($carrier_id, $mob_uid));
+my $pre_rid_sth = $db->prepare($get_recent_result_id_sql);
+my $pre_rid_stat = $pre_rid_sth->execute(($carrier_id, $mob_uid));
+
+if ( $pre_rid_sth->rows() > 0 )
+{
+    my $pre_row = $pre_rid_sth->fetchrow_hashref();
+    $rid = $pre_row->{result_log_id};
+}
+$pre_rid_sth->finish();
+
+my $get_result_id_sql = "SELECT COUNT(result_log_id) AS number FROM t_user AS b JOIN t_result_log AS r USING( user_id )  WHERE b.carrier_id = ? AND b.uid = ? AND r.result_log_id = ? AND r.sequence_id <> 0;";
+my $pre_sth = $db->prepare($get_result_id_sql);
+my $pre_stat = $pre_sth->execute(($carrier_id, $mob_uid, $rid));
+
 my $recent_result_log_id = 0;
 my $total_numnber = 0;
 
 if ( $pre_sth->rows() > 0 )
 {
     my $pre_row = $pre_sth->fetchrow_hashref();
-    $rid = $pre_row->{result_log_id};
     $total_number = $pre_row->{number};
 }
 $pre_sth->finish();
@@ -133,6 +145,7 @@ if ( $sth->rows() > 0 )
     }
     $pu->output_log("passed find result row. count[$lines]");
     # Append next link;
+    $out->{RESULT_TITLE} .= sprintf("(%s/%s)", $offset, $total_number);
     if ( $total_number > $offset + 1 )
     {
         $out->{RESULT} .= sprintf("<hr /><a href=\"recent_text.cgi?guid=ON&offset=%s\">1.‘±‚«‚Ö</a><br />", ++$offset);

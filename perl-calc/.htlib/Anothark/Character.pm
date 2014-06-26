@@ -843,6 +843,7 @@ sub Damage
     my $dmg   = shift;
     my $char  = shift;
     my $effect_target = $skill->getEffectTargetTypeByKey();
+    my $stat  = undef;
 
     $class->debug("Effect Target[$effect_target] DMG[$dmg]");
 
@@ -857,18 +858,36 @@ sub Damage
             $cbase += 1 if ( int($cbase) != $cbase  );
             $class->getConcentration->addCurrent( int($cbase) );
         }
+
+        # ダメージが発生した時の処理
         if ( $dmg )
         {
             $class->setDamaged(1);
             # この時点でStackを移動
             # 無名キャラがダメージ発生源ではないこと
-            $class->incrResolveChainStack();
+            $class->incrResolveChainStack(); # 連携を増やす->最終的には状態異常側に。
+
             if ( $char->getTemplate() ne "virtual" )
             {
+                # 呪詛を解決スタックに移動
                 $class->getResolveCurseStack()->stackArray(
                     map {
                         $_->getSkill()->getTargetType() eq 1 ? $_->setTo( $char ) : $_->setTo( $class ); $_; 
-                    } $class->getCurseStack()->resolveAll()
+                    } $class->getCurseStack()->moveAll()
+                );
+            }
+        }
+
+        if ( $stat )
+        {
+            if ( $char->getTemplate() ne "virtual" )
+            {
+                # 罠を解決スタックに移動
+                # 罠は１つずつ
+                $class->getResolveTrapStack()->stackOne(
+                    map {
+                        $_->getSkill()->getTargetType() eq 1 ? $_->setTo( $char ) : $_->setTo( $class ); $_; 
+                    } ( $class->getCurseStack()->moveOne() )
                 );
             }
         }
@@ -903,7 +922,7 @@ sub Die
     $class->getResolveCurseStack()->clearStack();
 
     # 昏睡罠
-    $class->getResolveTrapStack()->stackArray( $class->getTrapStack()->filter("trap_die")->resolveAll() );
+    $class->getResolveTrapStack()->stackArray( $class->getTrapStack()->filter("trap_die")->moveOne() );
 
     $class->getStatus()->setDie();
 
@@ -953,6 +972,31 @@ sub damaged
     return $current;
 }
 
+my $trap_stacked = undef;
+sub setTrapStacked
+{
+    my $class = shift;
+    return $class->setAttribute( 'trap_stacked', shift );
+}
+
+sub getTrapStacked
+{
+    return $_[0]->getAttribute( 'trap_stacked' );
+}
+
+
+# 呼ばれたら必ずクリア
+sub traped
+{
+    my $class = shift;
+    my $current = $class->getTrapStacked();
+    $class->getTrapStacked(0);
+    return $current;
+}
+
+
+
+
 
 # BattleSetting と SkillLoaderを引数に取る
 # すべてのCharacterはBattleSettingをもつ・・・が、
@@ -960,59 +1004,61 @@ sub damaged
 # Loaderとの相関関係をもっとうまく作りたい
 # 違うか、すべてのCharacterが持つのはCmdか。
 # BattleSettingはLoaderで然り
+
+# 実装は各継承先で
 sub setSkills
 {
     my $class = shift;
-    my $bs   = shift;
-    my $sl   = shift;
-
-    $bs->setUserId( $class->getUserId());
-    my $settings = $bs->getBattleSettings();
-
-    if ( $settings )
-    {
-        $bs->notice("FOUND ! [" . $class->getUserId() .  "]");
-        foreach my $set ( @{$settings} )
-        {
-            if ( $set->{position} > 0 )
-            {
-                if ($set->{setting_id} == 2 )
-                {
-                    # スキル
-                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
-                }
-                elsif ( $set->{setting_id} == 3 )
-                {
-                    # 集中？
-                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( 31 );
-                    $class->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
-                    $class->getCmd()->[$set->{position}]->setIsSkill(0);
-                }
-                elsif ( $set->{setting_id} == 4 )
-                {
-                    # 移動？
-                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( 40 + ( $set->{info} > 0 ? $set->{info} : 2 ) );
-                    $class->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
-                    $class->getCmd()->[$set->{position}]->setIsSkill(0);
-                }
-                elsif ( $set->{setting_id} == 1 && $class->getEquipSkillId() )
-                {
-                    # 攻撃で武器にスキルが設定されている
-                    $class->error( "[ATACK SKILL ID] (" .$class->getEquipSkillId() . ")" );
-                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( $class->getEquipSkillId() );
-                }
-                else
-                {
-                    # 何もなければパンチ
-                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( 1001 );
-                }
-            }
-        }
-    }
-    else
-    {
-        $bs->warning("No settings found ! [" . $class->getUserId() .  "]");
-    }
+#    my $bs   = shift;
+#    my $sl   = shift;
+#
+#    $bs->setUserId( $class->getUserId());
+#    my $settings = $bs->getBattleSettings();
+#
+#    if ( $settings )
+#    {
+#        $bs->notice("FOUND ! [" . $class->getUserId() .  "]");
+#        foreach my $set ( @{$settings} )
+#        {
+#            if ( $set->{position} > 0 )
+#            {
+#                if ($set->{setting_id} == 2 )
+#                {
+#                    # スキル
+#                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( $set->{info} );
+#                }
+#                elsif ( $set->{setting_id} == 3 )
+#                {
+#                    # 集中？
+#                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( 31 );
+#                    $class->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
+#                    $class->getCmd()->[$set->{position}]->setIsSkill(0);
+#                }
+#                elsif ( $set->{setting_id} == 4 )
+#                {
+#                    # 移動？
+#                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( 40 + ( $set->{info} > 0 ? $set->{info} : 2 ) );
+#                    $class->getCmd()->[$set->{position}]->setNoSkillType($set->{setting_id});
+#                    $class->getCmd()->[$set->{position}]->setIsSkill(0);
+#                }
+#                elsif ( $set->{setting_id} == 1 && $class->getEquipSkillId() )
+#                {
+#                    # 攻撃で武器にスキルが設定されている
+#                    $class->error( "[ATACK SKILL ID] (" .$class->getEquipSkillId() . ")" );
+#                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( $class->getEquipSkillId() );
+#                }
+#                else
+#                {
+#                    # 何もなければパンチ
+#                    $class->getCmd()->[$set->{position}] = $sl->loadSkill( 1001 );
+#                }
+#            }
+#        }
+#    }
+#    else
+#    {
+#        $bs->warning("No settings found ! [" . $class->getUserId() .  "]");
+#    }
 }
 
 

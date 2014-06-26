@@ -846,6 +846,7 @@ sub getMyCharacter
             b.face_type AS face_type,
             b.hair_type AS hair_type,
             b.is_gm AS is_gm,
+            b.owner_id AS owner_id,
             s.a_max_hp AS max_hp,
             s.rp AS rp,
             s.a_agl AS a_agl,
@@ -915,6 +916,7 @@ sub getMyCharacter
     $char->getPosition()->setBothValue($row->{position});
 
     $char->setIsGm( $row->{is_gm} );
+    $char->setOwnerId( $row->{owner_id} );
 
     $char->setVel( $row->{vel} );
     $char->setRel( $row->{rel} );
@@ -945,6 +947,7 @@ sub getCharacterByUserId
             b.face_type AS face_type,
             b.hair_type AS hair_type,
             b.is_gm AS is_gm,
+            b.owner_id AS owner_id,
             s.a_max_hp AS max_hp,
             s.rp AS rp,
             s.a_agl AS a_agl,
@@ -1000,6 +1003,7 @@ sub getCharacterByUserId
     $char->getPosition()->setBothValue($row->{position});
 
     $char->setIsGm( $row->{is_gm} );
+    $char->setOwnerId( $row->{owner_id} );
 
     $char->setVel( $row->{vel} );
     $char->setRel( $row->{rel} );

@@ -6,9 +6,9 @@ $|=1;
 use strict;
 use Encode;
 use Anothark::TextFilter;
-use LoggingObjMethod;
+use Anothark::BaseLoader;
 use DBI qw( SQL_INTEGER );
-use base qw( LoggingObjMethod );
+use base qw( Anothark::BaseLoader );
 
 use constant BOARD_TYPE_NAME => {
     "1" => "ϲBBS",
@@ -23,14 +23,12 @@ sub new
 {
     my $class = shift;
     my $db_handle = shift;
-    my $self = $class->SUPER::new();
+    my $self = $class->SUPER::new( $db_handle );
     bless $self, $class;
-    $self->setDbHandler($db_handle);
 
     return $self;
 }
 
-my $db_handler = undef;
 my $board_id = undef;
 my $max_row = undef;
 ##################
@@ -296,16 +294,6 @@ sub getBoardId
 
 
 
-sub setDbHandler
-{
-    my $class = shift;
-    return $class->setAttribute( 'db_handler', shift );
-}
-
-sub getDbHandler
-{
-    return $_[0]->getAttribute( 'db_handler' );
-}
 
 
 1;

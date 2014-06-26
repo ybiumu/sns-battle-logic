@@ -6,6 +6,7 @@ $|=1;
 use strict;
 
 use lib qw( /home/users/2/ciao.jp-anothark/web/.htlib );
+
 use DbUtil;
 use MobileUtil;
 use PageUtil;
@@ -14,6 +15,8 @@ use Anothark::Battle;
 use Anothark::Battle::Exhibition;
 use Anothark::Character;
 use Anothark::Skill;
+
+
 
 use LoggingObjMethod;
 use base qw( LoggingObjMethod );
@@ -63,30 +66,79 @@ sub getAt
 # 留まった場合のリザルトの取り出し方追加
 # 選択をしなかった場合は留まるが、結合条件がなくなるのでLEFT JOIN
 #
+# TODO 選択にランダム性をもたせる
+#
+# TODO resultにもnext_node_idをもたせる
+#   -> 初回ﾊｷﾞｽ牧場時に勝手に戻っちゃうから
+# 優先順位は
+# t_result_master.next_node_id
+# t_selection.next_node_id
+# t_user_status.node_id
+# 
+# TODO t_selection.event_idで発生したイベントは基本的にselectionのnext_nodeを見るが
+# それでもどうしてもt_result_master.next_node_idを使いたかったら仕方ない
+#
+#
 our $select_result_summary = "
 SELECT
-    IFNULL(r.result_id, rc.result_id) AS result_id,
-    IFNULL(r.enemy_group_id, rc.enemy_group_id) AS enemy_group_id,
-    IFNULL(NULLIF(sel.next_node_id,0), s.node_id ) AS next_node_id
+    IFNULL(
+        re.result_id,
+        IFNULL(
+            r.result_id,
+            rc.result_id
+        )
+    ) AS result_id,
+    IFNULL(
+        re.enemy_group_id,
+        IFNULL(
+            r.enemy_group_id,
+            rc.enemy_group_id
+        )
+    ) AS enemy_group_id,
+    IFNULL(
+        NULLIF(re.next_node_id, 0),
+        IFNULL(
+            NULLIF(r.next_node_id, 0),
+            IFNULL(
+                NULLIF(sel.next_node_id,0),
+                s.node_id
+            )
+        )
+    ) AS next_node_id
 FROM
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_selection_que AS q USING(user_id)
     LEFT JOIN t_selection AS sel USING(selection_id)
     LEFT JOIN (
+        t_event_master AS e
+        LEFT JOIN
+        t_result_master AS re
+        ON ( e.event_id = re.parent_event_id )
+        LEFT JOIN
+        t_user_flagment AS cfe
+        ON ( re.close_flag_id = cfe.flag_id )
+    ) ON ( sel.event_id = e.event_id )
+    LEFT JOIN (
         t_user_flagment AS f
         LEFT JOIN
         t_result_master AS r
         ON ( f.flag_id = r.flag_id )
+        LEFT JOIN
+        t_user_flagment AS cf
+        ON ( r.close_flag_id = cf.flag_id )
     ) ON ( f.user_id = u.user_id AND r.node_id = sel.next_node_id )
     LEFT JOIN (
         t_user_flagment AS fc
         LEFT JOIN
         t_result_master AS rc 
         ON ( fc.flag_id = rc.flag_id )
+        LEFT JOIN
+        t_user_flagment AS cfc
+        ON ( rc.close_flag_id = cfc.flag_id )
     ) ON ( fc.user_id = u.user_id AND rc.node_id = s.node_id )
-WHERE u.user_id = ?
-ORDER BY r.priority DESC, r.result_id DESC,rc.priority DESC,rc.result_id DESC LIMIT 1"
+WHERE u.user_id = ? AND cf.flag_id IS NULL AND cfc.flag_id IS NULL
+ORDER BY RAND() * re.priority * re.rate DESC, re.result_id DESC, RAND() * r.priority * r.rate DESC, r.result_id DESC, RAND() * rc.priority * rc.rate DESC,rc.result_id DESC LIMIT 1"
 ;
 
 #SELECT
@@ -133,6 +185,24 @@ WHERE
     r.hour = HOUR(NOW())
 ";
 
+our $insert_pre = "
+INSERT INTO t_result_log (result_log_id,user_id,result_id,wday,hour,sequence_id,result_text,memo)
+SELECT
+    ?,
+    u.user_id ,
+    r.result_id,
+    WEEKDAY(NOW()),
+    HOUR(NOW()),
+    ?,
+    CONCAT(?,IFNULL(t.result_text,\"\"),?) AS result_text,
+    'for prepost batch'
+FROM
+    t_user AS u
+    JOIN t_user_status AS s USING(user_id)
+    JOIN t_result_master AS r ON ( r.result_id = ? AND r.node_id = ? )
+    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? )
+WHERE u.user_id = ? ";
+
 our $insert_prepost = "
 INSERT INTO t_result_log (result_log_id,user_id,result_id,wday,hour,sequence_id,result_text,memo)
 SELECT
@@ -169,22 +239,31 @@ WHERE
 ";
 
 
-
+# TODO やるべきことは、
+# XXX 指定されたnext_node_idがとどまれるかの判定、とどまれなかったら元のnode_id
+# XXX 指定されたnext_node_idがlinkできるかの判定と、リンクできなかった場合の例外処理 
+# sel をサブクエリに
 
 ### BUGBUG
-our $update_win_node_sql = "
+our $update_commit_node_sql = "
 UPDATE
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
-    JOIN t_selection_que AS q USING(user_id)
-    LEFT JOIN t_selection AS sel ON( q.selection_id = sel.selection_id )
-    LEFT JOIN t_node_master AS nm ON( sel.next_node_id = nm.node_id )
+    LEFT JOIN t_node_master AS sel ON ( sel.node_id = ? )
+    LEFT JOIN t_node_master AS nm ON( sel.node_id = nm.node_id )
 SET
-    s.node_id = CASE WHEN nm.can_stay = 1 THEN IFNULL(NULLIF(sel.next_node_id,0), s.node_id ) ELSE s.node_id END,
+    s.node_id = CASE
+                WHEN nm.can_stay = 1
+                THEN
+                    IFNULL(NULLIF(sel.node_id,0), s.node_id )
+                ELSE
+                    s.node_id
+                END,
+
     s.last_link_node = CASE
                        WHEN nm.node_id IS NOT NULL AND nm.use_link = 1
                        THEN
-                           IFNULL(NULLIF(sel.next_node_id,0), s.node_id )
+                           IFNULL(NULLIF(sel.node_id,0), s.node_id )
                        ELSE
                            s.last_link_node
                        END,
@@ -193,6 +272,36 @@ WHERE
     u.user_id = ?
 ";
 
+
+
+
+#our $update_commit_node_sql = "
+#UPDATE
+#    t_user AS u
+#    JOIN t_user_status AS s USING(user_id)
+#    JOIN t_selection_que AS q USING(user_id)
+#    LEFT JOIN t_selection AS sel ON( q.selection_id = sel.selection_id )
+#    LEFT JOIN t_node_master AS nm ON( sel.next_node_id = nm.node_id )
+#SET
+#    s.node_id = CASE
+#                WHEN nm.can_stay = 1
+#                THEN
+#                    IFNULL(NULLIF(sel.next_node_id,0), s.node_id )
+#                ELSE
+#                    s.node_id
+#                END,
+#
+#    s.last_link_node = CASE
+#                       WHEN nm.node_id IS NOT NULL AND nm.use_link = 1
+#                       THEN
+#                           IFNULL(NULLIF(sel.next_node_id,0), s.node_id )
+#                       ELSE
+#                           s.last_link_node
+#                       END,
+#    s.next_queing_hour = date_format( CONCAT('1970-01-01 ',HOUR(now()),':00:00') + interval 8 hour, '\%H' )
+#WHERE
+#    u.user_id = ?
+#";
 
 our $rollback_node_sql = "
 UPDATE
@@ -238,6 +347,8 @@ FROM
 
 
 
+# TODO イベントの結果、入手するアイテム・NPC・手放すアイテム・支払う金銭等の処理が一切考えられてない。
+
 
 
 
@@ -258,9 +369,10 @@ FROM
 
 
 our $booking_sth;
+our $result_pre_sth;
 our $result_sth;
 our $rs_sth;
-our $up_win_sth;
+our $up_commit_sth;
 our $up_rollback_sth;
 our $up_que_sth;
 our $result_sth_b;
@@ -278,6 +390,7 @@ sub doQueing
     my $db     = $at->getDbHandler();
     my $rs_row = shift;
 
+    # 更新対象ユーザー毎(オーナー毎)
     foreach my $user_id ( @{$rs_row} )
     {
 
@@ -311,6 +424,10 @@ sub doQueing
             $pu->notice("Clear result.[$clear_result]");
         }
 
+###############
+### BOOKING ###
+###############
+
         $pu->notice(sprintf "Value [%s]",join("/",($seq_id,$user_id->[0])));
         my $booking_result = $booking_sth->execute(($seq_id, $user_id->[0]));
         $seq_id = 1;
@@ -325,6 +442,10 @@ sub doQueing
         }
         else
         {
+
+# TODO 単発イベントはどう扱うか決めてない。
+# TODO バトルがない場合は・・・postのみ？
+#   でも必ずpre 発生？
 
 # 本当はnodeに紐付いたイベントも結合して、優先順位の高いイベントから処理するようにしないといけない
 # insert result;
@@ -352,11 +473,15 @@ sub doQueing
 #ORDER BY priority LIMIT 1;
 
 
-            $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$rid,$nnid,'pre',$user_id->[0]));
+
+
+
+
+            $affected = $result_pre_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$rid,$nnid,'pre',$user_id->[0]));
             $pu->notice("insert result[$affected]");
 #        $seq_id++ if ( $affected && $affected ne "0E0" );
             $seq_id = 2;
-            $pu->error("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" || $affected eq "0E0");
+            $pu->error("SQL error[" . $result_pre_sth->errstr . "]") if ( $affected eq "" || $affected eq "0E0");
 
 
             ## TODO flagment pre
@@ -411,7 +536,7 @@ sub doQueing
                     my $chk_exp = $battle->checkExperiment();
                     my $party   = $battle->getPartyMember();
 
-
+                    # Drop item check
                     $ins_pre .= $chk_exp;
                     foreach my $items ( @{$drops} )
                     {
@@ -421,6 +546,11 @@ sub doQueing
                         $target->getStatusIo()->getItem( $items->getItemMasterId() );
                     }
                     $ins_pre .= "<br /><br />" if(scalar(@{$drops}));
+
+
+# XXX Post に進んでいいかの許可実装
+## 'failure'を用意する？
+# 'failure'を用意した
 
                     $pu->notice("SQL prepost [$insert_prepost]");
                     $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
@@ -435,7 +565,7 @@ sub doQueing
 
 
 # change user_status for flag;
-                    $pu->notice("Win status: " . $up_win_sth->execute(($user_id->[0])));
+                    $pu->notice("Win status: " . $up_commit_sth->execute(($nnid, $user_id->[0])));
 #       $pu->notice($up_sth->execute(($carrier_id, $mob_uid)));
 
                     $pu->notice("Flagment status: " . $flagment_sth->execute(($user_id->[0], $nnid, $rid)));
@@ -456,6 +586,11 @@ sub doQueing
             }
             else
             {
+
+# XXX Post に進んでいいかの許可実装
+## 'failure'を用意する？
+# 'failure'を用意した
+
                 $pu->notice("SQL prepost [$insert_prepost]");
                 $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
                 $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0]));
@@ -463,6 +598,12 @@ sub doQueing
 #            $seq_id++ if ( $affected && $affected ne "0E0" );
                 $seq_id = 3;
                 $pu->error("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" || $affected eq "0E0" );
+
+                # フラグ条件があるなら立てる
+                $pu->notice("Flagment status: " . $flagment_sth->execute(($user_id->[0], $nnid, $rid)));
+
+                # ノードの移動決定
+                $pu->notice("Commit node  status: " . $up_commit_sth->execute(($nnid, $user_id->[0])));
             }
 
 
@@ -482,10 +623,11 @@ sub openMainSth
     my $db    = $class->getAt()->getDbHandler();
 
 
+    $result_pre_sth = $db->prepare( $insert_pre );
     $result_sth = $db->prepare( $insert_prepost );
     $rs_sth = $db->prepare( $select_result_summary );
     $up_que_sth = $db->prepare( $update_que_sql );
-    $up_win_sth = $db->prepare($update_win_node_sql);
+    $up_commit_sth = $db->prepare($update_commit_node_sql);
     $up_rollback_sth = $db->prepare( $rollback_node_sql );
     $booking_sth = $db->prepare( $bookin_log_id );
     $result_sth_b = $db->prepare( $insert_battle );
@@ -498,10 +640,11 @@ sub openMainSth
 
 sub finishMainSth
 {
+    $result_pre_sth->finish();
     $result_sth->finish();
     $rs_sth->finish();
     $up_que_sth->finish();
-    $up_win_sth->finish();
+    $up_commit_sth->finish();
     $up_rollback_sth->finish();
     $booking_sth->finish();
     $result_sth_b->finish();

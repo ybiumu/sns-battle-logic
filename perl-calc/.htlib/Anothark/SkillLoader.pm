@@ -6,16 +6,15 @@ $|=1;
 use strict;
 
 
-use LoggingObjMethod;
+use Anothark::BaseLoader;
 use Anothark::Skill;
-use base qw( LoggingObjMethod );
+use base qw( Anothark::BaseLoader );
 sub new
 {
     my $class = shift;
     my $db_handle = shift;
-    my $self = $class->SUPER::new();
+    my $self = $class->SUPER::new( $db_handle );
     bless $self, $class;
-    $self->setDbHandler($db_handle);
 
     my $sql = "SELECT * FROM t_skill_master WHERE skill_id = ?";
     my $sth  = $db_handle->prepare($sql);
@@ -142,17 +141,6 @@ sub getSkillList
     }
     $sth->finish();
     return $skill_list;
-}
-
-sub setDbHandler
-{
-    my $class = shift;
-    return $class->setAttribute( 'db_handler', shift );
-}
-
-sub getDbHandler
-{
-    return $_[0]->getAttribute( 'db_handler' );
 }
 
 

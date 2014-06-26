@@ -11,6 +11,7 @@ use Anothark::SkillLoader;
 use Anothark::ItemLoader;
 use Anothark::BattleSetting;
 use Anothark::Party;
+use Anothark::PartyLoader;
 
 sub doExhibitionMatch
 {
@@ -23,102 +24,110 @@ sub doExhibitionMatch
     $battle->setBgid($node_id);
 
 # XXX ‚±‚±‚©‚ç LoadParty‚Ì”Íáe
-    my $party = new Anothark::Party();
+#    my $party = new Anothark::Party();
+    my $pl = new Anothark::PartyLoader( $battle->getAt() );
 # loadParty(Party);
 #
 # loadBattleParty(Party, Battle);
-# $battle->party( $pl->loadBattlePartyByUserId( $me ) );
+# $battle->party( $pl->loadBattlePartyByUser( $me ) );
     my $sl = new Anothark::SkillLoader($db);
+    $pl->setSkillLoader($sl);
 #    my $il = new Anothark::ItemLoader($db);
     my $bs = new Anothark::BattleSetting($db);
-
-#    $battle->getAt()->loadEquipData( $me );
-
-#    $me->setSide("p");
-    $me->setSkills($bs,$sl);
-    $party->setMember1($me);
-#    $battle->appendCharacter( $me );
-
-#    my $p1 = $battle->getAt()->getPlayerByUserId(2);
-#    my $p1 = $battle->getAt()->getPlayerByUserId(101);
-    my $p2 = $battle->getAt()->getBattlePlayerByUserId(101);
-    if ( defined  $p2 )
-    {
-#        $p1->setSide("p");
-#        $p1->getAtack()->setBothValue(20);
-        $p2->setSkills($bs,$sl);
-        $party->setMember2($p2);
-#        $battle->appendCharacter( $p1 );
-    }
-#    $me->getAtack()->setBothValue(15);
+    $pl->setBattleSetting($bs);
 
 
-#$battle->warning( "Append hagis1.");
-    my $npc1 = new Anothark::Character::Npc();
-#$battle->warning( "Append hagis1 done.");
-    $npc1->setId("hagis1");
-    $npc1->setName("íŽmÊ·Þ½");
-    $npc1->getHp()->setBothValue(50);
-    $npc1->getAtack()->setBothValue(20);
-    $npc1->gDef()->setBothValue(10);
+$battle->error("################################################");
 
-    $npc1->getPosition()->setBothValue("f");
-#    my $n1t = new Anothark::Skill( 'ÕŒ‚‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
-#    my $ts1 = $sl->loadSkill(1010);
-#    $ts1->setTargetType(4);
-#    $n1t->appendChild( $ts1  );
-
-    $npc1->setCmd([
-        [],
-        $sl->loadSkill(1082),
-#        $n1t,
-        $sl->loadSkill(1010),
-        $sl->loadSkill(1010),
-        $sl->loadSkill(1010),
-        $sl->loadSkill(1010),
-    ]);
-#    $npc1->setSide("p");
-#    $battle->appendCharacter( $npc1 );
-    $party->setNpc1($npc1);
-
-#$battle->warning( "Append hagis2.";
-    my $npc2 = new Anothark::Character::Npc();
-#$battle->warning( "Append hagis2 done.";
-    $npc2->setId("hagis2");
-    $npc2->setName("‰°•aÊ·Þ½");
-    $npc2->getHp()->setBothValue(25);
-    $npc2->getAtack()->setBothValue(10);
-    $npc2->gDef()->setBothValue(5);
-#    my $t3s = new Anothark::Skill( '¾ÙÌ¸¯·Ý¸Þ' ,{ skill_rate => 10,length_type => 1, range_type => 1,target_type => 2, effect_type => 1 } );
-#    my $t3s = new Anothark::Skill( '’á‰¹‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
-#    my $ts2 = $sl->loadSkill(1009);
-#    $ts2->setTargetType(4);
-#    $t3s->appendChild( $ts2 );
-
-    $npc2->getPosition()->setBothValue("b");
-#    my $t4s = new Anothark::Skill( 'GŽè‚Ì•Ç' ,{ skill_rate => 0,length_type => 3, range_type => 3,target_type => 2, effect_type => 4 } );
-#    my $ts3 = new Anothark::Skill( '½×¯ÌßÃÝÀ¸Ù' ,{ skill_rate => 1.5 ,length_type => 2, range_type => 1,target_type => 1, effect_type => 0, power_source => 6, base_element => 2 } );
-#    $t4s->appendChild( $ts3 );
-
-    $npc2->setCmd([
-        [],
-#        $t4s,
-#        $t3s,
-        $sl->loadSkill(1086),
-        $sl->loadSkill(1084),
-        $sl->loadSkill(1009),
-        $sl->loadSkill(1009),
-        $sl->loadSkill(1009),
-    ]);
-
-#    $npc2->setSide("p");
-#    $battle->appendCharacter( $npc2 );
-    $party->setNpc2($npc2);
-
-
-    $party->execToMembers( 'setSide', 'p' );
+    my $party = $pl->loadBattlePartyByUser( $me, 'p' );
+##    $battle->getAt()->loadEquipData( $me );
+#
+##    $me->setSide("p");
+#    $me->setSkills($bs,$sl);
+#    $party->setMember1($me);
+##    $battle->appendCharacter( $me );
+#
+##    my $p1 = $battle->getAt()->getPlayerByUserId(2);
+##    my $p1 = $battle->getAt()->getPlayerByUserId(101);
+##    my $p2 = $battle->getAt()->getBattlePlayerByUserId(101);
+##    if ( defined  $p2 )
+##    {
+###        $p1->setSide("p");
+###        $p1->getAtack()->setBothValue(20);
+##        $p2->setSkills($bs,$sl);
+##        $party->setMember2($p2);
+###        $battle->appendCharacter( $p1 );
+##    }
+###    $me->getAtack()->setBothValue(15);
+#
+#
+##$battle->warning( "Append hagis1.");
+#    my $npc1 = new Anothark::Character::Npc();
+##$battle->warning( "Append hagis1 done.");
+#    $npc1->setId("hagis1");
+#    $npc1->setName("íŽmÊ·Þ½");
+#    $npc1->getHp()->setBothValue(50);
+#    $npc1->getAtack()->setBothValue(20);
+#    $npc1->gDef()->setBothValue(10);
+#
+#    $npc1->getPosition()->setBothValue("f");
+##    my $n1t = new Anothark::Skill( 'ÕŒ‚‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
+##    my $ts1 = $sl->loadSkill(1010);
+##    $ts1->setTargetType(4);
+##    $n1t->appendChild( $ts1  );
+#
+#    $npc1->setCmd([
+#        [],
+#        $sl->loadSkill(1082),
+##        $n1t,
+#        $sl->loadSkill(1010),
+#        $sl->loadSkill(1010),
+#        $sl->loadSkill(1010),
+#        $sl->loadSkill(1010),
+#    ]);
+##    $npc1->setSide("p");
+##    $battle->appendCharacter( $npc1 );
+#    $party->setNpc1($npc1);
+#
+##$battle->warning( "Append hagis2.";
+#    my $npc2 = new Anothark::Character::Npc();
+##$battle->warning( "Append hagis2 done.";
+#    $npc2->setId("hagis2");
+#    $npc2->setName("‰°•aÊ·Þ½");
+#    $npc2->getHp()->setBothValue(25);
+#    $npc2->getAtack()->setBothValue(10);
+#    $npc2->gDef()->setBothValue(5);
+##    my $t3s = new Anothark::Skill( '¾ÙÌ¸¯·Ý¸Þ' ,{ skill_rate => 10,length_type => 1, range_type => 1,target_type => 2, effect_type => 1 } );
+##    my $t3s = new Anothark::Skill( '’á‰¹‚ÌŽô‚¢' ,{ skill_rate => 0,length_type => 3, range_type => 1,target_type => 1, effect_type => 4 } );
+##    my $ts2 = $sl->loadSkill(1009);
+##    $ts2->setTargetType(4);
+##    $t3s->appendChild( $ts2 );
+#
+#    $npc2->getPosition()->setBothValue("b");
+##    my $t4s = new Anothark::Skill( 'GŽè‚Ì•Ç' ,{ skill_rate => 0,length_type => 3, range_type => 3,target_type => 2, effect_type => 4 } );
+##    my $ts3 = new Anothark::Skill( '½×¯ÌßÃÝÀ¸Ù' ,{ skill_rate => 1.5 ,length_type => 2, range_type => 1,target_type => 1, effect_type => 0, power_source => 6, base_element => 2 } );
+##    $t4s->appendChild( $ts3 );
+#
+#    $npc2->setCmd([
+#        [],
+##        $t4s,
+##        $t3s,
+#        $sl->loadSkill(1086),
+#        $sl->loadSkill(1084),
+#        $sl->loadSkill(1009),
+#        $sl->loadSkill(1009),
+#        $sl->loadSkill(1009),
+#    ]);
+#
+##    $npc2->setSide("p");
+##    $battle->appendCharacter( $npc2 );
+#    $party->setNpc2($npc2);
+#
+#
+#    $party->execToMembers( 'setSide', 'p' );
 
     $battle->party($party);
+$battle->error("################################################");
 ## XXX ‚±‚±‚Ü‚Å LoadParty‚Ì”Íáe
 
 

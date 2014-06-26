@@ -5,7 +5,7 @@ package Anothark::ShopManager;
 $|=1;
 use strict;
 use Encode;
-use LoggingObjMethod;
+use Anothark::BaseLoader;
 use Anothark::ItemLoader;
 use Anothark::Shop;
 use Anothark::Character::StatusIO;
@@ -17,22 +17,9 @@ sub new
 {
     my $class = shift;
     my $db_handle = shift;
-    my $self = $class->SUPER::new();
-    $self->setDbHandler($db_handle);
+    my $self = $class->SUPER::new( $db_handle );
     bless $self, $class;
     return $self;
-}
-
-my $db_handler = undef;
-sub setDbHandler
-{
-    my $class = shift;
-    return $class->setAttribute( 'db_handler', shift );
-}
-
-sub getDbHandler
-{
-    return $_[0]->getAttribute( 'db_handler' );
 }
 
 
