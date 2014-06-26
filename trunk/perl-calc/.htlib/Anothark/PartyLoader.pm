@@ -6,22 +6,23 @@ $|=1;
 use strict;
 
 
-use LoggingObjMethod;
+use Anothark::BaseLoader;
 use Anothark::Character::Player;
 use Anothark::Character::Npc;
 use Anothark::Character::Enemy;
 use Anothark::Party;
 use DBI qw( SQL_INTEGER );
-use base qw( LoggingObjMethod );
+use base qw( Anothark::BaseLoader );
 sub new
 {
     my $class = shift;
-    my $db_handle = shift;
-    my $self = $class->SUPER::new();
+    my $at    = shift;
+    my $db_handle = $at->getDbHandler();
+    my $self = $class->SUPER::new( $db_handle );
     bless $self, $class;
-    $self->setDbHandler($db_handle);
+    $self->setAt($at);
 
-    my $sql_member = "SELECT m.user_id,m.owner_id FROM t_uesr_party AS u JOIN t_user_party AS m USING(owner_id) WHERE u.user_id = ? ORDER BY m.user_id";
+    my $sql_member = "SELECT u.party_name, m.user_id,m.owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
     my $sth  = $db_handle->prepare($sql_member);
     $self->setSthParty($sth);
 
@@ -34,7 +35,6 @@ sub new
 }
 
 
-my $db_handler = undef;
 
 # メンバー取得だけ
 # スキルも
@@ -59,15 +59,16 @@ my $db_handler = undef;
 # メンバー取得
 # スキル取得
 # あとは・・？
-sub loadBattlePartyByUserId
+sub loadBattlePartyByUser
 {
-    my $class = shift;
-    my $user_id = shift;
+    my $class   = shift;
+    my $user    = shift;
     my $side    = shift;
     my $party   = shift || new Anothark::Party();
-    $party = $class->loadPartyByUserId( $user_id, $party );
+    $party = $class->loadPartyByUserId( $user->getOwnerId(), $party );
 
-    $party->setValueToMembers( 'side',  $side);
+#    $party->setValueToMembers( 'side',  $side);
+    $party->execToMembers( 'setSide', $side );
 
     return $party;
 }
@@ -111,6 +112,8 @@ sub loadPartyByUserId
     my $user_id = shift;
     my $party   = shift || new Anothark::Party();
 
+    my $at = $class->getAt();
+
     my $sth = $class->getSthParty();
     my $stat = $sth->execute(($user_id));
     if ( $sth->rows > 0 )
@@ -119,12 +122,14 @@ sub loadPartyByUserId
         my $num = 1;
         foreach my $member ( @{$members} )
         {
-            $party->{"member" . $num++} = new Anothark::Character::Player( "", $member );
+            my $tmp_char = $at->getBattlePlayerByUserId( $member->{user_id} );
+            $tmp_char->setSkills( $class->getBattleSetting(), $class->getSkillLoader());
+            $party->{"member" . $num++} = $tmp_char;
         }
 
     }
 
-    my $sth_npcs   = $class->getSthNpc();
+    my $sth_npc   = $class->getSthNpc();
     $stat = $sth_npc->execute(($user_id));
     if ( $sth_npc->rows > 0 )
     {
@@ -132,7 +137,9 @@ sub loadPartyByUserId
         my $num = 1;
         foreach my $npc ( @{$npcs} )
         {
-            $party->{"npc" . $num++} = new Anothark::Character::Npc( "", $npc );
+            my $tmp_char = new Anothark::Character::Npc( "", $npc );
+            $tmp_char->setSkills( $class->getBattleSetting(), $class->getSkillLoader());
+            $party->{"npc" . $num++} = $tmp_char;
         }
 
     }
@@ -141,16 +148,6 @@ sub loadPartyByUserId
 
 
 
-sub setDbHandler
-{
-    my $class = shift;
-    return $class->setAttribute( 'db_handler', shift );
-}
-
-sub getDbHandler
-{
-    return $_[0]->getAttribute( 'db_handler' );
-}
 
 
 sub finish
@@ -160,6 +157,46 @@ sub finish
     $class->getSthNpc()->finish();
 }
 
+
+
+my $skill_loader = undef;
+my $battle_setting = undef;
+
+sub setSkillLoader
+{
+    my $class = shift;
+    return $class->setAttribute( 'skill_loader', shift );
+}
+
+sub getSkillLoader
+{
+    return $_[0]->getAttribute( 'skill_loader' );
+}
+
+
+sub setBattleSetting
+{
+    my $class = shift;
+    return $class->setAttribute( 'battle_setting', shift );
+}
+
+sub getBattleSetting
+{
+    return $_[0]->getAttribute( 'battle_setting' );
+}
+
+
+my $at = undef;
+sub setAt
+{
+    my $class = shift;
+    return $class->setAttribute( 'at', shift );
+}
+
+sub getAt
+{
+    return $_[0]->getAttribute( 'at' );
+}
 
 
 

@@ -63,6 +63,13 @@ sub resolveOne
     return pop(@{$class->getMemory()});
 }
 
+
+sub moveOne
+{
+    my $class = shift;
+    return shift(@{$class->getMemory()});
+}
+
 sub resolveRange
 {
     my $class = shift;
@@ -70,7 +77,17 @@ sub resolveRange
     my $nf    = $#{$class->getMemory()};
     return reverse splice(@{$class->getMemory()}, $nf - ($range - 1) ,$nf );
 }
+
 sub resolveAll
+{
+    my $class = shift;
+    my $stack_list =  $class->getMemory();
+    $class->clearStack();
+    return reverse @{$stack_list};
+}
+
+
+sub moveAll
 {
     my $class = shift;
     my $stack_list =  $class->getMemory();

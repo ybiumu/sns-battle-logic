@@ -287,6 +287,22 @@ sub getDamaged
     );
 }
 
+sub getTrapStacked
+{
+    my $class = shift;
+    my $char = $class->getCharacter();
+    return (
+        map
+        {
+            $char->{$_}
+        }
+        grep {
+            $char->{$_}->traped()
+        }
+        keys %{$char}
+    );
+}
+
 sub getLivingTargets
 {
     my $class = shift;
@@ -692,6 +708,9 @@ sub chkCmdStack
         $class->error("[AFTER_CMD] start.");
 
         my @damaged = $class->getDamaged();
+        my @traped  = $class->getTrapStacked();
+        # 罠の対象者のリストアップだけは移動しないといけない
+
         # 呪詛のスタック解決
         foreach my $char ( @damaged )
         {
@@ -707,6 +726,23 @@ sub chkCmdStack
             }
             $class->error("[DAMAGED] " . $char->getName() . " done.");
         }
+
+        # 罠のスタック解決
+        foreach my $char ( @traped )
+        {
+#            my $stack = $char->getStacks()->filter("curse");
+            $class->error("[TRAPED] " . $char->getName() . " start.");
+            my $stack = $char->getResolveTrapStack();
+            if ( $stack->isRemain() )
+            {
+                my $res = $stack->resolveOne();
+                $class->pushResolveStack($res);
+                $class->doDelaiedCmd()
+
+            }
+            $class->error("[TRAPED] " . $char->getName() . " done.");
+        }
+
     }
 #    $class->getActions()->{$scene}
     # resolve stacks

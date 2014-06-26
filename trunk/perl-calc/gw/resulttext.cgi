@@ -129,6 +129,7 @@ if ( $sth->rows() > 0 )
     }
     $pu->output_log("passed find result row. count[$lines]");
     # Append next link;
+    $out->{RESULT_TITLE} .= sprintf("(%s/%s)", $offset, $total_number);
     if ( $total_number > $offset + 1 )
     {
         $out->{RESULT} .= sprintf("<hr /><a href=\"resulttext.cgi?guid=ON&result_log_id=%s&offset=%s\">1.‘±‚«‚Ö</a><br />", $rid, ++$offset);
