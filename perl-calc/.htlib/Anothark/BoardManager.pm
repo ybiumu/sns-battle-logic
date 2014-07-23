@@ -110,8 +110,8 @@ sub getOwnersBoard
     }
     elsif ( $type_id == 2 )
     {
-        $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( SELECT tu.user_id FROM  t_user AS tu LEFT JOIN t_follows AS f USING(user_id) WHERE tu.user_id = ? AND ( f.follow_user_id = ? OR tu.user_id = ? )  ) AS u ON ( b.owner_id = u.user_id ) WHERE b.board_type_id = ? ";
-        @params = ($target_user_id, $user_id, $user_id, $type_id);
+        $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( SELECT CASE WHEN tu.owner_id = 0 THEN tu.user_id ELSE tu.owner_id END AS user_id FROM  t_user AS tu WHERE tu.user_id = ? ) AS u ON ( b.owner_id = u.user_id ) WHERE b.board_type_id = ? ";
+        @params = ($target_user_id, $type_id);
     }
     elsif ( grep { $type_id == $_ } (3,4) )
     {

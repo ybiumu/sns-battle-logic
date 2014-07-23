@@ -27,7 +27,8 @@ sub new
     $self->setSthParty($sth);
 
     # NPC is party owners.
-    my $sql_npc    = "SELECT npc1,npc2,npc3 FROM t_party_npc WHERE owner_id = ?";
+#    my $sql_npc    = "SELECT npc1,npc2,npc3 FROM t_party_npc WHERE owner_id = ?";
+    my $sql_npc    = "SELECT npc_id,join_datetime,limit_datetime  FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
     my $sth_npc  = $db_handle->prepare($sql_npc);
     $self->setSthNpc($sth_npc);
 
@@ -65,10 +66,24 @@ sub loadBattlePartyByUser
     my $user    = shift;
     my $side    = shift;
     my $party   = shift || new Anothark::Party();
-    $party = $class->loadPartyByUserId( $user->getOwnerId(), $party );
+    $party = $class->loadPartyByUserId( $user->getOwnerId(), $party , 1);
 
 #    $party->setValueToMembers( 'side',  $side);
     $party->execToMembers( 'setSide', $side );
+
+    return $party;
+}
+
+
+sub loadPartyByUser
+{
+    my $class   = shift;
+    my $user    = shift;
+    my $party   = shift || new Anothark::Party();
+    $party = $class->loadPartyByUserId( $user->getOwnerId(), $party , 0);
+
+#    $party->setValueToMembers( 'side',  $side);
+#    $party->execToMembers( 'setSide', $side );
 
     return $party;
 }
@@ -111,6 +126,7 @@ sub loadPartyByUserId
     my $class   = shift;
     my $user_id = shift;
     my $party   = shift || new Anothark::Party();
+    my $is_battle = shift || 0;
 
     my $at = $class->getAt();
 
@@ -119,12 +135,25 @@ sub loadPartyByUserId
     if ( $sth->rows > 0 )
     {
         my $members = $sth->fetchall_arrayref( +{} );
+        $party->setPartyName( $members->[0]->{"party_name"} );
+        $party->setOwnerId( $members->[0]->{"owner_id"} );
         my $num = 1;
-        foreach my $member ( @{$members} )
+        if ( $is_battle )
         {
-            my $tmp_char = $at->getBattlePlayerByUserId( $member->{user_id} );
-            $tmp_char->setSkills( $class->getBattleSetting(), $class->getSkillLoader());
-            $party->{"member" . $num++} = $tmp_char;
+            foreach my $member ( @{$members} )
+            {
+                my $tmp_char = $at->getBattlePlayerByUserId( $member->{user_id} );
+                $tmp_char->setSkills( $class->getBattleSetting(), $class->getSkillLoader());
+                $party->{"member" . $num++} = $tmp_char;
+            }
+        }
+        else
+        {
+            foreach my $member ( @{$members} )
+            {
+                my $tmp_char = $at->getPlayerByUserId( $member->{user_id} );
+                $party->{"member" . $num++} = $tmp_char;
+            }
         }
 
     }
@@ -135,11 +164,22 @@ sub loadPartyByUserId
     {
         my $npcs = $sth_npc->fetchall_arrayref( +{} );
         my $num = 1;
-        foreach my $npc ( @{$npcs} )
+        if ( $is_battle )
         {
-            my $tmp_char = new Anothark::Character::Npc( "", $npc );
-            $tmp_char->setSkills( $class->getBattleSetting(), $class->getSkillLoader());
-            $party->{"npc" . $num++} = $tmp_char;
+            foreach my $npc ( @{$npcs} )
+            {
+                my $tmp_char = new Anothark::Character::Npc( "", $npc->{npc_id} );
+                $tmp_char->setSkills( $class->getBattleSetting(), $class->getSkillLoader());
+                $party->{"npc" . $num++} = $tmp_char;
+            }
+        }
+        else
+        {
+            foreach my $npc ( @{$npcs} )
+            {
+                my $tmp_char = new Anothark::Character::Npc( "", $npc->{npc_id} );
+                $party->{"npc" . $num++} = $tmp_char;
+            }
         }
 
     }
@@ -147,6 +187,26 @@ sub loadPartyByUserId
 }
 
 
+sub leave
+{
+    my $class = shift;
+    my $user  = shift;
+    $class->leaveById($user->getId());
+}
+
+sub leaveById
+{
+    my $class    = shift;
+    my $user_id  = shift;
+
+
+    my $db_handle = $class->getDbHandler();
+
+    my $sql_leave = "UPDATE t_user AS u SET owner_id = 0 WHERE user_id = ? ";
+    my $sth  = $db_handle->prepare($sql_leave);
+    $sth->execute(($user_id));
+    $sth->finish();
+}
 
 
 
