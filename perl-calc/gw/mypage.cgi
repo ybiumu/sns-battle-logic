@@ -65,7 +65,7 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{USER_ID} )
 {
 
     # 他人のマイペ
-    $result = $at->getBaseDataByUserId($c->param("user_id"));
+    my $result = $at->getBaseDataByUserId($c->param("user_id"));
     if ( ! $result )
     {
 
@@ -76,6 +76,7 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{USER_ID} )
     else
     {
         $at->setBody("body_yourpage.html");
+        $out->{FOLLOW_CMD} .= sprintf('<a href="follow.cgi?guid=ON&oid=%s">友達申請する</a><br />', $out->{USER_ID}) if ( not $at->isFollowed($my_user_id, $out->{USER_ID}) );
     }
 }
 
