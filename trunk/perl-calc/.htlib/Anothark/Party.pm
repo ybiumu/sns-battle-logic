@@ -38,7 +38,7 @@ sub init
 sub getPartyCharacter
 {
     my $class = shift;
-    return map{ $class->{$_} } grep { $class->{$_} } sort keys %{$class->getMembers()};
+    return grep {$_} ( map{ $class->{$_} } grep { $class->{$_} } sort keys %{$class->getMembers()} ) [0 .. 3];
 }
 
 
@@ -79,7 +79,7 @@ sub setOwnerId
 
 sub getOwnerId
 {
-    return $_[0]->getOwnerId();
+    return $_[0]->getPartyId();
 }
 
 sub setPartyId
