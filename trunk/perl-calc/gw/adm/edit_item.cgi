@@ -10,7 +10,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
-use Anothark::ItemLoader;
+use Anothark::ItemManager;
 use Anothark::Item;
 
 my $pu = new PageUtil();
@@ -108,9 +108,9 @@ my $item_master_id = $c->param("item_master_id") || 0;
 #my $sth  = $db->prepare($sql);
 #my $stat = $sth->execute(($item_id));
 
-my $sl = new Anothark::ItemLoader( $db );
+my $im = new Anothark::ItemManager( $db );
 
-my $item = $sl->loadItem($item_master_id);
+my $item = $im->loadItem($item_master_id);
 
 my $lines = 0;
 

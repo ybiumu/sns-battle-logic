@@ -17,7 +17,6 @@ use constant BOARD_TYPE_NAME => {
     "4" => "”„”ƒBBS",
 };
 
-my $status = undef;
 
 sub new
 {

@@ -9,7 +9,9 @@ use Avatar;
 use PageUtil;
 use AaTemplate;
 use Anothark::BoardManager;
+use Anothark::FollowingManager;
 use UniversalAnalytics;
+
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -23,6 +25,7 @@ $mu->debug(" page muid " .$mu->get_muid() );
 
 $at->setDbHandler($db);
 $at->setMobileUtil($mu);
+my $fm = new Anothark::FollowingManager($db);
 
 my $ad_str = "";
 
@@ -76,7 +79,7 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{USER_ID} )
     else
     {
         $at->setBody("body_yourpage.html");
-        $out->{FOLLOW_CMD} .= sprintf('<a href="follow.cgi?guid=ON&oid=%s">友達申請する</a><br />', $out->{USER_ID}) if ( not $at->isFollowed($my_user_id, $out->{USER_ID}) );
+        $out->{FOLLOW_CMD} .= sprintf('<a href="follow.cgi?guid=ON&oid=%s">友達申請する</a><br />', $out->{USER_ID}) if ( not $fm->isFollowed($my_user_id, $out->{USER_ID}) );
     }
 }
 

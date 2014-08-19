@@ -11,7 +11,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
-use Anothark::ItemLoader;
+use Anothark::ItemManager;
 use Anothark::Item;
 use Anothark::Character::StatusIO;
 
@@ -61,7 +61,7 @@ our $out = $at->getOut();
 ### depend ###
 ##############
 our $depth = 0;
-our $il = undef;
+our $im = undef;
 our $pre_sth;
 our $post_sth;
 
@@ -259,7 +259,7 @@ sub descr_item
 {
     my $at = shift;
     my $item_id = shift;
-    my $item = $il->loadUserItem($at->getOut()->{USER_ID}, $item_id);
+    my $item = $im->loadUserItem($at->getOut()->{USER_ID}, $item_id);
     return sprintf("<div class='smallheader'>%s</div>%s\n<div class='smalldescr'>%s</div>\n", $item->getItemLabel(), "NoData<br />",$item->getItemDescr());
 }
 
@@ -323,7 +323,7 @@ sub sep_item
                 $_->getMergedNumber(),
                 $_->getItemId(),
         );
-    } grep { $_->getMergeNumber() > 1 } $il->loadUserItem($at->getOut()->{USER_ID}, @itemids);
+    } grep { $_->getMergeNumber() > 1 } $im->loadUserItem($at->getOut()->{USER_ID}, @itemids);
     return $return_str;
 }
 
@@ -339,7 +339,7 @@ sub pre_descr_item
     $depth = 1;
     $at->setBody("body_any.html");
     $at->setPageName("±²ÃÑ&gt;Ú×");
-    $il = new Anothark::ItemLoader( $at->getDbHandler() );
+    $im = new Anothark::ItemManager( $at->getDbHandler() );
 #    $pre_sth = $at->getDbHandler()->prepare($sql);
     return "pre_descr_item";
 }
@@ -379,7 +379,7 @@ sub pre_sep_item
         $depth = 1;
         $at->setBody("body_item_sep.html");
         $at->setPageName("±²ÃÑ&gt;•ª‚¯‚é");
-        $il = new Anothark::ItemLoader( $at->getDbHandler() );
+        $im = new Anothark::ItemManager( $at->getDbHandler() );
 #    $pre_sth = $at->getDbHandler()->prepare($sql);
     }
     else

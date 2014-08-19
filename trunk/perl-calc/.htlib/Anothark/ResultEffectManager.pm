@@ -2,6 +2,11 @@ package Anothark::ResultEffectManager;
 #
 # 愛
 #
+#
+=pod
+t_result_effectの管理クラス
+result_effect自体はリザルト時に発生する「取得」「損失」等を制御する機構
+=cut
 $|=1;
 use strict;
 

@@ -10,7 +10,6 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
-use Anothark::ItemLoader;
 use Anothark::Item;
 
 my $pu = new PageUtil();

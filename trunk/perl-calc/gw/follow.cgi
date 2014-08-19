@@ -13,6 +13,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
+use Anothark::FollowingManager;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -51,6 +52,8 @@ if ( ! $result )
 
 
 our $oid = $c->param("oid");
+our $yes = $c->param("yes") || 0;
+our $no  = $c->param("no") || 0;
 
 our $out = $at->getOut();
 
@@ -60,6 +63,7 @@ our $out = $at->getOut();
 $at->setBody("body_any.html");
 $at->setPageName('—F’B\¿');
 my $version = "0.1a20130415";
+my $fm = new Anothark::FollowingManager( $db );
 
 
 
@@ -70,22 +74,47 @@ my $version = "0.1a20130415";
 if ( $oid )
 {
     my $char = $at->getCharacterByUserId($oid);
-    if ( $at->isFollowed($out->{USER_ID},$oid) )
+    my $fs   = $fm->isFollowing($oid,$out->{USER_ID});
+    if ( $fs == 2 )
     {
-        $out->{RESULT} .= <<_HERE_
-Šù‚É—F’B‚Å‚·
-_HERE_
+        $out->{RESULT} .= 'Šù‚É—F’B‚Å‚·';
+    }
+    elsif( $fs == 1 )
+    {
+        $out->{RESULT} .= '—F’B\¿’†‚Å‚·'
     }
     else
     {
-        my $o_str = sprintf('%s ‚É—F’B\¿‚µ‚Ü‚·‚©H', $char->getName());
-        $out->{RESULT} .= <<_HERE_
+        if ( $yes )
+        {
+            if ( $fm->doFollowRequest( $out->{USER_ID}, $oid ) )
+            {
+                $out->{RESULT} .= '—F’B\¿‚µ‚Ü‚µ‚½';
+            }
+            else
+            {
+                $out->{RESULT} .= '—F’B\¿‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½';
+            }
+
+        }
+        elsif ( $no )
+        {
+            $out->{RESULT} .= '—F’B\¿‚ð‚â‚ß‚Ü‚µ‚½';
+
+        }
+        else
+        {
+            my $o_str = sprintf('%s ‚É—F’B\¿‚µ‚Ü‚·‚©H', $char->getName());
+            $out->{RESULT} .= <<_HERE_
 $o_str
-<form>
+<form action="follow.cgi" >
+<input type="hidden" name="guid" value="ON" />
+<input type="hidden" name="oid" value="$oid" />
 <input type="submit" name="yes" value="‚Í‚¢" />
 <input type="submit" name="no" value="‚¢‚¢‚¦" />
 </form>
 _HERE_
+        }
     }
 }
 else
