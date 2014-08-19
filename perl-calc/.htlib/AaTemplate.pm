@@ -832,28 +832,6 @@ sub getBaseDataByUserId
 }
 
 
-sub isFollowed
-{
-    my $class = shift;
-    my $src_user_id = shift;
-    my $dst_user_id = shift;
-    my $sql = "SELECT 1 AS result FROM t_follows WHERE user_id = ? AND follow_user_id = ? AND delete_flag <> 1";
-
-    my $sth  = $class->getDbHandler()->prepare($sql);
-    my $stat = $sth->execute(($src_user_id, $dst_user_id));
-    my $row  = $sth->fetchrow_hashref();
-    if ( $sth->rows() == 0 )
-    {
-        $class->notice("No relation between $src_user_id and $dst_user_id.");
-        $sth->finish();
-        return 0;
-    }
-    else
-    {
-        $sth->finish();
-        return 1;
-    }
-}
 
 sub getMyCharacter
 {

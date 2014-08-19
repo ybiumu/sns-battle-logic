@@ -28,7 +28,7 @@ sub new
 
     # NPC is party owners.
 #    my $sql_npc    = "SELECT npc1,npc2,npc3 FROM t_party_npc WHERE owner_id = ?";
-    my $sql_npc    = "SELECT npc_id,join_datetime,limit_datetime  FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
+    my $sql_npc    = "SELECT npc_id,join_datetime,limit_datetime FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
     my $sth_npc  = $db_handle->prepare($sql_npc);
     $self->setSthNpc($sth_npc);
 

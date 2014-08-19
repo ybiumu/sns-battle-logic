@@ -10,7 +10,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
-use Anothark::ItemLoader();
+use Anothark::ItemManager();
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -25,7 +25,7 @@ $at->setAdminUtil($mu);
 
 my $ad_str = "";
 
-my $loader = new Anothark::ItemLoader( $db );
+my $im = new Anothark::ItemManager( $db );
 
 my $browser      = $mu->getBrowser();
 #my $carrier_id   = $mu->getCarrierId();
@@ -70,7 +70,7 @@ my $version = "0.1a20130415";
 ############
 
 
-my $item_list = $loader->getItemList();
+my $item_list = $im->getItemList();
 
 my @oddeven = ( "odd", "even" );
 

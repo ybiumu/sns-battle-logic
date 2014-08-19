@@ -1,4 +1,4 @@
-package Anothark::ItemLoader;
+package Anothark::ItemManager;
 #
 # ˆ¤
 #

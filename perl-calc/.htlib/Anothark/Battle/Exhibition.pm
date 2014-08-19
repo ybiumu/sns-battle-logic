@@ -8,7 +8,7 @@ use Anothark::Character::Enemy;
 use Anothark::Character::Npc;
 use Anothark::Skill;
 use Anothark::SkillLoader;
-use Anothark::ItemLoader;
+use Anothark::ItemManager;
 use Anothark::BattleSetting;
 use Anothark::Party;
 use Anothark::PartyLoader;
@@ -32,7 +32,7 @@ sub doExhibitionMatch
 # $battle->party( $pl->loadBattlePartyByUser( $me ) );
     my $sl = new Anothark::SkillLoader($db);
     $pl->setSkillLoader($sl);
-#    my $il = new Anothark::ItemLoader($db);
+#    my $im = new Anothark::ItemManager($db);
     my $bs = new Anothark::BattleSetting($db);
     $pl->setBattleSetting($bs);
 
@@ -205,7 +205,7 @@ sub gemStone
 #    $battle->warning( "Call gemStone");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     my $enemy = new Anothark::Character::Enemy();
     $battle->setPartyName("“¹’[‚Ì•óÎ");
     $battle->setPartyImg("load_king");
@@ -233,7 +233,7 @@ sub gemStone
     $enemy->getPosition()->setBothValue("f");
     push(
         @{$enemy->getDropItems()},
-        ($il->loadItem( 10, 10), $il->loadItem( 10, 10),)
+        ($im->loadItem( 10, 10), $im->loadItem( 10, 10),)
     );
     $battle->appendCharacter( $enemy );
     $sl->finish();
@@ -251,7 +251,7 @@ sub zwei
 #    $battle->warning( "Call zwei");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     $battle->setPartyName("ŒJ‚è•Ô‚·ˆ«–²");
     $battle->setPartyImg("endless_nightmare");
     $battle->setPartyLevel(35);
@@ -276,8 +276,8 @@ sub zwei
     $enemy1->setSide("e");
     $enemy1->getPosition->setBothValue("f");
     push(@{$enemy1->getDropItems()},
-        ($il->loadItem( 11, 10),
-        $il->loadItem( 11, 10),)
+        ($im->loadItem( 11, 10),
+        $im->loadItem( 11, 10),)
     );
 
 
@@ -340,7 +340,7 @@ sub hagis
     $battle->setEgid(9);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     my $enemy = new Anothark::Character::Enemy();
     $battle->setPartyName('’‡ŠÔ‚ð’T‚µ‚Ä');
     $battle->setPartyImg("hagis");
@@ -351,8 +351,8 @@ sub hagis
     $enemy->gDef()->setBothValue(5);
     $enemy->getAtack()->setBothValue(15);
     push(@{$enemy->getDropItems()}, 
-       ( $il->loadItem( 9, 20),
-        $il->loadItem( 1, 80),)
+       ( $im->loadItem( 9, 20),
+        $im->loadItem( 1, 80),)
     );
     $enemy->setCmd([
         [],
@@ -380,7 +380,7 @@ sub golem
 #    $battle->warning( "Call golem");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     $battle->setPartyName('œfœr‚¤“ylŒ`');
     $battle->setPartyImg("golem");
     $battle->setPartyLevel(15);
@@ -405,7 +405,7 @@ sub golem
 
     push(
         @{$enemy->getDropItems()},
-        ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
+        ($im->loadItem( 12, 10), $im->loadItem( 12, 10),)
     );
 
     my $enemy2 = new Anothark::Character::Enemy();
@@ -428,7 +428,7 @@ sub golem
 
     push(
         @{$enemy2->getDropItems()},
-        ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
+        ($im->loadItem( 12, 10), $im->loadItem( 12, 10),)
     );
 
 
@@ -452,7 +452,7 @@ sub golem
 
     push(
         @{$enemy3->getDropItems()},
-        ($il->loadItem( 12, 10), $il->loadItem( 12, 10),)
+        ($im->loadItem( 12, 10), $im->loadItem( 12, 10),)
     );
 
     $battle->appendCharacter( $enemy );
@@ -470,7 +470,7 @@ sub enemy001
 #    $battle->warning( "Call hhagis");
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     my $enemy = new Anothark::Character::Enemy();
     $battle->setPartyName('•s‰ÂŽ‹‚È–ì—ÇŒ¢');
     $battle->setPartyImg("noimage");
@@ -481,8 +481,8 @@ sub enemy001
     $enemy->gDef()->setBothValue(10);
     $enemy->getAtack()->setBothValue(10);
     push(@{$enemy->getDropItems()}, 
-       ( $il->loadItem( 2, 5),
-        $il->loadItem( 1, 30),)
+       ( $im->loadItem( 2, 5),
+        $im->loadItem( 1, 30),)
     );
     $enemy->setCmd([
         [],
@@ -516,7 +516,7 @@ sub enemy002
     $battle->setEgid(2);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     $battle->setPartyName('’jŽÝ');
     $battle->setPartyImg("potate");
     $battle->setPartyLevel(5);
@@ -529,8 +529,8 @@ sub enemy002
     $enemy->getAtack()->setBothValue(10);
     push(@{$enemy->getDropItems()}, 
        (
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 30),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 30),
        )
     );
     $enemy->setCmd([
@@ -554,7 +554,7 @@ sub enemy003
     $battle->setEgid(3);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     $battle->setPartyName('ŽqŽÝ');
     $battle->setPartyImg("potate");
     $battle->setPartyLevel(8);
@@ -567,10 +567,10 @@ sub enemy003
     $enemy->getAtack()->setBothValue(15);
     push(@{$enemy->getDropItems()}, 
        (
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 5),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 5),
        )
     );
     $enemy->setCmd([
@@ -594,7 +594,7 @@ sub enemy004
     $battle->setEgid(4);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     $battle->setPartyName('”ŒŽÝ');
     $battle->setPartyImg("potate");
     $battle->setPartyLevel(10);
@@ -607,11 +607,11 @@ sub enemy004
     $enemy->getAtack()->setBothValue(20);
     push(@{$enemy->getDropItems()}, 
        (
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 5),
-            $il->loadItem( 14, 5),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 5),
+            $im->loadItem( 14, 5),
        )
     );
     $enemy->setCmd([
@@ -635,7 +635,7 @@ sub enemy005
     $battle->setEgid(5);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     $battle->setPartyName('ŒòŽÝ');
     $battle->setPartyImg("potate");
     $battle->setPartyLevel(10);
@@ -648,12 +648,12 @@ sub enemy005
     $enemy->getAtack()->setBothValue(25);
     push(@{$enemy->getDropItems()}, 
        (
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 5),
-            $il->loadItem( 14, 5),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 5),
+            $im->loadItem( 14, 5),
        )
     );
     $enemy->setCmd([
@@ -677,7 +677,7 @@ sub enemy006
     $battle->setEgid(6);
     my $db       = $battle->getAt()->getDbHandler();
     my $sl = new Anothark::SkillLoader($db);
-    my $il = new Anothark::ItemLoader($db);
+    my $im = new Anothark::ItemManager($db);
     $battle->setPartyName('ŒöŽÝ');
     $battle->setPartyImg("potate");
     $battle->setPartyLevel(12);
@@ -690,13 +690,13 @@ sub enemy006
     $enemy->getAtack()->setBothValue(40);
     push(@{$enemy->getDropItems()}, 
        (
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 100),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 30),
-            $il->loadItem( 14, 5),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 100),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 30),
+            $im->loadItem( 14, 5),
        )
     );
     $enemy->setCmd([

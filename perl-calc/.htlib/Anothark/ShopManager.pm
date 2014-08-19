@@ -6,12 +6,11 @@ $|=1;
 use strict;
 use Encode;
 use Anothark::BaseLoader;
-use Anothark::ItemLoader;
+use Anothark::ItemManager;
 use Anothark::Shop;
 use Anothark::Character::StatusIO;
-use base qw( LoggingObjMethod );
+use base qw( Anothark::BaseLoader );
 
-my $status = undef;
 
 sub new
 {
@@ -121,8 +120,8 @@ sub loadShopDescr
         $class->warning( "Find record for $shop_id" );
         $shop  = new Anothark::Shop( $sth->fetchrow_hashref());
         $shop->setFieldNames( $sth->{"NAME"}  );
-        my $il = new Anothark::ItemLoader( $class->getDbHandler() );
-        $shop->setItems( $il->getShopItems( $shop_id ) );
+        my $im = new Anothark::ItemManager( $class->getDbHandler() );
+        $shop->setItems( $im->getShopItems( $shop_id ) );
     }
     else
     {
