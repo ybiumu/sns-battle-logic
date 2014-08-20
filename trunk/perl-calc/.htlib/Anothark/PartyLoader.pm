@@ -13,6 +13,45 @@ use Anothark::Character::Enemy;
 use Anothark::Party;
 use DBI qw( SQL_INTEGER );
 use base qw( Anothark::BaseLoader );
+
+
+
+my $sql_get_party_invitation = "
+SELECT
+    main.message,
+    call.user_name
+FROM
+    t_party_invitation AS main
+    JOIN
+    t_user AS call
+    ON (
+        main.call_user_id = call.user_id
+    )
+WHERE
+    main.user_id = ?
+";
+
+
+sub getPartyInvitation
+{
+    my $class = shift;
+    my $user_id = shift;
+    my $flag  = shift;
+
+    my $sth  = $class->getDbHandler()->prepare($sql_get_party_invitation);
+    my $stat = $sth->execute(($user_id));
+    if ($flag)
+    {
+        my $rows  = $sth->fetchall_arrayref( +{} );
+        return $rows;
+    }
+    else
+    {
+        return $sth->rows();
+    }
+}
+
+
 sub new
 {
     my $class = shift;

@@ -11,23 +11,31 @@ use base qw( Anothark::BaseLoader );
 
 my $sql_get_follow_request = "
 SELECT
-    user_id,
-    follow_user_id
+    main.user_id,
+    main.follow_user_id,
+    u.user_name
 FROM
-    t_follows AS main
-    LEFT JOIN
-    t_follows AS rev
-    ON (
-        main.user_id = rev.follow_user_id
-        AND main.follow_user_id = rev.user_id
-        AND main.delete_flag = rev.delete_flag
+    (
+        t_follows AS main
+        LEFT JOIN
+        t_follows AS rev
+        ON (
+            main.user_id = rev.follow_user_id
+            AND main.follow_user_id = rev.user_id
+            AND main.delete_flag = rev.delete_flag
+        )
     )
+    JOIN
+    t_user AS u
+    ON ( u.user_id = main.follow_user_id )
 WHERE
     main.user_id = ?
     AND
     main.delete_flag <> 1
     AND
     rev.user_id IS NULL
+ORDER BY
+    main.follow_user_id
 ";
 
 sub new
@@ -109,11 +117,11 @@ sub getFollowRequest
 {
     my $class = shift;
     my $src_user_id = shift;
-    my $dst_user_id = shift;
+#    my $dst_user_id = shift;
 
     my $sth  = $class->getSthRequest();
     my $stat = $sth->execute(($src_user_id));
-    my $rows  = $sth->fetchall_hashref( +{} );
+    my $rows  = $sth->fetchall_arrayref( +{} );
     return $rows;
 }
 
@@ -121,7 +129,7 @@ sub getFollowRequestNumber
 {
     my $class = shift;
     my $src_user_id = shift;
-    my $dst_user_id = shift;
+#    my $dst_user_id = shift;
 
     my $sth  = $class->getSthRequest();
     my $stat = $sth->execute(($src_user_id));

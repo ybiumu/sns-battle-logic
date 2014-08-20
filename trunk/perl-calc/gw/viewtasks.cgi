@@ -10,6 +10,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
+use Anothark::FollowingManager;
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
@@ -18,6 +19,7 @@ $at->setPageUtil($pu);
 
 my $db = DbUtil::getDbHandler();
 my $mu = new MobileUtil();
+my $fm = new Anothark::FollowingManager($db);
 
 $at->setDbHandler($db);
 $at->setMobileUtil($mu);
@@ -63,7 +65,26 @@ my $version = "0.1a20130415";
 ### Main ###
 ############
 
+# init
+$out->{"RESULT_FRIENDS"} = sprintf('**&nbsp; \¿‚Í‚ ‚è‚Ü‚¹‚ñ &nbsp;**');
+$out->{"RESULT_PARTY"}   = sprintf('**&nbsp; Š©—U‚Í‚ ‚è‚Ü‚¹‚ñ &nbsp;**');
+$out->{"RESULT_TASK"}    = sprintf('**&nbsp; ˆË—Š‚Í‚ ‚è‚Ü‚¹‚ñ &nbsp;**');
 
+# load sns notice.
+my $fr = $fm->getFollowRequest( $out->{USER_ID});
+if ( scalar @{$fr} )
+{
+    $out->{"RESULT_FRIENDS"} = "";
+    map
+    {
+        $out->{"RESULT_FRIENDS"} .= sprintf(
+            '<a href="mypage.cgi?guid=ON&user_id=%s">%s</a><br /><form action="follow_ans.cgi"><input type="hidden" name="guid" value="ON" /><input type="hidden" name="tid" value="%s"><input type="submit" name="ok" value="³”F" />&nbsp;<input type="submit" name="ng" value="‹‘”Û" /></form><hr />',
+            $_->{follow_user_id},
+            $_->{user_name},
+            $_->{follow_user_id}
+        )
+    } @{ $fr };
+}
 
 
 
