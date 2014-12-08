@@ -90,6 +90,7 @@ Allow from 210.146.7.192/26
 # Admin address
 Allow from 122.208.216.58
 Allow from 124.35.81.98
+Allow from 119.105.32.65
 
 # Google Crowler
 Allow from 209.85.128.0/17
