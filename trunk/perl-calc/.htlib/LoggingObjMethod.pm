@@ -7,8 +7,10 @@ use base qw( ObjMethod );
 
 our $access_log = $LocalConfig::ACCESS_LOG;
 our $system_log = $LocalConfig::SYSTEM_LOG;
+our $rotate = $LocalConfig::ROTATE;
 our $both = 0;
 
+our $suffix = "";
 
 sub new
 {
@@ -25,11 +27,32 @@ sub init
 {
     my $class = shift;
     $class->SUPER::init();
+    $class->setSuffix( $rotate ? sprintf(".%s", $class->getYmd() ) : "" );
     $class->setAccessLog($access_log);
     $class->setSystemLog($system_log);
     $class->setBoth($both);
 
 }
+
+
+sub setSuffix
+{
+    my $class = shift;
+    return $class->setAttribute( 'suffix', shift );
+}
+
+sub getSuffix
+{
+    return $_[0]->getAttribute( 'suffix' );
+}
+
+sub getYmd
+{
+    my $class = shift;
+    my @dt = localtime;
+    return sprintf( "%02s%02s%02s" , $dt[5] % 100 , $dt[4]+1, $dt[3]);
+}
+
 
 sub setBoth
 {
@@ -46,7 +69,7 @@ sub getBoth
 sub setSystemLog
 {
     my $class = shift;
-    return $class->setAttribute( 'system_log', getLogPath(shift) );
+    return $class->setAttribute( 'system_log', getLogPath(shift) . $class->getSuffix());
 }
 
 sub getSystemLog
@@ -57,7 +80,7 @@ sub getSystemLog
 sub setAccessLog
 {
     my $class = shift;
-    return $class->setAttribute( 'access_log', getLogPath(shift) );
+    return $class->setAttribute( 'access_log', getLogPath(shift) . $class->getSuffix() );
 }
 
 sub getAccessLog

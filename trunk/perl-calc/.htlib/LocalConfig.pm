@@ -8,6 +8,7 @@ $LocalConfig::LOG_DIR = "$LocalConfig::BASE_DIR/.htlog";
 
 $LocalConfig::ACCESS_LOG = "aa_access_log";
 $LocalConfig::SYSTEM_LOG = "aa_system_log";
+$LocalConfig::ROTATE = "1";
 
 
 
