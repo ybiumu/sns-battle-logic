@@ -892,17 +892,18 @@ sub Damage
             }
         }
     }
+    # HP以外にダメージはDIFF計算不要・仮計算も不要
 
     # Status Resolve
     if ( $skill->getNoSkillType() == 4)
     {
         if ( $skill->getSkillId() == 41 )
         {
-            $class->getPosition->setCurrentValue("f");
+            $class->getPosition->setCurrentValueWithoutStack("f");
         }
         else
         {
-            $class->getPosition->setCurrentValue("b");
+            $class->getPosition->setCurrentValueWithoutStack("b");
         }
     }
 

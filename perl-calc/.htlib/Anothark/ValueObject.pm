@@ -11,6 +11,7 @@ use base qw( LoggingObjMethod );
 
 my $max_value = undef;
 my $current_value = undef;
+my $stack_values = undef;
 sub new
 {
     my $class = shift;
@@ -26,6 +27,7 @@ sub init
     my $class = shift;
     $class->SUPER::init();
     $class->setMaxValue(0);
+    $class->setStackValues(0);
     $class->setCurrentValue(0);
 }
 
@@ -57,8 +59,18 @@ sub addMax
 sub setCurrentValue
 {
     my $class = shift;
-    return $class->setAttribute( 'current_value', shift );
+    my $value = shift;
+    $class->addStackValues( $value );
+    return $class->setAttribute( 'current_value', $value );
 }
+
+sub setCurrentValueWithoutStack
+{
+    my $class = shift;
+    my $value = shift;
+    return $class->setAttribute( 'current_value', $value );
+}
+
 
 
 sub addCurrent
@@ -73,6 +85,22 @@ sub getCurrentValue
 }
 
 
+sub setStackValues
+{
+    my $class = shift;
+    return $class->setAttribute( 'stack_values', shift );
+}
+
+sub getStackValues
+{
+    return $_[0]->getAttribute( 'stack_values' );
+}
+
+sub addStackValues
+{
+    my $class = shift;
+    return $class->setStackValues( $class->getStackValues() + shift );
+}
 sub addBoth
 {
     my $class = shift;

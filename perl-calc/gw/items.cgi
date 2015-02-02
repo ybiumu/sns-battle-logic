@@ -266,7 +266,9 @@ exit;
 sub use_item
 {
     my $at = shift;
-    my $c = shift;
+    my $item_id = shift;
+    my $item = $im->loadUserItem($at->getOut()->{USER_ID}, $item_id);
+    my $result = $at->getStatusIo()->useItem( $item );
     return ;
 }
 

@@ -234,6 +234,7 @@ WHERE
 
 
 
+
 sub sepItem
 {
     my $class = shift;
@@ -320,6 +321,19 @@ WHERE
     $sth->finish();
 }
 
+
+sub useItem
+{
+    my $class   = shift;
+#    my $user_id = $class->getUserId();
+    my $item    = shift;
+    my $item_id = $item->getItemId();
+
+#    $class-> ;
+
+    $class->rejectItem( $item_id );
+}
+
 sub rejectItem
 {
     my $class = shift;
@@ -352,6 +366,9 @@ sub sellItem
 }
 
 
+sub modifyStatus
+{
+}
 
 
 sub updateExp

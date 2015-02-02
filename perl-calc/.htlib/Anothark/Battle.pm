@@ -239,6 +239,10 @@ sub getOrder
 }
 
 
+=pod
+ execActOrder
+ 行動順決定ロジック
+=cut
 sub execActOrder
 {
     my $class = shift;
@@ -349,22 +353,6 @@ sub getPartyMember
 {
     return $_[0]->getPlayers();
 }
-
-#sub getLivingPlayers
-#{
-#    my $class  = shift;
-#    my $char = $class->getCharacter();
-#    $class->setLivingOrder([ grep { $char->{$_}->getSide() eq "p" } grep { $char->{$_}->isLiving() } keys %{$char} ]);
-#}
-#
-#
-#sub getLivingFrontPlayers
-#{
-#    my $class  = shift;
-#    my $char = $class->getCharacter();
-#    $class->setLivingOrder([ map { $char->{$_}->getPosition()->cv() eq "f" } @{$class->getLivingPlayers()} ]);
-#}
-#
 
 
 sub getLivingCharactersBySide

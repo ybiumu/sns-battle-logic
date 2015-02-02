@@ -5,6 +5,7 @@ package Anothark::Item;
 $|=1;
 use strict;
 
+use Anothark::ItemUsable;
 
 use LoggingObjMethod;
 use base qw( LoggingObjMethod );
@@ -24,6 +25,8 @@ sub new
             $self->{$key} = $options->{$key};
         }
     }
+
+    $self->postInit();
 
 
     return $self;
@@ -98,6 +101,23 @@ my $luck = undef;
 my $kehai = undef;
 my $rp = undef;
 my $stamina = undef;
+
+
+sub postInit
+{
+    my $class = shift;
+    $class->SUPER::init();
+
+    if ( defined Anothark::ItemUseable::USABLE{$class->getItemSubTypeId()} )
+    {
+        $class->setAttribute( 'to_use', Anothark::ItemUseable::CALLBACK{ $class->getItemSubTypeId() }  );
+    }
+    else
+    {
+        $class->setAttribute( 'to_use', undef );
+    }
+}
+
 
 sub setIsExternalExec
 {
@@ -413,6 +433,18 @@ sub getUseEffectRange
 }
 
 
+sub toUse
+{
+    # Žg‚¦‚È‚¢
+#    return undef;
+    return $_[0]->getAttribute( 'to_use' );
+}
+
+sub toBattleUse
+{
+    # Žg‚¦‚È‚¢
+    return undef;
+}
 
 
 sub FigmentParts
