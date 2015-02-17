@@ -108,9 +108,9 @@ sub postInit
     my $class = shift;
     $class->SUPER::init();
 
-    if ( defined Anothark::ItemUseable::USABLE{$class->getItemSubTypeId()} )
+    if ( defined Anothark::ItemUsable::USABLE->{$class->getItemSubTypeId()} )
     {
-        $class->setAttribute( 'to_use', Anothark::ItemUseable::CALLBACK{ $class->getItemSubTypeId() }  );
+        $class->setAttribute( 'to_use', Anothark::ItemUsable::CALLBACK->{ $class->getItemSubTypeId() }  );
     }
     else
     {
