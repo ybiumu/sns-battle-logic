@@ -36,8 +36,11 @@ my $beat_flag = undef;
 my $bgid = undef;
 my $egid = undef;
 
+my $resolve_stack = undef;
+my $current_resolve = undef;
+
 my $stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s<br />';
-my $debug_stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s(RT:%s/AT:%s/DF:%s[EXP:%s])<br />';
+my $debug_stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s[%s]/%s(RT:%s/AT:%s/DF:%s[EXP:%s])<br />';
 my $act_template = '<div style="text-align:%s;color:%s;">%s%s</div>';
 my $delay_template = '<div style="text-align:center;color:#2faf2f;">%s%s</div>';
 my $chain_template = '<div style="text-align:%s;color:#af2f2f;">-*&nbsp;%s連携&nbsp;*-</div>';
@@ -254,6 +257,14 @@ sub execActOrder
 }
 
 
+=pod
+#######################################
+
+対象選択のためのメソッド群
+
+#######################################
+=cut
+
 sub setLivingOrder
 {
     my $class = shift;
@@ -382,189 +393,6 @@ sub getLivingFrontCharactersBySide
 }
 
 
-sub resolveActions
-{
-    my $class  = shift;
-    my $target = shift;
-    my $skill  = shift;
-    my $turn   = $class->getCurrentTurn();
-#    my $char   = $class->getCurrentActor();
-    my $char   = $class->getCurrentResolve();
-#    my $skill  = $char->getCmd()->[$turn];
-
-    # Target
-    $class->getTurnText()->[$turn] .= sprintf($target_template, $symbol->{$char->getTextSide()}->{align},$target->getName());
-
-    # Chain
-    $class->getTurnText()->[$turn] .= sprintf($chain_template,  $symbol->{$char->getTextSide()}->{align},$target->getChainStack()+1) if ($target->getChainStack());
-
-
-    # Interlapt Check
-    # Interlapt cmd
-
-    my $is_dmg = 0;
-
-    return if $class->battleEnd();
-    ##  Do Damages ##
-    # Search effect range.
-    # Dmg
-    my $dmg_obj = new Anothark::Battle::DamageExec($char, $target, $skill );
-    my $dmg = $dmg_obj->damageExec();
-    if (! $skill->isSkill() )
-    {
-        if( $skill->getNoSkillType() == 4 ) # 移動
-        {
-            $class->getTurnText()->[$turn] .= sprintf(
-                                                    $effect_template,
-                                                    $symbol->{$char->getTextSide()}->{align},
-                                                    sprintf($effect_str_template, "移動した")
-                                              );
-        }
-        elsif ( $skill->getNoSkillType() == 3 ) # 集中
-        {
-            $class->getTurnText()->[$turn] .= sprintf(
-                                                    $effect_template,
-                                                    $symbol->{$char->getTextSide()}->{align},
-                                                    sprintf($effect_str_template, "集中")
-                                              );
-        }
-    }
-    else
-    {
-        if ( $skill->getEffectType() eq "3" )
-        {
-            # Trapにスタック
-            $class->getTurnText()->[$turn] .= sprintf(
-                                                    $effect_template,
-                                                    $symbol->{$char->getTextSide()}->{align},
-                                                    sprintf($effect_str_template, "罠を仕掛けた")
-                                              );
-            $dmg_obj->setSkill( @{$skill->getChildren()}[0] );
-            # この時点で詠唱者のステータスをコピー
-            $dmg_obj->setFrom( new Anothark::Character::Virtual() );
-            $dmg_obj->getFrom()->setBaseChar( $char );
-            $dmg_obj->getFrom()->setSameCmd( $dmg_obj->getSkill() );
-            $dmg_obj->getFrom()->setName( $skill->getName() );
-            # 設置対象者のサイドを設定
-            $dmg_obj->getFrom()->setSide( $target->getSide() );
-            $dmg_obj->getFrom()->setTextSide( "n" );
-            $target->getTrapStack()->stackOne($dmg_obj);
-            $is_dmg = 1; # 熟練対象
-
-            if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
-            {
-                $class->getTurnText()->[$turn]  .= sprintf(
-                    $debug_template,
-                    $dmg_obj->getFrom->getName(),
-                    $dmg_obj->getSkill()->getPowerSourceByKey(),
-                    $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
-                );
-            }
-        }
-        elsif ( $skill->getEffectType() eq "4" )
-        {
-            # Curseになんかしらスタック
-            $class->getTurnText()->[$turn] .= sprintf(
-                                                    $effect_template,
-                                                    $symbol->{$char->getTextSide()}->{align},
-                                                    sprintf($effect_str_template, "呪詛を仕掛けた")
-                                              );
-            $dmg_obj->setSkill( @{$skill->getChildren()}[0] );
-            # この時点で詠唱者のステータスをコピー
-            $dmg_obj->setFrom( new Anothark::Character::Virtual() );
-            $dmg_obj->getFrom()->setBaseChar( $char );
-            $dmg_obj->getFrom()->setSameCmd( $dmg_obj->getSkill() );
-            $dmg_obj->getFrom()->setName( $skill->getName() );
-            # 設置対象者のサイドを設定
-            $dmg_obj->getFrom()->setSide( $target->getSide() );
-            $dmg_obj->getFrom()->setTextSide( "n" );
-            $target->getCurseStack()->stackOne($dmg_obj);
-            $is_dmg = 1; # 熟練対象
-
-            if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
-            {
-                $class->getTurnText()->[$turn]  .= sprintf(
-                    $debug_template,
-                    $dmg_obj->getFrom->getName(),
-                    $dmg_obj->getSkill()->getPowerSourceByKey(),
-                    $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
-                );
-            }
-        }
-        elsif ( $dmg == 0 )
-        {
-            $class->getTurnText()->[$turn] .= sprintf(
-                                                    $effect_template,
-                                                    $symbol->{$char->getTextSide()}->{align},
-                                                    sprintf($effect_str_template, "効果なし")
-                                              );
-            $is_dmg = 1;
-        }
-        else
-        {
-            $class->getTurnText()->[$turn] .= sprintf(
-                                                    $effect_template,
-                                                    $symbol->{$char->getTextSide()}->{align},
-                                                    sprintf(
-                                                        $dmg_str_template,
-                                                        $skill->getBaseElementName(),
-                                                        ( ( ( $skill->getEffectType() == 0 && $skill->getEffectTargetType() == 3 ) ? "" : $skill->getEffectTargetLabel() ) . $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } )
-                                                        )
-                                              );
-            $is_dmg = 1;
-        }
-    }
-#    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
-    $target->Damage( $skill,$dmg , $char );
-
-
-    if( not $target->isLiving() )
-    {
-        $class->getTurnText()->[$turn] .= sprintf(
-                                            $effect_template,
-                                            $symbol->{$char->getTextSide()}->{align}, "　⇒⇒倒れた");
-        $target->Die();
-    }
-    else
-    {
-        if ( $dmg > 0 )
-        {
-#            # ここで発動はしない。ダメージのフラグを載せるだけ
-# フラグもやんない
-            $class->chkScene(DAMAGED,{ char => $char });
-        }
-    }
-
-    return $is_dmg;
-}
-
-
-# 連携の継続判定
-sub continueChain
-{
-    my $class = shift;
-    my $cmd   = shift;
-    my @targets = @_;
-    my $char   = $class->getCharacter();
-    if ( $cmd->getEffectType() eq "3" || $cmd->getEffectType() eq "4" )
-    {
-        @targets = ();
-    }
-
-    my $targets = { map { $_ => 1 } @targets };
-    map {
-        if ( not exists $targets->{$char->{$_}->getId()} )
-        {
-            $char->{$_}->setResolveChainStack(0);
-        }
-        elsif( $char->{$_}->getChainStack() eq $char->{$_}->getResolveChainStack() )
-        {
-            $char->{$_}->setResolveChainStack(0);
-        }
-        $char->{$_}->setChainStack( $char->{$_}->getResolveChainStack() );
-    } @{$class->getLiving()};
-}
-
 sub getSameRangeTargets
 {
     my $class  = shift;
@@ -573,189 +401,14 @@ sub getSameRangeTargets
     $class->setLivingOrder([ grep { $char->{$_}->getPoint() == $target->getPoint() } @{$class->getLiving()} ]);
 }
 
-#sub getSameRangeTargets
-#{
-#    my $class = shift;
-#    my $char  = shift;
-#
-#    my $side  = $char->getSide(); # ﾀｰｹﾞｯﾄが所属するSide
-#    my $target_type = shift; #1 enemy ,2 self,3 all # ﾀｰｹﾞｯﾄから見た相対的
-#    # 1 の時(enemy)
-#    #   1. side -> e
-#    #    e is true
-#    #    p is false
-#    #   2. side -> p
-#    #    e is false
-#    #    p is true
-#    #
-#    # 2 の時(self)
-#    #   1. side -> e
-#    #    e is false
-#    #    p is true
-#    #   2. side -> p
-#    #    e is false
-#    #    p is true
-#    #
-#    my $range = shift; # 1 single, 2 same, 3, all
-#
-#    my $char  = $class->getCharacter();
-#}
-
-sub having_bit
-{
-    my $k = shift;
-    my $s = shift;
-    return ($s == (hex($k) & $s) ? 1 : 0 ) 
-}
-
-
-my $resolve_stack = undef;
-my $current_resolve = undef;
-
-sub initResolveStack
-{
-    my $class = shift;
-    return $class->setAttribute( 'resolve_stack', [] );
-}
-sub pushResolveStack
-{
-    my $class = shift;
-    return push( @{$class->getAttribute( 'resolve_stack')}, shift );
-}
-
-sub popResolveStack
-{
-    return pop(@{$_[0]->getAttribute( 'resolve_stack' )});
-}
 
 
 
-sub setCurrentResolve
-{
-    my $class = shift;
-    return $class->setAttribute( 'current_resolve', shift );
-}
-
-sub getCurrentResolve
-{
-    return $_[0]->getAttribute( 'current_resolve' );
-}
-
-
-
-sub chkScene
-{
-    my $class = shift;
-    my $scene = shift;
-    my $opt   = shift;
-    $class->chkEffect($scene, $opt);
-    $class->chkCmdStack($scene, $opt);
-    $class->chkClear($scene, $opt);
-}
-
-#
-# $actions = {
-#   DAMAGED   => sub { return $class->setStackCmd(@_) },
-#   AFTER_CMD => sub { return $class->resolveStackCmd(@_) },
-#
-#
-# }
-#
-
-
-
-sub chkEffect
-{
-    my $class = shift;
-    my $scene = shift;
-    my $opt   = shift;
-#    if ( $scene eq DAMAGED && exists $opt->{char} )
-#    {
-#        $opt->{char}->setDamaged(1);
-#    }
-}
-
-sub chkClear
-{
-    my $class = shift;
-    my $scene = shift;
-}
-
-sub chkCmdStack
-{
-    my $class = shift;
-    my $scene = shift;
-    my $opt   = shift;
-    # Stacking
-
-    $class->error("[chkCmdStack] start.[$scene]");
-
-#    if ( $scene eq AFTER_CMD && exists $opt->{char} )
-    if ( $scene eq AFTER_CMD )
-    {
-        $class->error("[AFTER_CMD] start.");
-
-        my @damaged = $class->getDamaged();
-        my @traped  = $class->getTrapStacked();
-        # 罠の対象者のリストアップだけは移動しないといけない
-
-        # 呪詛のスタック解決
-        foreach my $char ( @damaged )
-        {
-#            my $stack = $char->getStacks()->filter("curse");
-            $class->error("[DAMAGED] " . $char->getName() . " start.");
-            my $stack = $char->getResolveCurseStack();
-            while( $stack->isRemain() )
-            {
-                my $res = $stack->resolveOne();
-                $class->pushResolveStack($res);
-                $class->doDelaiedCmd()
-
-            }
-            $class->error("[DAMAGED] " . $char->getName() . " done.");
-        }
-
-        # 罠のスタック解決
-        foreach my $char ( @traped )
-        {
-#            my $stack = $char->getStacks()->filter("curse");
-            $class->error("[TRAPED] " . $char->getName() . " start.");
-            my $stack = $char->getResolveTrapStack();
-            if ( $stack->isRemain() )
-            {
-                my $res = $stack->resolveOne();
-                $class->pushResolveStack($res);
-                $class->doDelaiedCmd()
-
-            }
-            $class->error("[TRAPED] " . $char->getName() . " done.");
-        }
-
-    }
-#    $class->getActions()->{$scene}
-    # resolve stacks
-}
-
-
-
-
-
-
-
-
-
-my $actions = undef;
-sub setActions
-{
-    my $class = shift;
-    return $class->setAttribute( 'actions', shift );
-}
-
-sub getActions
-{
-    return $_[0]->getAttribute( 'actions' );
-}
-
+=pod
+######################################
+戦闘フローマネジメント
+######################################
+=cut
 
 sub doBattle
 {
@@ -773,11 +426,6 @@ sub doBattle
         $enemy_img
     );
 
-#    $class->getTurnText()->[0] = sprintf(
-#        '<div class="contents_e1">%s</div><img class="dispimg" src="http://dummyimage.com/230x160/bbb/000.jpg&text=bgid_%05s.egid_%05s" />',
-#        $enemy_party,
-#        $bgid, $egid
-#    );
 
     foreach my $turn  ( 1 .. 5 )
     {
@@ -788,124 +436,13 @@ sub doBattle
         last if $class->battleEnd();
     }
 
+    if ( DEBUG )
+    {
+    }
+
     $class->resultCheck();
 
 }
-
-
-sub checkDropItems
-{
-    my $class = shift;
-    $class->warning( "[CHECK]");
-    my $beats = $class->getBeatCharactersBySide("e");
-    return [ grep { $_->isDroped() } ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )];
-#    my $drops = [];
-#    foreach my $item ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )
-#    {
-#        $class->warning( sprintf "[ITEMS] %s",$item->getItemLabel());
-#        if ( $item->isDroped() )
-#        {
-#            $class->warning( sprintf "[DROP] %s",$item->getItemLabel());
-#            push( @{$drops}, $item);
-#        }
-#    }
-#    return $drops;
-}
-
-sub checkExperiment
-{
-    my $class = shift;
-    my $chk_str = "";
-    foreach my $c ( @{$class->getPlayers()} )
-    {
-        my $cnts = $c->getUseElementCount();
-        my $exp_values = {};
-        foreach my $type ( sort keys %{$cnts})
-        {
-            # value
-            my $type_exp = ( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
-            if ( $type_exp > 0 )
-            {
-                $exp_values->{$type} = $type_exp;
-                # Str 
-                $chk_str .= sprintf '%sは%sの熟練が%.2f上がった<br />',
-                                $c->getName(),
-                                Anothark::Skill::typeId2typeName($type),
-                                $type_exp;
-            }
-        }
-        # Save
-        $c->getStatusIo()->updateExp($exp_values);
-    }
-    return $chk_str;
-}
-
-sub resultCheck
-{
-    my $class = shift;
-    my $result_str = "--DRAW--";
-    if ( $class->getBeatFlag()->{"e"} eq "1" && $class->getBeatFlag()->{"p"})
-    {
-        #DRAW
-        $class->draw();
-    }
-    elsif( $class->getBeatFlag()->{"e"} eq "1" )
-    {
-        #WIN
-        $class->win();
-    }
-    elsif( $class->getBeatFlag()->{"p"} eq "1" )
-    {
-        #LOSE
-        $class->lose();
-    }
-    else
-    {
-        #DRAW
-        $class->draw();
-    }
-}
-
-
-
-sub draw
-{
-    return $_[0]->setResultFlag(-1);
-}
-
-sub lose
-{
-    return $_[0]->setResultFlag(0);
-}
-
-sub win
-{
-    return $_[0]->setResultFlag(1);
-}
-
-sub isWin
-{
-    return ( $_[0]->getResultFlag() == 1 ? 1 : 0 );
-}
-
-sub isDraw
-{
-    return ( $_[0]->getResultFlag() == -1 ? 1 : 0 );
-}
-
-my $result_flag = undef;
-sub setResultFlag
-{
-    my $class = shift;
-    return $class->setAttribute( 'result_flag', shift );
-}
-
-sub getResultFlag
-{
-    return $_[0]->getAttribute( 'result_flag' );
-}
-
-
 
 
 sub doTurn
@@ -934,6 +471,7 @@ sub doTurn
                 $symbol->{$chars->{$cs}->getTextSide()}->{head},
                 $chars->{$cs}->getName(), $chars->{$cs}->getPointStr(), "",
                 $chars->{$cs}->getHp()->current(),
+                $chars->{$cs}->getHp()->stack(),
                 $chars->{$cs}->getHp()->max(),
                 $chars->{$cs}->getConcentration->cv(),
                 $chars->{$cs}->getAtack()->cv(),
@@ -1682,6 +1220,467 @@ sub doSkillUnit
     return $raise_parent;
 
 }
+
+
+sub resolveActions
+{
+    my $class  = shift;
+    my $target = shift;
+    my $skill  = shift;
+    my $turn   = $class->getCurrentTurn();
+#    my $char   = $class->getCurrentActor();
+    my $char   = $class->getCurrentResolve();
+#    my $skill  = $char->getCmd()->[$turn];
+
+    # Target
+    $class->getTurnText()->[$turn] .= sprintf($target_template, $symbol->{$char->getTextSide()}->{align},$target->getName());
+
+    # Chain
+    $class->getTurnText()->[$turn] .= sprintf($chain_template,  $symbol->{$char->getTextSide()}->{align},$target->getChainStack()+1) if ($target->getChainStack());
+
+
+    # Interlapt Check
+    # Interlapt cmd
+
+    my $is_dmg = 0;
+
+    return if $class->battleEnd();
+    ##  Do Damages ##
+    # Search effect range.
+    # Dmg
+    my $dmg_obj = new Anothark::Battle::DamageExec($char, $target, $skill );
+    my $dmg = $dmg_obj->damageExec();
+    if (! $skill->isSkill() )
+    {
+        if( $skill->getNoSkillType() == 4 ) # 移動
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf($effect_str_template, "移動した")
+                                              );
+        }
+        elsif ( $skill->getNoSkillType() == 3 ) # 集中
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf($effect_str_template, "集中")
+                                              );
+        }
+    }
+    else
+    {
+        if ( $skill->getEffectType() eq "3" )
+        {
+            # Trapにスタック
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf($effect_str_template, "罠を仕掛けた")
+                                              );
+            $dmg_obj->setSkill( @{$skill->getChildren()}[0] );
+            # この時点で詠唱者のステータスをコピー
+            $dmg_obj->setFrom( new Anothark::Character::Virtual() );
+            $dmg_obj->getFrom()->setBaseChar( $char );
+            $dmg_obj->getFrom()->setSameCmd( $dmg_obj->getSkill() );
+            $dmg_obj->getFrom()->setName( $skill->getName() );
+            # 設置対象者のサイドを設定
+            $dmg_obj->getFrom()->setSide( $target->getSide() );
+            $dmg_obj->getFrom()->setTextSide( "n" );
+            $target->getTrapStack()->stackOne($dmg_obj);
+            $is_dmg = 1; # 熟練対象
+
+            if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
+            {
+                $class->getTurnText()->[$turn]  .= sprintf(
+                    $debug_template,
+                    $dmg_obj->getFrom->getName(),
+                    $dmg_obj->getSkill()->getPowerSourceByKey(),
+                    $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
+                );
+            }
+        }
+        elsif ( $skill->getEffectType() eq "4" )
+        {
+            # Curseになんかしらスタック
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf($effect_str_template, "呪詛を仕掛けた")
+                                              );
+            $dmg_obj->setSkill( @{$skill->getChildren()}[0] );
+            # この時点で詠唱者のステータスをコピー
+            $dmg_obj->setFrom( new Anothark::Character::Virtual() );
+            $dmg_obj->getFrom()->setBaseChar( $char );
+            $dmg_obj->getFrom()->setSameCmd( $dmg_obj->getSkill() );
+            $dmg_obj->getFrom()->setName( $skill->getName() );
+            # 設置対象者のサイドを設定
+            $dmg_obj->getFrom()->setSide( $target->getSide() );
+            $dmg_obj->getFrom()->setTextSide( "n" );
+            $target->getCurseStack()->stackOne($dmg_obj);
+            $is_dmg = 1; # 熟練対象
+
+            if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
+            {
+                $class->getTurnText()->[$turn]  .= sprintf(
+                    $debug_template,
+                    $dmg_obj->getFrom->getName(),
+                    $dmg_obj->getSkill()->getPowerSourceByKey(),
+                    $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
+                );
+            }
+        }
+        elsif ( $dmg == 0 )
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf($effect_str_template, "効果なし")
+                                              );
+            $is_dmg = 1;
+        }
+        else
+        {
+            $class->getTurnText()->[$turn] .= sprintf(
+                                                    $effect_template,
+                                                    $symbol->{$char->getTextSide()}->{align},
+                                                    sprintf(
+                                                        $dmg_str_template,
+                                                        $skill->getBaseElementName(),
+                                                        ( ( ( $skill->getEffectType() == 0 && $skill->getEffectTargetType() == 3 ) ? "" : $skill->getEffectTargetLabel() ) . $dmg . $effect_str->{$skill->getEffectType()}->{ $dmg > 0 ? 0 : 1 } )
+                                                        )
+                                              );
+            $is_dmg = 1;
+        }
+    }
+#    $target->Damage( $dmg * ($skill->getEffectType() eq 1 ? -1 : 1) );
+    $target->Damage( $skill,$dmg , $char );
+
+
+    if( not $target->isLiving() )
+    {
+        $class->getTurnText()->[$turn] .= sprintf(
+                                            $effect_template,
+                                            $symbol->{$char->getTextSide()}->{align}, "　⇒⇒倒れた");
+        $target->Die();
+    }
+    else
+    {
+        if ( $dmg > 0 )
+        {
+#            # ここで発動はしない。ダメージのフラグを載せるだけ
+# フラグもやんない
+            $class->chkScene(DAMAGED,{ char => $char });
+        }
+    }
+
+    return $is_dmg;
+}
+
+
+# 連携の継続判定
+sub continueChain
+{
+    my $class = shift;
+    my $cmd   = shift;
+    my @targets = @_;
+    my $char   = $class->getCharacter();
+    if ( $cmd->getEffectType() eq "3" || $cmd->getEffectType() eq "4" )
+    {
+        @targets = ();
+    }
+
+    my $targets = { map { $_ => 1 } @targets };
+    map {
+        if ( not exists $targets->{$char->{$_}->getId()} )
+        {
+            $char->{$_}->setResolveChainStack(0);
+        }
+        elsif( $char->{$_}->getChainStack() eq $char->{$_}->getResolveChainStack() )
+        {
+            $char->{$_}->setResolveChainStack(0);
+        }
+        $char->{$_}->setChainStack( $char->{$_}->getResolveChainStack() );
+    } @{$class->getLiving()};
+}
+
+
+
+
+=pod
+
+=cut
+
+sub having_bit
+{
+    my $k = shift;
+    my $s = shift;
+    return ($s == (hex($k) & $s) ? 1 : 0 ) 
+}
+
+
+
+sub initResolveStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'resolve_stack', [] );
+}
+sub pushResolveStack
+{
+    my $class = shift;
+    return push( @{$class->getAttribute( 'resolve_stack')}, shift );
+}
+
+sub popResolveStack
+{
+    return pop(@{$_[0]->getAttribute( 'resolve_stack' )});
+}
+
+
+
+sub setCurrentResolve
+{
+    my $class = shift;
+    return $class->setAttribute( 'current_resolve', shift );
+}
+
+sub getCurrentResolve
+{
+    return $_[0]->getAttribute( 'current_resolve' );
+}
+
+
+
+sub chkScene
+{
+    my $class = shift;
+    my $scene = shift;
+    my $opt   = shift;
+    $class->chkEffect($scene, $opt);
+    $class->chkCmdStack($scene, $opt);
+    $class->chkClear($scene, $opt);
+}
+
+#
+# $actions = {
+#   DAMAGED   => sub { return $class->setStackCmd(@_) },
+#   AFTER_CMD => sub { return $class->resolveStackCmd(@_) },
+#
+#
+# }
+#
+
+
+
+sub chkEffect
+{
+    my $class = shift;
+    my $scene = shift;
+    my $opt   = shift;
+#    if ( $scene eq DAMAGED && exists $opt->{char} )
+#    {
+#        $opt->{char}->setDamaged(1);
+#    }
+}
+
+sub chkClear
+{
+    my $class = shift;
+    my $scene = shift;
+}
+
+sub chkCmdStack
+{
+    my $class = shift;
+    my $scene = shift;
+    my $opt   = shift;
+    # Stacking
+
+    $class->error("[chkCmdStack] start.[$scene]");
+
+#    if ( $scene eq AFTER_CMD && exists $opt->{char} )
+    if ( $scene eq AFTER_CMD )
+    {
+        $class->error("[AFTER_CMD] start.");
+
+        my @damaged = $class->getDamaged();
+        my @traped  = $class->getTrapStacked();
+        # 罠の対象者のリストアップだけは移動しないといけない
+
+        # 呪詛のスタック解決
+        foreach my $char ( @damaged )
+        {
+#            my $stack = $char->getStacks()->filter("curse");
+            $class->error("[DAMAGED] " . $char->getName() . " start.");
+            my $stack = $char->getResolveCurseStack();
+            while( $stack->isRemain() )
+            {
+                my $res = $stack->resolveOne();
+                $class->pushResolveStack($res);
+                $class->doDelaiedCmd()
+
+            }
+            $class->error("[DAMAGED] " . $char->getName() . " done.");
+        }
+
+        # 罠のスタック解決
+        foreach my $char ( @traped )
+        {
+#            my $stack = $char->getStacks()->filter("curse");
+            $class->error("[TRAPED] " . $char->getName() . " start.");
+            my $stack = $char->getResolveTrapStack();
+            if ( $stack->isRemain() )
+            {
+                my $res = $stack->resolveOne();
+                $class->pushResolveStack($res);
+                $class->doDelaiedCmd()
+
+            }
+            $class->error("[TRAPED] " . $char->getName() . " done.");
+        }
+
+    }
+#    $class->getActions()->{$scene}
+    # resolve stacks
+}
+
+
+
+
+
+
+
+
+
+my $actions = undef;
+sub setActions
+{
+    my $class = shift;
+    return $class->setAttribute( 'actions', shift );
+}
+
+sub getActions
+{
+    return $_[0]->getAttribute( 'actions' );
+}
+
+
+
+
+sub checkDropItems
+{
+    my $class = shift;
+    $class->warning( "[CHECK]");
+    my $beats = $class->getBeatCharactersBySide("e");
+    return [ grep { $_->isDroped() } ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )];
+#    my $drops = [];
+#    foreach my $item ( map { @{$class->getCharacter()->{$_}->getDropItems()} } @{$beats} )
+#    {
+#        $class->warning( sprintf "[ITEMS] %s",$item->getItemLabel());
+#        if ( $item->isDroped() )
+#        {
+#            $class->warning( sprintf "[DROP] %s",$item->getItemLabel());
+#            push( @{$drops}, $item);
+#        }
+#    }
+#    return $drops;
+}
+
+sub checkExperiment
+{
+    my $class = shift;
+    my $chk_str = "";
+    foreach my $c ( @{$class->getPlayers()} )
+    {
+        my $cnts = $c->getUseElementCount();
+        my $exp_values = {};
+        foreach my $type ( sort keys %{$cnts})
+        {
+            # value
+            my $type_exp = ( ( $class->getPartyLevel() - $c->getTypeLevel($type) > 10 ? 10 : $class->getPartyLevel() - $c->getTypeLevel($type) ) / 2) * ( $cnts->{$type} / $c->getElementTotalCount() );
+            if ( $type_exp > 0 )
+            {
+                $exp_values->{$type} = $type_exp;
+                # Str 
+                $chk_str .= sprintf '%sは%sの熟練が%.2f上がった<br />',
+                                $c->getName(),
+                                Anothark::Skill::typeId2typeName($type),
+                                $type_exp;
+            }
+        }
+        # Save
+        $c->getStatusIo()->updateExp($exp_values);
+    }
+    return $chk_str;
+}
+
+sub resultCheck
+{
+    my $class = shift;
+    my $result_str = "--DRAW--";
+    if ( $class->getBeatFlag()->{"e"} eq "1" && $class->getBeatFlag()->{"p"})
+    {
+        #DRAW
+        $class->draw();
+    }
+    elsif( $class->getBeatFlag()->{"e"} eq "1" )
+    {
+        #WIN
+        $class->win();
+    }
+    elsif( $class->getBeatFlag()->{"p"} eq "1" )
+    {
+        #LOSE
+        $class->lose();
+    }
+    else
+    {
+        #DRAW
+        $class->draw();
+    }
+}
+
+
+
+sub draw
+{
+    return $_[0]->setResultFlag(-1);
+}
+
+sub lose
+{
+    return $_[0]->setResultFlag(0);
+}
+
+sub win
+{
+    return $_[0]->setResultFlag(1);
+}
+
+sub isWin
+{
+    return ( $_[0]->getResultFlag() == 1 ? 1 : 0 );
+}
+
+sub isDraw
+{
+    return ( $_[0]->getResultFlag() == -1 ? 1 : 0 );
+}
+
+my $result_flag = undef;
+sub setResultFlag
+{
+    my $class = shift;
+    return $class->setAttribute( 'result_flag', shift );
+}
+
+sub getResultFlag
+{
+    return $_[0]->getAttribute( 'result_flag' );
+}
+
+
 
 
 sub setBeatFlag

@@ -128,6 +128,14 @@ sub init
 
 }
 
+sub fixInit
+{
+    my $class = shift;
+    map {
+        $class->{$_}->setStackValues( 0 );
+    } grep { my $ref = ref $class->{$_}; $ref =~ /^Anothark::ValueObject(|::.+)$/ } sort keys %{$class};
+}
+
 my $raw_data = undef;
 
 my $user_name = undef;

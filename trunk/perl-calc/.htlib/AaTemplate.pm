@@ -740,6 +740,7 @@ sub getBattlePlayerByUserId
     $class->warning( "load equip [$user_id]" );
 
     $class->loadEquipData( $char );
+    $char->fixInit();
 
     return $char;
 }
@@ -828,6 +829,8 @@ sub getBaseDataByUserId
         } sort keys %{$char->getExperiments() }
     );
 
+
+    $char->fixInit();
     return $result;
 }
 
