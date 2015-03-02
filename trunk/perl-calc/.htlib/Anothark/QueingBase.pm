@@ -16,6 +16,8 @@ use Anothark::Battle::Exhibition;
 use Anothark::Character;
 use Anothark::Skill;
 
+use Anothark::Party;
+use Anothark::PartyLoader;
 
 
 use LoggingObjMethod;
@@ -61,23 +63,8 @@ sub getAt
 
 
 # loop before
-# XXX REMEBER XXX
-# append optimization for result!
-# 留まった場合のリザルトの取り出し方追加
-# 選択をしなかった場合は留まるが、結合条件がなくなるのでLEFT JOIN
 #
-# TODO 選択にランダム性をもたせる
-#
-# TODO resultにもnext_node_idをもたせる
-#   -> 初回ﾊｷﾞｽ牧場時に勝手に戻っちゃうから
-# 優先順位は
-# t_result_master.next_node_id
-# t_selection.next_node_id
-# t_user_status.node_id
-# 
-# TODO t_selection.event_idで発生したイベントは基本的にselectionのnext_nodeを見るが
-# それでもどうしてもt_result_master.next_node_idを使いたかったら仕方ない
-#
+# TODO: party member全員の状況を踏まえなければいけない
 #
 our $select_result_summary = "
 SELECT
@@ -109,7 +96,10 @@ FROM
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_selection_que AS q USING(user_id)
-    LEFT JOIN t_selection AS sel USING(selection_id)
+    LEFT JOIN t_selection AS sel USING(selection_id)"
+    .
+## t_result_master.next_node_id から探す
+    "
     LEFT JOIN (
         t_event_master AS e
         LEFT JOIN
@@ -118,7 +108,10 @@ FROM
         LEFT JOIN
         t_user_flagment AS cfe
         ON ( re.close_flag_id = cfe.flag_id )
-    ) ON ( sel.event_id = e.event_id )
+    ) ON ( sel.event_id = e.event_id )"
+    .
+## t_selection.next_node_id から探す
+    "
     LEFT JOIN (
         t_user_flagment AS f
         LEFT JOIN
@@ -127,7 +120,10 @@ FROM
         LEFT JOIN
         t_user_flagment AS cf
         ON ( r.close_flag_id = cf.flag_id )
-    ) ON ( f.user_id = u.user_id AND r.node_id = sel.next_node_id )
+    ) ON ( f.user_id = u.user_id AND r.node_id = sel.next_node_id )"
+    .
+## t_user_status.node_id から探す
+    "
     LEFT JOIN (
         t_user_flagment AS fc
         LEFT JOIN
@@ -136,7 +132,10 @@ FROM
         LEFT JOIN
         t_user_flagment AS cfc
         ON ( rc.close_flag_id = cfc.flag_id )
-    ) ON ( fc.user_id = u.user_id AND rc.node_id = s.node_id )
+    ) ON ( fc.user_id = u.user_id AND rc.node_id = s.node_id )"
+    .
+## それ以外は現在地のnode_id
+    "
 WHERE u.user_id = ? AND cf.flag_id IS NULL AND cfc.flag_id IS NULL
 ORDER BY RAND() * re.priority * re.rate DESC, re.result_id DESC, RAND() * r.priority * r.rate DESC, r.result_id DESC, RAND() * rc.priority * rc.rate DESC,rc.result_id DESC LIMIT 1"
 ;
@@ -184,6 +183,23 @@ WHERE
     AND
     r.hour = HOUR(NOW())
 ";
+
+
+our $cancel_result_sql = "
+DELETE
+    r
+FROM
+    t_result_log AS r
+    JOIN
+    t_user AS u
+    USING(user_id)
+WHERE
+    u.user_id = ?
+    AND
+    r.result_log_id = ?
+";
+
+
 
 our $insert_pre = "
 INSERT INTO t_result_log (result_log_id,user_id,result_id,wday,hour,sequence_id,result_text,memo)
@@ -240,8 +256,6 @@ WHERE
 
 
 # TODO やるべきことは、
-# XXX 指定されたnext_node_idがとどまれるかの判定、とどまれなかったら元のnode_id
-# XXX 指定されたnext_node_idがlinkできるかの判定と、リンクできなかった場合の例外処理 
 # sel をサブクエリに
 
 ### BUGBUG
@@ -378,7 +392,11 @@ our $up_que_sth;
 our $result_sth_b;
 our $clear_current_result_sth;
 
+our $rollback_result_sth;
+
 our $flagment_sth;
+our $pl;
+our $party;
 
 sub doQueing
 {
@@ -389,11 +407,14 @@ sub doQueing
     my $pu     = $at->getPageUtil();
     my $db     = $at->getDbHandler();
     my $rs_row = shift;
+    my $pl = new Anothark::PartyLoader( $at );
 
     # 更新対象ユーザー毎(オーナー毎)
     foreach my $user_id ( @{$rs_row} )
     {
 
+        my $me = $at->getBattlePlayerByUserId($user_id->[0]);
+        $party = $pl->loadBattlePartyByUser( $me, 'p' );
         $last_status = 0;
         $pu->notice("Target user id[$user_id->[0]]");
         $pu->notice($rs_sth->execute(($user_id->[0])));
@@ -403,6 +424,7 @@ sub doQueing
             next;
         }
 
+        my $members = [ $party->getPartyPlayer() ];
         my $rid  = $rsum_row->{result_id};
         my $egid = $rsum_row->{enemy_group_id};
         my $nnid = $rsum_row->{next_node_id};
@@ -413,30 +435,45 @@ sub doQueing
         my $ins_pre = "";
         my $ins_post = "";
 # log_idの予約
-        my $affected = "";
 
         # 強制フラグ
         if ( $class->getForce() )
         {
             $pu->notice("Force queing.");
-            $pu->notice("Clear duplicace result.[$user_id->[0]]");
-            my $clear_result = $clear_current_result_sth->execute( ($user_id->[0]) );
-            $pu->notice("Clear result.[$clear_result]");
+            map {
+                my $id = $_->getId();
+                $pu->notice("Clear duplicace result.[$id]");
+                my $clear_result = $clear_current_result_sth->execute( ($id) );
+                $pu->notice("Clear result.[$clear_result]");
+            } @{$members}
         }
 
 ###############
 ### BOOKING ###
 ###############
 
-        $pu->notice(sprintf "Value [%s]",join("/",($seq_id,$user_id->[0])));
-        my $booking_result = $booking_sth->execute(($seq_id, $user_id->[0]));
-        $seq_id = 1;
-        $pu->notice(sprintf("Booking result [%s]",$booking_result));
-        my $log_id = $db->{'mysql_insertid'};
+        my $log_ids = {};
+        my $booking_failure = 0;
+        # TODO:DONE 全員分予約、一人でもミスったら？
+        #     -> 全員失敗に寄せる
+        #         -> 発行された予約は破棄する
+        map {
+            my $id = $_->getId();
+            $pu->notice(sprintf "Value [%s]",join("/",($seq_id,$id)));
+            my $booking_result = $booking_sth->execute(($seq_id, $id));
+            $pu->notice(sprintf("Booking result [%s]",$booking_result));
+            $booking_failure = 1 if ( not $booking_result);
+            $log_ids->{$id} = $db->{'mysql_insertid'};
+        } @{$members};
 
-        if (! $booking_result )
+
+        $seq_id = 1;
+
+        if ( $booking_failure )
         {
             $pu->warning(sprintf("Can't queing user_id[%s]",$user_id->[0]));
+            # Rollback booking;
+            $class->rollbackQueingResult($log_ids);
             $last_status = 2;
             next;
         }
@@ -447,24 +484,6 @@ sub doQueing
 # TODO バトルがない場合は・・・postのみ？
 #   でも必ずpre 発生？
 
-# 本当はnodeに紐付いたイベントも結合して、優先順位の高いイベントから処理するようにしないといけない
-# insert result;
-#my $insert_prepost = "
-#INSERT INTO t_result_log (result_log_id,user_id,result_id,wday,sequence_id,result_text)
-#SELECT
-#    ?,
-#    u.user_id ,
-#    r.result_id,
-#    WEEKDAY(NOW()),
-#    ?,
-#    t.result_text
-#FROM
-#    t_user AS u
-#    JOIN t_user_status AS s USING(user_id)
-#    JOIN t_selection_que AS q USING(user_id)
-#    JOIN t_selection AS sel USING(selection_id)
-#    JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id )
-#    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? ) WHERE u.carrier_id = ? AND u.uid = ? ";
 
 
 # next_node_idで発生するイベントの検索
@@ -476,15 +495,30 @@ sub doQueing
 
 
 
-### TODO ###
-# -> each party!
-# $pl->loadBattlePartyByUser();
-            $affected = $result_pre_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$rid,$nnid,'pre',$user_id->[0]));
-            $pu->notice("insert result[$affected]");
+            my $pre_failure = 0;
+            map {
+                my $id = $_;
+                my $log_id = $log_ids->{$id};
+                my $affected = $result_pre_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$rid,$nnid,'pre',$id));
+                $pu->notice("insert result[$affected]");
 #        $seq_id++ if ( $affected && $affected ne "0E0" );
-            $seq_id = 2;
-            $pu->error("SQL error[" . $result_pre_sth->errstr . "]") if ( $affected eq "" || $affected eq "0E0");
+                if ( $affected eq "" || $affected eq "0E0")
+                {
+                    $pu->error("SQL error[" . $result_pre_sth->errstr . "]");
+                    $pre_failure = 1;
+                }
+            } keys %{$log_ids};
 
+            $seq_id = 2;
+
+            if ( $pre_failure )
+            {
+                $pu->warning(sprintf("Can't queing user_id[%s]",$user_id->[0]));
+                # Rollback pre and booking;
+                $class->rollbackQueingResult($log_ids);
+                $last_status = 2;
+                next;
+            }
 
             ## TODO flagment pre
 
@@ -497,14 +531,19 @@ sub doQueing
 ##############
 ### Battle ###
 ##############
+            # エンカウント発生する場合
             if ( $egid > 0 )
             {
                 my $battle = new Anothark::Battle( $at );
 #                my $me = $at->getPlayerByUserId($user_id->[0]);
-                my $me = $at->getBattlePlayerByUserId($user_id->[0]);
+                # バトル用のプレイヤーと基幹処理用のプレイヤーを分けるため、
                 # 実行時にプレイヤーをセットし直す。
                 my $tmp_player = $at->{PLAYER};
                 $at->{PLAYER} = $me;
+
+                # バトルの実施
+                # バトルの様々な情報にもアクセスできるように、Battleオブジェクトを返したほうがいい?
+                $battle->party($party);
                 my $battle_html = Anothark::Battle::Exhibition::doExhibitionMatch( $battle, $me, $nnid );
                 # 戻す
                 $at->{PLAYER} = $tmp_player;
@@ -513,18 +552,36 @@ sub doQueing
 
 
 
-                my $affected_b = "";
+                my $battle_failure = 0;
+                # 1. 結果の保存
+                # 1-1. 戦闘text
                 $pu->notice("SQL battle [$insert_battle]");
-                $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $battle_html ,$rid ,$nnid,'battle',$user_id->[0])));
-                $affected_b = $result_sth_b->execute(($log_id,$seq_id, $battle_html ,$rid,$nnid,'battle',$user_id->[0]));
-                $pu->notice("insert result[$affected_b]");
-#        $seq_id++ if ( $affected_b && $affected_b ne "0E0" );
+                map {
+                    my $id = $_;
+                    my $log_id = $log_ids->{$id};
+                    my $affected = "";
+                    $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $battle_html ,$rid ,$nnid,'battle',$id)));
+                    $affected = $result_sth_b->execute(($log_id,$seq_id, $battle_html ,$rid,$nnid,'battle',$id));
+                    $pu->notice("insert result[$affected]");
+                    if ( $affected eq "" || $affected eq "0E0" )
+                    {
+                        $pu->error("SQL error[" . $result_sth_b->errstr . "]");
+                        $battle_failure = 1;
+                    }
+                } keys %{$log_ids};
+
+
                 $seq_id = 3;
-                $pu->error("SQL error[" . $result_sth_b->errstr . "]") if ( $affected_b eq "" || $affected eq "0E0" );
 
 
-
-
+                if ( $battle_failure )
+                {
+                    $pu->warning(sprintf("Can't battle queing user_id[%s]",$user_id->[0]));
+                    # Rollback pre and booking;
+                    $class->rollbackQueingResult($log_ids);
+                    $last_status = 2;
+                    next;
+                }
 
 
 ################################
@@ -535,95 +592,145 @@ sub doQueing
                     $ins_pre = $battle->getResultText();
 
                     my $drops   = $battle->checkDropItems();
-                    my $chk_exp = $battle->checkExperiment();
-                    my $party   = $battle->getPartyMember();
+                    my ( $chk_exp, $exps ) = $battle->checkExperiment();
+                    my $drop_items = { map { ( $_->getId() => [] ) } @{$members}};
+#                    my $party   = $battle->getPartyMember();
 
                     # Drop item check
                     $ins_pre .= $chk_exp;
                     foreach my $items ( @{$drops} )
                     {
-                        my $target = $party->[int(rand(scalar(@{$party})))];
+                        my $target = $members->[int(rand(scalar(@{$members})))];
 #        $class->warning( sprintf( "[DROP R] %s", $items->getItemLabel()));
                         $ins_pre .= sprintf('<br />☆%sは%sを手に入れた!', $target->getName(),$items->getItemLabel());
-                        $target->getStatusIo()->getItem( $items->getItemMasterId() );
+#                        $target->getStatusIo()->getItem( $items->getItemMasterId() );
+                        push(@{$drop_items->{$target->getId()}}, $items->getItemMasterId() );
                     }
                     $ins_pre .= "<br /><br />" if(scalar(@{$drops}));
 
 
 # XXX Post に進んでいいかの許可実装
 ## 'failure'を用意する？
-# 'failure'を用意した
+# ENUM('failure')を用意した
+# failureを利用したSQLの発行と、テキストの準備
+#
 
+                    my $post_failure = 0;
                     $pu->notice("SQL prepost [$insert_prepost]");
-                    $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
-## TODO
-# -> each member!
-                    $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0]));
-                    $pu->notice("insert result[$affected]");
-#            $seq_id++ if ( $affected && $affected ne "0E0" );
+                    map{
+                        my $id = $_;
+                        my $log_id = $log_ids->{$id};
+                        $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$id)));
+                        my $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$id));
+                        $pu->notice("insert result[$affected]");
+                        if ( $affected eq "" || $affected eq "0E0" )
+                        {
+                            $pu->error("SQL error[" . $result_sth->errstr . "]");
+                            $post_failure = 1;
+                        }
+                    } keys %{$log_ids};
+
                     $seq_id = 4;
-                    $pu->error("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" || $affected eq "0E0" );
 
 
+                    if ( $post_failure )
+                    {
+                        $pu->warning(sprintf("Can't post queing user_id[%s]",$user_id->[0]));
+                        # Rollback pre and booking;
+                        $class->rollbackQueingResult($log_ids);
+                        $last_status = 2;
+                        next;
+                    }
 
 
-
-## TODO
-# -> each member!
-# change user_status for flag;
-                    $pu->notice("Win status: " . $up_commit_sth->execute(($nnid, $user_id->[0])));
-#       $pu->notice($up_sth->execute(($carrier_id, $mob_uid)));
-
-## TODO
-# -> each member!
-                    $pu->notice("Flagment status: " . $flagment_sth->execute(($user_id->[0], $nnid, $rid)));
+                    map {
+                        my $char = $_;
+                        my $id = $char->getId();
+# TODO ここに処理を書くのではなく、ここではcommitを発行するだけにしたい
+                        map { $char->getStatusIo()->getItem($_) } @{$drop_items->{$id}};
+                        $char->getStatusIo()->updateExp($exps->{$id});
+                        $pu->notice("Win status: " . $up_commit_sth->execute(($nnid, $id)));
+                        $pu->notice("Flagment status: " . $flagment_sth->execute(($id, $nnid, $rid)));
+                    } @{$members};
 
                 }
                 elsif( $battle->isDraw() )
                 {
 ## TODO
-# -> each member!
+# -> checkExp for drawing.
+
 # change user_status for flag;
-                    $pu->notice("Draw status: " . $up_rollback_sth->execute(($user_id->[0])));
+                    map {
+                        my $char = $_;
+                        my $id = $char->getId();
+                        $pu->notice("Draw status: " . $up_rollback_sth->execute(($id)));
+                    } @{$members};
                 }
                 else
                 {
-## TODO
-# -> each member!
 # change user_status for flag;
-                    $pu->notice("Other status: " .$up_rollback_sth->execute(($user_id->[0])));
+                    map {
+                        my $char = $_;
+                        my $id = $char->getId();
+                        $pu->notice("Other status: " .$up_rollback_sth->execute(($id)));
+                    } @{$members};
                 }
 
 
             }
+            # エンカウントしない場合
             else
             {
 
 # XXX Post に進んでいいかの許可実装
-## 'failure'を用意する？
-# 'failure'を用意した
+# ENUM('failure')を用意した
+# failureを利用したSQLの発行と、テキストの準備
+#
 
                 $pu->notice("SQL prepost [$insert_prepost]");
-                $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
-## TODO
-# -> each member!
-                $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0]));
-                $pu->notice("insert result[$affected]");
+                my $result_failure = 0;
+                map {
+                    my $id = $_;
+                    my $log_id = $log_ids->{$id};
+                    $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$id)));
+                    my $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$id));
+                    $pu->notice("insert result[$affected]");
 #            $seq_id++ if ( $affected && $affected ne "0E0" );
+                    if ( $affected eq "" || $affected eq "0E0" )
+                    {
+                        $pu->error("SQL error[" . $result_sth->errstr . "]");
+                        $result_failure = 1;
+                    }
+                } keys %{$log_ids};
+
                 $seq_id = 3;
-                $pu->error("SQL error[" . $result_sth->errstr . "]") if ( $affected eq "" || $affected eq "0E0" );
 
-                # フラグ条件があるなら立てる
-                $pu->notice("Flagment status: " . $flagment_sth->execute(($user_id->[0], $nnid, $rid)));
+                if ( $result_failure )
+                {
+                    $pu->warning(sprintf("Can't result queing user_id[%s]",$user_id->[0]));
+                    # Rollback pre and booking;
+                    $class->rollbackQueingResult($log_ids);
+                    $last_status = 2;
+                    next;
+                }
 
-                # ノードの移動決定
-                $pu->notice("Commit node  status: " . $up_commit_sth->execute(($nnid, $user_id->[0])));
+                map {
+                    my $char = $_;
+                    my $id = $char->getId();
+                    # ノードの移動決定
+                    $pu->notice("Commit node  status: " . $up_commit_sth->execute(($nnid, $user_id->[0])));
+                    # フラグ条件があるなら立てる
+                    $pu->notice("Flagment status: " . $flagment_sth->execute(($user_id->[0], $nnid, $rid)));
+                } @{$members};
+
             }
 
 
-## TODO
-# -> each member!
-            $pu->notice("Update next que status: " . $up_que_sth->execute($user_id->[0]));
+            map {
+                my $id = $_;
+                my $log_id = $log_ids->{$id};
+                $pu->notice("Update next que status: " . $up_que_sth->execute($id));
+            } keys %{$log_ids};
 
 
             $pu->notice("End que.");
@@ -648,6 +755,7 @@ sub openMainSth
     $booking_sth = $db->prepare( $bookin_log_id );
     $result_sth_b = $db->prepare( $insert_battle );
     $flagment_sth = $db->prepare($flag_update);
+    $rollback_result_sth = $db->prepare($cancel_result_sql);
     if ( $class->getForce() )
     {
         $clear_current_result_sth = $db->prepare($clear_current_result_sql);
@@ -665,11 +773,30 @@ sub finishMainSth
     $booking_sth->finish();
     $result_sth_b->finish();
     $flagment_sth->finish();
+    $rollback_result_sth->finish();
     if ( defined $clear_current_result_sth )
     {
         $clear_current_result_sth->finish();
     }
 }
 
+
+# Rollback not fixed result.
+sub rollbackQueingResult
+{
+    my $class   = shift;
+    my $pu = $class->getAt()->getPageUtil();
+    my $log_ids = shift;
+    map {
+        my $user_id = $_;
+        my $id = $log_ids->{$user_id};
+        if ($id)
+        {
+            $pu->notice("Rollback booking  result.[$id]");
+            my $rollback_result = $rollback_result_sth->execute( ($user_id, $id) );
+            $pu->notice("Rollback result.[$rollback_result]");
+        }
+    } keys %{ $log_ids }
+}
 
 1;

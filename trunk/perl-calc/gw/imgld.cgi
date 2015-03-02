@@ -64,7 +64,13 @@ my $version = "0.1a20130415";
 my $img = $at->getImg();
 my ($imgtype) = ( $img =~ /\.([^\.]*)$/ );
 $imgtype =~ s/^jpg$/jpeg/g;
-open OP, $at->getImg() or die "Open failure [" . $at->GetImg() . "]";
+
+if ( ! -f $img )
+{
+    #mkimg
+}
+
+open OP, $img or die "Open failure [" . $img . "]";
 binmode(OP);
 binmode(STDOUT);
 print "Content-type: image/$imgtype\n\n";

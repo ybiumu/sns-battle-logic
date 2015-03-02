@@ -11,6 +11,10 @@ use Anothark::Character::Player;
 use Anothark::Character::Npc;
 use Anothark::Character::Enemy;
 use Anothark::Party;
+
+use Anothark::SkillLoader;
+use Anothark::BattleSetting;
+
 use DBI qw( SQL_INTEGER );
 use base qw( Anothark::BaseLoader );
 
@@ -71,6 +75,13 @@ sub new
     my $sth_npc  = $db_handle->prepare($sql_npc);
     $self->setSthNpc($sth_npc);
 
+
+    my $sl = new Anothark::SkillLoader($db_handle);
+    $self->setSkillLoader($sl);
+    my $bs = new Anothark::BattleSetting($db_handle);
+    $self->setBattleSetting($bs);
+
+
     return $self;
 }
 
@@ -99,12 +110,13 @@ sub new
 # メンバー取得
 # スキル取得
 # あとは・・？
+# XXX for result use.
 sub loadBattlePartyByUser
 {
     my $class   = shift;
     my $user    = shift;
     my $side    = shift;
-    my $party   = shift || new Anothark::Party();
+    my $party   = shift || new Anothark::Party(); # template指定
     $party = $class->loadPartyByUserId( $user->getOwnerId(), $party , 1);
 
 #    $party->setValueToMembers( 'side',  $side);
@@ -114,11 +126,12 @@ sub loadBattlePartyByUser
 }
 
 
+# not use result
 sub loadPartyByUser
 {
     my $class   = shift;
     my $user    = shift;
-    my $party   = shift || new Anothark::Party();
+    my $party   = shift || new Anothark::Party(); # template指定
     $party = $class->loadPartyByUserId( $user->getOwnerId(), $party , 0);
 
 #    $party->setValueToMembers( 'side',  $side);

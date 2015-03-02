@@ -35,12 +35,20 @@ sub init
     });
 }
 
+# @return : <Character>Array
 sub getPartyCharacter
 {
     my $class = shift;
     return grep {$_} ( map{ $class->{$_} } grep { $class->{$_} } sort keys %{$class->getMembers()} ) [0 .. 3];
 }
 
+#
+# @return : <Character>Array
+sub getPartyPlayer
+{
+    my $class = shift;
+    return grep { $_->isPlayer() } $class->getPartyCharacter();
+}
 
 sub execToMembers
 {
