@@ -36,6 +36,7 @@ my $current_actor = undef;
 my $beat_flag = undef;
 my $bgid = undef;
 my $egid = undef;
+my $player_party_loaded = undef;
 
 my $resolve_stack = undef;
 my $current_resolve = undef;
@@ -140,6 +141,7 @@ sub init
     $class->setPartyImg("load_king");
     $class->setPartyLevel("3");
     $class->setCurrentTurn(0);
+    $class->setPlayerPartyLoaded(0);
     $class->initCurrentActor();
 #    $class->setPs(0);
 #    $class->setSr(0);
@@ -1592,6 +1594,7 @@ sub checkExperiment
 {
     my $class = shift;
     my $chk_str = "";
+    my $exps    = {};
     foreach my $c ( @{$class->getPlayers()} )
     {
         my $cnts = $c->getUseElementCount();
@@ -1611,9 +1614,11 @@ sub checkExperiment
             }
         }
         # Save
-        $c->getStatusIo()->updateExp($exp_values);
+        $exps->{$c->getId()} = $exp_values;
+#        $c->getStatusIo()->updateExp($exp_values);
+        # not fix before result fixed!
     }
-    return $chk_str;
+    return ($chk_str, $exps);
 }
 
 sub resultCheck
@@ -1842,7 +1847,21 @@ sub party
     my $class = shift;
     my $party = shift;
     map { $class->appendCharacter($_) } $party->getPartyCharacter();
+    $class->setPlayerPartyLoaded(1);
 }
+
+
+sub setPlayerPartyLoaded
+{
+    my $class = shift;
+    return $class->setAttribute( 'player_party_loaded', shift );
+}
+
+sub getPlayerPartyLoaded
+{
+    return $_[0]->getAttribute( 'player_party_loaded' );
+}
+
 
 sub encount
 {

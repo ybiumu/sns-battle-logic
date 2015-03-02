@@ -30,17 +30,15 @@ sub doExhibitionMatch
 #
 # loadBattleParty(Party, Battle);
 # $battle->party( $pl->loadBattlePartyByUser( $me ) );
-    my $sl = new Anothark::SkillLoader($db);
-    $pl->setSkillLoader($sl);
-#    my $im = new Anothark::ItemManager($db);
-    my $bs = new Anothark::BattleSetting($db);
-    $pl->setBattleSetting($bs);
 
 
 $battle->error("################################################");
 
-    my $party = $pl->loadBattlePartyByUser( $me, 'p' );
-    $battle->party($party);
+    if ( $battle->getPlayerPartyLoaded() == 0 )
+    {
+        my $party = $pl->loadBattlePartyByUser( $me, 'p' );
+        $battle->party($party);
+    }
 $battle->error("################################################");
 ## XXX ‚±‚±‚Ü‚Å LoadParty‚Ì”Íáe
 
