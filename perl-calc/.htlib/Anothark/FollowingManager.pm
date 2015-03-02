@@ -9,6 +9,13 @@ use Anothark::BaseLoader;
 use Anothark::Character::StatusIO;
 use base qw( Anothark::BaseLoader );
 
+=pod
+    delete_flag
+        0: follow
+        1: block/cancel
+        2: blacklist
+=cut
+
 my $sql_get_follow_request = "
 SELECT
     main.user_id,
@@ -31,12 +38,28 @@ FROM
 WHERE
     main.user_id = ?
     AND
-    main.delete_flag <> 1
+    main.delete_flag = 0 
     AND
     rev.user_id IS NULL
 ORDER BY
     main.follow_user_id
 ";
+
+my $do_follow_sql = "
+    INSERT INTO t_follows( follow_user_id, user_id ) VALUES ( ?, ? )
+        ON DUPLICATE KEY UPDATE delete_flag = 0;
+";
+
+my $clear_follow_sql = "
+    INSERT INTO t_follows( follow_user_id, user_id ) VALUES ( ?, ? )
+        ON DUPLICATE KEY UPDATE delete_flag = 1;
+";
+
+my $blacklist_sql = "
+    INSERT INTO t_follows( follow_user_id, user_id ) VALUES ( ?, ? )
+        ON DUPLICATE KEY UPDATE delete_flag = 2;
+";
+
 
 sub new
 {
@@ -142,10 +165,7 @@ sub doFollowRequest
     my $class = shift;
     my $src_user_id = shift;
     my $dst_user_id = shift;
-    my $sql = "
-        INSERT INTO t_follows( follow_user_id, user_id ) VALUES ( ?, ? )
-            ON DUPLICATE KEY UPDATE delete_flag = 0;
-    ";
+    my $sql = $do_follow_sql;
 
     my $sth  = $class->getDbHandler()->prepare($sql);
     my $stat = $sth->execute(($src_user_id, $dst_user_id));
@@ -161,6 +181,47 @@ sub doFollowRequest
         return 1;
     }
 }
+
+
+sub acceptFollowRequest
+{
+    my $class = shift;
+    return $class->doFollowRequest(@_);
+}
+
+
+
+sub clearFollowRequest
+{
+    my $class = shift;
+    my $src_user_id = shift;
+    my $dst_user_id = shift;
+    my $sql = $clear_follow_sql;
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+    my $stat = $sth->execute(($src_user_id, $dst_user_id));
+    if ( !$stat )
+    {
+        $class->notice("request error $src_user_id and $dst_user_id.");
+        $sth->finish();
+        return 0;
+    }
+    else
+    {
+        $sth->finish();
+        return 1;
+    }
+}
+
+
+sub rejectFollowRequest
+{
+    my $class = shift;
+    my $dst_user_id = shift;
+    my $src_user_id = shift;
+    return $class->clearFollowRequest( $dst_user_id, $src_user_id);
+}
+
 
 
 my $sth_request = undef;

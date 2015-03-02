@@ -50,6 +50,9 @@ $battle->error("################################################");
         sub { hagis(@_) },
         sub { hagis(@_) },
         sub { hagis(@_) },
+        sub { hagis(@_) },
+        sub { enemy011(@_) },
+        sub { enemy011(@_) },
     ];
 
     ##########
@@ -279,6 +282,71 @@ sub hagis
     $battle->appendCharacter( $enemy );
     $sl->finish();
 }
+
+sub enemy011
+{
+#    $battle->warning( "Call hhagis");
+    my $battle = shift;
+    $battle->setEgid(11);
+    my $db       = $battle->getAt()->getDbHandler();
+    my $sl = new Anothark::SkillLoader($db);
+    my $im = new Anothark::ItemManager($db);
+    $battle->setPartyName('—·‚Í“¹˜A‚ê');
+    $battle->setPartyImg("hagis2");
+    $battle->setPartyLevel(7);
+
+    my $enemy = new Anothark::Character::Enemy();
+    $enemy->setId("e_hagis");
+    $enemy->setName('•ú˜QÊ·Þ½A');
+    $enemy->getHp()->setBothValue(80);
+    $enemy->gDef()->setBothValue(5);
+    $enemy->getAtack()->setBothValue(15);
+    push(@{$enemy->getDropItems()}, 
+       ( $im->loadItem( 9, 20),
+        $im->loadItem( 1, 80),)
+    );
+    $enemy->setCmd([
+        [],
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+    ]);
+    $enemy->setSide("e");
+    $enemy->getPosition()->setBothValue("f");
+    $enemy->fixInit();
+
+    my $enemy2 = new Anothark::Character::Enemy();
+    $enemy2->setId("e_hagis2");
+    $enemy2->setName('•ú˜QÊ·Þ½B');
+    $enemy2->getHp()->setBothValue(80);
+    $enemy2->gDef()->setBothValue(5);
+    $enemy2->getAtack()->setBothValue(15);
+    push(@{$enemy2->getDropItems()}, 
+       ( $im->loadItem( 9, 20),
+        $im->loadItem( 1, 80),)
+    );
+    $enemy2->setCmd([
+        [],
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+        $sl->loadSkill(1009),
+    ]);
+    $enemy2->setSide("e");
+    $enemy2->getPosition()->setBothValue("f");
+    $enemy2->fixInit();
+
+
+    $battle->appendCharacter( $enemy );
+    $battle->appendCharacter( $enemy2 );
+
+    $sl->finish();
+}
+
+
 
 sub enemy010
 {

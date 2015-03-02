@@ -5,6 +5,10 @@ package Anothark::BaseLoader;
 $|=1;
 use strict;
 
+=pod
+ xxxLoader, xxxManager 系の基底クラス
+ 基本的なdbアクセス機能を有する
+=cut
 
 use LoggingObjMethod;
 use base qw( LoggingObjMethod );

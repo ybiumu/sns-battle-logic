@@ -78,7 +78,7 @@ if ( scalar @{$fr} )
     map
     {
         $out->{"RESULT_FRIENDS"} .= sprintf(
-            '<a href="mypage.cgi?guid=ON&user_id=%s">%s</a><br /><form action="follow_ans.cgi"><input type="hidden" name="guid" value="ON" /><input type="hidden" name="tid" value="%s"><input type="submit" name="ok" value="³”F" />&nbsp;<input type="submit" name="ng" value="‹‘”Û" /></form><hr />',
+            '<a href="mypage.cgi?guid=ON&user_id=%s">%s</a><br /><form action="follow_ans.cgi"><input type="hidden" name="guid" value="ON" /><input type="hidden" name="tid" value="%s"><input type="submit" name="yes" value="³”F" />&nbsp;<input type="submit" name="no" value="‹‘”Û" /></form><hr />',
             $_->{follow_user_id},
             $_->{user_name},
             $_->{follow_user_id}

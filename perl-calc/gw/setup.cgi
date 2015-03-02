@@ -139,8 +139,8 @@ elsif ( $c->param("commit") eq "OK" )
     $sth  = $db->prepare("INSERT INTO t_user SET carrier_id = ?, uid = ?, user_name = ?, face_type = ?, hair_type = ?, gender = ?, create_date = NOW() ");
     $stat = $sth->execute( $carrier_id, $mob_uid, $c->param("name"), $c->param("face"), $c->param("hair"), $c->param("gender") );
     my $id = $db->{'mysql_insertid'};
-    my $sth2 = $db->prepare("INSERT INTO t_user_status(user_id,node_id) VALUES(?,?);");
-    $stat = $sth2->execute($id, $start_node_id );
+    my $sth2 = $db->prepare("INSERT INTO t_user_status(user_id,node_id,last_link_node) VALUES(?,?,?);");
+    $stat = $sth2->execute($id, $start_node_id, $start_node_id );
     $sth2->finish();
     my $sth3 = $db->prepare("INSERT INTO t_user_money(user_id,vel,rel) VALUES(?,0,0);");
     $stat = $sth3->execute($id);

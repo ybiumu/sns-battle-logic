@@ -102,16 +102,19 @@ sub getOwnersBoard
     my $board_id = undef;
     my @params;
 
+    # Owners board
     if ( $type_id == 1 )
     {
         $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( SELECT tu.user_id FROM  t_user AS tu LEFT JOIN t_follows AS f USING(user_id) WHERE tu.user_id = ? AND ( tu.user_id = ? OR tu.bbs_read = 2 OR ( tu.bbs_read = 1 AND  f.follow_user_id = ? ) ) ) AS u ON ( b.owner_id = u.user_id ) WHERE b.board_type_id = ? ";
         @params = ($target_user_id, $user_id, $user_id, $type_id);
     }
+    # Party board
     elsif ( $type_id == 2 )
     {
         $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( SELECT CASE WHEN tu.owner_id = 0 THEN tu.user_id ELSE tu.owner_id END AS user_id FROM  t_user AS tu WHERE tu.user_id = ? ) AS u ON ( b.owner_id = u.user_id ) WHERE b.board_type_id = ? ";
         @params = ($target_user_id, $type_id);
     }
+    # Shared board
     elsif ( grep { $type_id == $_ } (3,4) )
     {
         $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( t_user_status AS u JOIN t_node_master n USING( node_id ) )  ON ( b.owner_id = n.parent_node_id ) WHERE u.user_id = ? AND b.board_type_id = ? ";
@@ -134,6 +137,48 @@ sub getOwnersBoard
     $sth->finish();
 
     return $board_id;
+}
+
+
+sub getWritableBoard
+{
+    my $class = shift;
+    my $type_id = shift;
+    my $user_id = shift;
+    my $target_user_id = shift;
+
+    my $sql;
+    my $board_id = undef;
+    my @params;
+
+    # Owners board
+    if ( $type_id == 1 )
+    {
+        $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( SELECT tu.user_id FROM  t_user AS tu LEFT JOIN t_follows AS f USING(user_id) WHERE tu.user_id = ? AND ( tu.user_id = ? OR tu.bbs_write = 2 OR ( tu.bbs_write = 1 AND  f.follow_user_id = ? ) ) ) AS u ON ( b.owner_id = u.user_id ) WHERE b.board_type_id = ? ";
+        @params = ($target_user_id, $user_id, $user_id, $type_id);
+        my $sth  = $class->getDbHandler()->prepare($sql);
+        my $stat = $sth->execute((@params));
+        if ( $sth->rows > 0 )
+        {
+            $board_id = 1;
+        }
+        $sth->finish();
+
+        return $board_id;
+    }
+    # Shared board
+    # Party board
+    elsif ( grep { $type_id == $_ } (2,3,4) )
+    {
+        return 1;
+    }
+    else
+    {
+        $class->fatal("Unknown type_id [$type_id]");
+        return 0;
+    }
+
+
 }
 
 sub readBoard

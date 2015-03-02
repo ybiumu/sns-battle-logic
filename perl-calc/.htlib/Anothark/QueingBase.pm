@@ -476,7 +476,9 @@ sub doQueing
 
 
 
-
+### TODO ###
+# -> each party!
+# $pl->loadBattlePartyByUser();
             $affected = $result_pre_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post ,$rid,$nnid,'pre',$user_id->[0]));
             $pu->notice("insert result[$affected]");
 #        $seq_id++ if ( $affected && $affected ne "0E0" );
@@ -554,6 +556,8 @@ sub doQueing
 
                     $pu->notice("SQL prepost [$insert_prepost]");
                     $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
+## TODO
+# -> each member!
                     $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0]));
                     $pu->notice("insert result[$affected]");
 #            $seq_id++ if ( $affected && $affected ne "0E0" );
@@ -564,20 +568,28 @@ sub doQueing
 
 
 
+## TODO
+# -> each member!
 # change user_status for flag;
                     $pu->notice("Win status: " . $up_commit_sth->execute(($nnid, $user_id->[0])));
 #       $pu->notice($up_sth->execute(($carrier_id, $mob_uid)));
 
+## TODO
+# -> each member!
                     $pu->notice("Flagment status: " . $flagment_sth->execute(($user_id->[0], $nnid, $rid)));
 
                 }
                 elsif( $battle->isDraw() )
                 {
+## TODO
+# -> each member!
 # change user_status for flag;
                     $pu->notice("Draw status: " . $up_rollback_sth->execute(($user_id->[0])));
                 }
                 else
                 {
+## TODO
+# -> each member!
 # change user_status for flag;
                     $pu->notice("Other status: " .$up_rollback_sth->execute(($user_id->[0])));
                 }
@@ -593,6 +605,8 @@ sub doQueing
 
                 $pu->notice("SQL prepost [$insert_prepost]");
                 $pu->notice(sprintf "Value [%s]",join("/",($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0])));
+## TODO
+# -> each member!
                 $affected = $result_sth->execute(($log_id,$seq_id, $ins_pre, $ins_post,$rid ,$nnid,'post',$user_id->[0]));
                 $pu->notice("insert result[$affected]");
 #            $seq_id++ if ( $affected && $affected ne "0E0" );
@@ -607,6 +621,8 @@ sub doQueing
             }
 
 
+## TODO
+# -> each member!
             $pu->notice("Update next que status: " . $up_que_sth->execute($user_id->[0]));
 
 
