@@ -78,13 +78,14 @@ $out->{BOARD_TYPE_ID}  = $board_type_id;
 ############
 
 my $board_id = $board->getOwnersBoard( $board_type_id, $user_id ,$target_user_id );
+my $writeable = $board->getWritableBoard( $board_type_id, $user_id ,$target_user_id ); 
 if ( ! $board_id )
 {
     $at->Error();
     $at->warning(sprintf( "type_id: %s user_id:%s targe_id: %s",$board_type_id, $user_id ,$target_user_id ) );
     $out->{"RESULT"} = '‰{——Œ ŒÀ‚ª‚ ‚è‚Ü‚¹‚ñ';
 }
-elsif( $board_write )
+elsif( $board_write && $writeable)
 {
     $at->setBody("body_board_write.html");
     if ( $c->param("msg") )
@@ -127,6 +128,11 @@ else
     if ( $board->getErrMsg() )
     {
         $out->{PRE_RESULT} = sprintf("<hr /><span style='color:#ff0000'>%s</span><hr />", '‹ÖŽ~•¶Žš—ñ‚ªŠÜ‚Ü‚ê‚Ä‚¢‚Ü‚·');
+    }
+
+    if ( $board_write )
+    {
+        $out->{PRE_RESULT} .= sprintf("<hr /><span style='color:#ff0000'>%s</span><hr />", '‘‚«ž‚Ý‚Í‹ÖŽ~‚³‚ê‚Ä‚Ü‚·');
     }
 
     my $entries = $board->readBoard( $board_id, $page_id, $thread_id);

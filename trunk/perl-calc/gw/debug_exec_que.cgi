@@ -73,6 +73,8 @@ my $mob_uid = $mu->get_muid();
 ### Main ###
 ############
 
+# Owner‚Ìê‡‚Æmember‚Ìê‡‚Å•ª‚¯‚é
+#
 my $select_user_id = " SELECT user_id FROM t_user AS u WHERE u.carrier_id = ? AND u.uid = ? ";
 
 my $rs_sth = $db->prepare( $select_user_id );

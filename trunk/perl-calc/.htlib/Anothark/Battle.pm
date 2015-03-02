@@ -14,7 +14,8 @@ use Anothark::Skill;
 use Anothark::Battle::DamageExec;
 use Anothark::Character::Virtual;
 
-use constant DEBUG => 1;
+#use constant DEBUG => 1;
+use constant DEBUG => 0;
 
 use constant BEFORE_START_TURN => "before_start_turn";
 use constant BEFORE_CMD        => "before_cmd";

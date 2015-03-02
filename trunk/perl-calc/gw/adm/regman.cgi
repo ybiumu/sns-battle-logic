@@ -132,7 +132,7 @@ sub getRecentRegist
 {
     my $db = shift;
     my $row = [];
-    my $sth_reg  = $db->prepare("SELECT user_id, user_name, hair_type, face_type, carrier_id,create_date FROM t_user ORDER BY user_id DESC LIMIT 5;");
+    my $sth_reg  = $db->prepare("SELECT user_id, user_name, hair_type, face_type, carrier_id,create_date FROM t_user ORDER BY user_id DESC LIMIT 10;");
     my $stat = $sth_reg->execute();
     $row  = $sth_reg->fetchall_arrayref( +{} );
     return $row;
