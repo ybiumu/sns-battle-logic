@@ -172,6 +172,50 @@ sub getSthNpc
     return $_[0]->getAttribute( 'sth_npc' );
 }
 
+sub checkPartyStatus
+{
+    my $class = shift;
+    my $src_user_id = shift;
+    my $dst_user_id = shift;
+
+    my $sql = "
+        SELECT
+            COUNT(m.user_id) AS result
+        FROM
+            t_user AS u
+            LEFT JOIN
+            t_user AS m
+            ON( u.owner_id = m.user_id OR ( u.owner_id = 0 AND u.user_id = m.user_id) )
+        WHERE
+            u.user_id IN ( ?,? )
+        GROUP BY m.user_id
+        HAVING COUNT(m.user_id) > 1 ";
+
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+    my $stat = $sth->execute(($src_user_id, $dst_user_id));
+    my $row  = $sth->fetchrow_hashref();
+    if ( $sth->rows() == 0 )
+    {
+        $class->notice("No party relation between $src_user_id and $dst_user_id.");
+        $sth->finish();
+        return 0;
+    }
+    else
+    {
+        $sth->finish();
+        return $row->{result};
+    }
+}
+
+sub isPartyMember
+{
+    my $class = shift;
+    my $src_user_id = shift;
+    my $dst_user_id = shift;
+    return $class->checkPartyStatus( $src_user_id, $dst_user_id);
+}
+
 
 sub loadPartyByUserId
 {

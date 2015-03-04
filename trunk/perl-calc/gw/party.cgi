@@ -76,6 +76,9 @@ my $version = "0.1a20130415";
 # r: reject -> œ–¼
 # d: destroy -> ‰ðŽU
 # c: change -> –¼Ì•ÏX
+# i: invite -> Š©—U‚·‚é
+# o: reclute OK -> Žó‚¯‚é
+# n: reclute NG -> ’f‚é
 #
 
 my $pl = new Anothark::PartyLoader( $at );
@@ -117,6 +120,36 @@ elsif ( $type eq "dc")
 {
 #    $pl->destroy( $me );
     $out->{RESULT} .= sprintf( '‰ðŽU‚µ‚Ü‚µ‚½');
+}
+elsif ( $type eq "i" )
+{
+    $at->setBody("body_party_invite.html");
+    $out->{RESULT} .= sprintf( 'Êß°Ã¨°‚ÉŠ©—U‚µ‚Ü‚·', $party->getPartyName());
+}
+elsif ( $type eq "ic")
+{
+#    $pl->destroy( $me );
+    $out->{RESULT} .= sprintf( 'Š©—U‚ðo‚µ‚Ü‚µ‚½');
+}
+elsif ( $type eq "o" )
+{
+    $at->setBody("body_party_invite.html");
+    $out->{RESULT} .= sprintf( 'Êß°Ã¨°u%sv‚ÉŠ‘®‚µ‚Ü‚·', $party->getPartyName());
+}
+elsif ( $type eq "oc")
+{
+#    $pl->destroy( $me );
+    $out->{RESULT} .= sprintf( 'Š‘®‚µ‚Ü‚µ‚½');
+}
+elsif ( $type eq "n" )
+{
+    $at->setBody("body_party_invite.html");
+    $out->{RESULT} .= sprintf( 'Êß°Ã¨°u%sv‚ÌŠ©—U‚ð’f‚è‚Ü‚·', $party->getPartyName());
+}
+elsif ( $type eq "nc")
+{
+#    $pl->destroy( $me );
+    $out->{RESULT} .= sprintf( 'Š©—U‚ð’f‚è‚Ü‚µ‚½');
 }
 else
 {
