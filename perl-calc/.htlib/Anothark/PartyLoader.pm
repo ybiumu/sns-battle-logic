@@ -103,20 +103,32 @@ sub getPartyInvitation
 {
     my $class = shift;
     my $user_id = shift;
-    my $flag  = shift;
 
     my $sth  = $class->getDbHandler()->prepare($sql_get_party_invitation);
     my $stat = $sth->execute(($user_id));
-    if ($flag)
-    {
-        my $rows  = $sth->fetchall_arrayref( +{} );
-        return $rows;
-    }
-    else
-    {
-        return $sth->rows();
-    }
+    return ($sth, $stat);
 }
+
+sub getPartyInvitationRecord
+{
+    my $class = shift;
+    my $user_id = shift;
+
+    my ($sth,$stat)  = $class->getPartyInvitation( $user_id );
+    my $rows  = $sth->fetchall_arrayref( +{} );
+    return $rows;
+}
+
+
+sub getPartyInvitationNumber
+{
+    my $class = shift;
+    my $user_id = shift;
+
+    my ($sth,$stat)  = $class->getPartyInvitation( $user_id );
+    return $sth->rows();
+}
+
 
 sub invite
 {

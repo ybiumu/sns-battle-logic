@@ -15,6 +15,7 @@ use LocalConfig;
 use Anothark::Character;
 use Anothark::Character::Player;
 use Anothark::Character::StatusIO;
+use Anothark::SnsNoticeManager;
 use base qw( LoggingObjMethod );
 
 use UniversalAnalytics;
@@ -603,7 +604,10 @@ sub setupBaseData
 #    $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
 
+    my $sns = new Anothark::SnsNoticeManager( $class );
 
+    my $notice = $sns->hasNotice( $user_id );
+    $class->{out}->{NOTICE_NUMBER} = $notice;
 
 
     return $result;

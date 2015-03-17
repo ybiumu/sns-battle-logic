@@ -140,10 +140,18 @@ sub getFollowRequest
 {
     my $class = shift;
     my $src_user_id = shift;
-#    my $dst_user_id = shift;
 
     my $sth  = $class->getSthRequest();
     my $stat = $sth->execute(($src_user_id));
+    return ($sth,$stat);
+}
+
+sub getFollowRequestRecord
+{
+    my $class = shift;
+    my $src_user_id = shift;
+
+    my ($sth,$stat)  = $class->getFollowRequest($src_user_id);
     my $rows  = $sth->fetchall_arrayref( +{} );
     return $rows;
 }
@@ -152,11 +160,8 @@ sub getFollowRequestNumber
 {
     my $class = shift;
     my $src_user_id = shift;
-#    my $dst_user_id = shift;
 
-    my $sth  = $class->getSthRequest();
-    my $stat = $sth->execute(($src_user_id));
-    my $row  = $sth->fetchrow_hashref();
+    my ($sth,$stat)  = $class->getFollowRequest($src_user_id);
     return $sth->rows();
 }
 

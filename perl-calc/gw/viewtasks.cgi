@@ -76,7 +76,7 @@ $out->{"RESULT_PARTY"}   = sprintf('**&nbsp; Š©—U‚Í‚ ‚è‚Ü‚¹‚ñ &nbsp;**');
 $out->{"RESULT_TASK"}    = sprintf('**&nbsp; ˆË—Š‚Í‚ ‚è‚Ü‚¹‚ñ &nbsp;**');
 
 # load sns notice.
-my $fr = $fm->getFollowRequest( $out->{USER_ID});
+my $fr = $fm->getFollowRequestRecord( $out->{USER_ID});
 if ( scalar @{$fr} )
 {
     $out->{"RESULT_FRIENDS"} = "";
@@ -91,7 +91,7 @@ if ( scalar @{$fr} )
     } @{ $fr };
 }
 
-my $pi = $pls->getPartyInvitation( $out->{USER_ID},1 );
+my $pi = $pls->getPartyInvitationRecord( $out->{USER_ID} );
 if ( scalar @{$pi} )
 {
     $out->{"RESULT_PARTY"} = "";
