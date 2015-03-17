@@ -11,18 +11,23 @@ use Avatar;
 use PageUtil;
 use AaTemplate;
 use Anothark::FollowingManager;
+use Anothark::PartyLoader;
+
 
 my $pu = new PageUtil();
 my $at = new AaTemplate();
 $at->setPageUtil($pu);
 
 
-my $db = DbUtil::getDbHandler();
-my $mu = new MobileUtil();
-my $fm = new Anothark::FollowingManager($db);
-
+my $db  = DbUtil::getDbHandler();
+my $mu  = new MobileUtil();
 $at->setDbHandler($db);
 $at->setMobileUtil($mu);
+
+
+my $fm  = new Anothark::FollowingManager($db);
+my $pls = new Anothark::PartyLoader($at,1);
+
 
 my $ad_str = "";
 
@@ -85,6 +90,25 @@ if ( scalar @{$fr} )
         )
     } @{ $fr };
 }
+
+my $pi = $pls->getPartyInvitation( $out->{USER_ID},1 );
+if ( scalar @{$pi} )
+{
+    $out->{"RESULT_PARTY"} = "";
+    map
+    {
+        $out->{"RESULT_PARTY"} .= sprintf(
+            '<a href="mypage.cgi?guid=ON&user_id=%s">%s</a><br />%s<br /><form action="party.cgi"><input type="hidden" name="guid" value="ON" /><input type="hidden" name="oid" value="%s" /><input type="hidden" name="t" value="iv" /><input type="submit" name="yes" value="³”F" />&nbsp;<input type="submit" name="no" value="‹‘”Û" /></form><hr />',
+            $_->{invite_user_id},
+            $_->{user_name},
+            $_->{message},
+            $_->{invite_user_id},
+        )
+    } @{ $pi };
+}
+
+
+
 
 
 

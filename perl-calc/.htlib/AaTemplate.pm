@@ -611,6 +611,20 @@ sub setupBaseData
 
 
 
+my $notice = undef;
+sub setNotice
+{
+    my $class = shift;
+    return $class->setAttribute( 'notice', shift );
+}
+
+sub getNotice
+{
+    return $_[0]->getAttribute( 'notice' );
+}
+
+
+
 sub setStatusIo
 {
     my $class = shift;
@@ -869,7 +883,7 @@ sub getMyCharacter
             b.uuid,
             n.node_name
         FROM
-            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
+            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ? AND b.delete_flag = 0";
     my $sth  = $class->getDbHandler()->prepare($get_base_sql);
     my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
     my $row  = $sth->fetchrow_hashref();
@@ -1050,5 +1064,21 @@ sub loadExp
 
     return $exps;
 }
+
+sub sameNode
+{
+    my $class = shift;
+    my $player = shift;
+    my $other_char = shift;
+    if ( $player->getNodeId() == $other_char->getNodeId() )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 
 1;

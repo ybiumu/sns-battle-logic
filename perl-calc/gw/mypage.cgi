@@ -87,7 +87,7 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{USER_ID} )
         }
         else
         {
-            if ( not $pl->isPartyMember($my_user_id, $out->{USER_ID}) )
+            if ( ( not $pl->isPartyMember($my_user_id, $out->{USER_ID}) ) && $at->sameNode( $at->{PLAYER},$out->{CHAR} ) && $pl->notInvited($my_user_id, $out->{USER_ID}) && $pl->isNotRunFirst() )
             {
                 $out->{FOLLOW_CMD} .= sprintf('<a href="party.cgi?t=i&guid=ON&oid=%s">Êß°Ã¨°‚ÉŠ©—U‚·‚é</a><br />', $out->{USER_ID});
             }

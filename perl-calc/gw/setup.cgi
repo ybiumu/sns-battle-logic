@@ -122,7 +122,7 @@ $out->{hairs} = join "", map {sprintf( "<input type=\"radio\" name=\"hair\" valu
 
 
 # Check record exists.
-my $sth  = $db->prepare("SELECT user_id, user_name FROM t_user WHERE carrier_id = ? AND uid = ?");
+my $sth  = $db->prepare("SELECT user_id, user_name FROM t_user WHERE carrier_id = ? AND uid = ? AND delete_flag = 0");
 my $stat = $sth->execute(($carrier_id, $mob_uid));
 my $row  = $sth->fetchrow_arrayref();
 my $rownum = $sth->rows();
@@ -162,6 +162,11 @@ elsif ( $c->param("commit") eq "OK" )
     my $sth7 = $db->prepare("INSERT INTO t_board_map(owner_id,board_type_id) SELECT u.user_id, bt.board_type_id FROM t_user AS u JOIN t_board_type_master AS bt ON ( bt.users_board = 'Y' ) WHERE u.user_id = ?;");
     $stat = $sth7->execute($id);
     $sth7->finish();
+
+
+    my $sth8 = $db->prepare("INSERT INTO t_user_item(user_id,item_master_id) SELECT u.user_id, i.item_master_id FROM t_user AS u JOIN t_item_master AS i ON ( i.item_master_id IN (3,4,13) ) WHERE u.user_id = ?;");
+    $stat = $sth8->execute($id);
+    $sth8->finish();
 
 
     my $up_sth = $db->prepare("REPLACE INTO t_selection_que(user_id,selection_id,queing_hour,qued)  SELECT u.user_id, sel.selection_id, s.next_queing_hour, 0 FROM t_user AS u JOIN t_user_status AS s USING(user_id) JOIN t_selection sel USING( node_id ) WHERE sel.selection_id = ? AND u.carrier_id = ? AND u.uid = ? ");

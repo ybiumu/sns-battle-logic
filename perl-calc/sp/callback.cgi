@@ -28,6 +28,8 @@ my $oauth_verifier = $cgi->param('oauth_verifier');
 
 #my $yaml = (YAML::Tiny->read('/home/users/2/ciao.jp-anothark/web/.htlib/twconf.yml'));
 my $config = ( YAML::Tiny->read('/home/users/2/ciao.jp-anothark/web/.htcron/twconf.yml') )->[0];
+warn "$config->{'cs_key'}";
+warn "$config->{'cs_secret'}";
 #my $config = ( YAML::Tiny->read('twconf.yml') )->[0];
 #my $config = $yaml->[0];
 my $twit = Net::Twitter::Lite->new(

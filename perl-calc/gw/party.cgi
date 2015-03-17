@@ -57,6 +57,7 @@ my @oddeven = ( "odd", "even" );
 our $out = $at->getOut();
 
 my $type = $c->param("t") || 0;
+my $target = $c->param("oid") || 0;
 
 ##############
 ### depend ###
@@ -71,25 +72,46 @@ my $version = "0.1a20130415";
 ### Main ###
 ############
 
+my $pl = new Anothark::PartyLoader( $at );
+if ( $type eq "iv" )
+{
+    my $ans = ( $c->param("yes") && 1 ) || ( $c->param("no") && 0 );
+    if ($ans)
+    {
+        $pl->acceptInvite($out->{USER_ID}, $target);
+    }
+    else
+    {
+        $pl->rejectInvite($out->{USER_ID}, $target);
+        $db->disconnect();
+        print $c->redirect("mypage.cgi?guid=ON");    
+        exit;
+    }
+}
+
 #
 # l: leave -> ”²‚¯‚é
 # r: reject -> œ–¼
 # d: destroy -> ‰ğU
 # c: change -> –¼Ì•ÏX
 # i: invite -> Š©—U‚·‚é
-# o: reclute OK -> ó‚¯‚é
-# n: reclute NG -> ’f‚é
+### o: reclute OK -> ó‚¯‚é
+### n: reclute NG -> ’f‚é
 #
 
-my $pl = new Anothark::PartyLoader( $at );
 
 my $me = $at->getBattlePlayerByUserId($out->{USER_ID});
 my $party = $pl->loadPartyByUser( $me );
 
 
 
-$at->setPageName($party->getPartyName());
+if ($party->getPartyName() )
+{
+    $at->setPageName( sprintf( 'Êß°Ã¨°<br />%s', $party->getPartyName()));
+}
 
+$out->{CONFIRM_TYPE} = "";
+$out->{TARGET_USER} = $target;
 
 if ( $type eq "l" )
 {
@@ -103,8 +125,10 @@ elsif ( $type eq "lc")
 }
 elsif ( $type eq "r" )
 {
-    $at->setBody("body_party_reject.html");
+#    $at->setBody("body_party_reject.html");
+    $at->setBody("body_party_confirm.html");
     $out->{RESULT} .= sprintf( 'u%sv‚ğœ–¼‚µ‚Ü‚·', $party->getPartyName());
+    $out->{CONFIRM_TYPE} = $type;
 }
 elsif ( $type eq "rc")
 {
@@ -113,8 +137,10 @@ elsif ( $type eq "rc")
 }
 elsif ( $type eq "d" )
 {
-    $at->setBody("body_party_destroy.html");
+#    $at->setBody("body_party_destroy.html");
+    $at->setBody("body_party_confirm.html");
     $out->{RESULT} .= sprintf( 'Êß°Ã¨°‚ğ‰ğU‚µ‚Ü‚·', $party->getPartyName());
+    $out->{CONFIRM_TYPE} = $type;
 }
 elsif ( $type eq "dc")
 {
@@ -123,34 +149,41 @@ elsif ( $type eq "dc")
 }
 elsif ( $type eq "i" )
 {
-    $at->setBody("body_party_invite.html");
+#    $at->setBody("body_party_invite.html");
+    $at->setBody("body_party_confirm.html");
     $out->{RESULT} .= sprintf( 'Êß°Ã¨°‚ÉŠ©—U‚µ‚Ü‚·', $party->getPartyName());
+    $out->{CONFIRM_TYPE} = $type;
 }
 elsif ( $type eq "ic")
 {
-#    $pl->destroy( $me );
+    $pl->invite( $out->{USER_ID}, $target );
     $out->{RESULT} .= sprintf( 'Š©—U‚ğo‚µ‚Ü‚µ‚½');
 }
-elsif ( $type eq "o" )
-{
-    $at->setBody("body_party_invite.html");
-    $out->{RESULT} .= sprintf( 'Êß°Ã¨°u%sv‚ÉŠ‘®‚µ‚Ü‚·', $party->getPartyName());
-}
-elsif ( $type eq "oc")
-{
-#    $pl->destroy( $me );
-    $out->{RESULT} .= sprintf( 'Š‘®‚µ‚Ü‚µ‚½');
-}
-elsif ( $type eq "n" )
-{
-    $at->setBody("body_party_invite.html");
-    $out->{RESULT} .= sprintf( 'Êß°Ã¨°u%sv‚ÌŠ©—U‚ğ’f‚è‚Ü‚·', $party->getPartyName());
-}
-elsif ( $type eq "nc")
-{
-#    $pl->destroy( $me );
-    $out->{RESULT} .= sprintf( 'Š©—U‚ğ’f‚è‚Ü‚µ‚½');
-}
+#elsif ( $type eq "o" )
+#{
+##    $at->setBody("body_party_invite.html");
+#    $at->setBody("body_party_confirm.html");
+#    $out->{RESULT} .= sprintf( 'u%sv‚ÌÊß°Ã¨°‚ÉŠ‘®‚µ‚Ü‚·', $party->getPartyName());
+#    $out->{CONFIRM_TYPE} = $type;
+#}
+#elsif ( $type eq "oc")
+#{
+##    $pl->inviteOk( $me );
+#    $out->{RESULT} .= sprintf( 'Š‘®‚µ‚Ü‚µ‚½');
+#}
+#elsif ( $type eq "n" )
+#{
+##    $at->setBody("body_party_invite.html");
+#    $at->setBody("body_party_confirm.html");
+#    $out->{RESULT} .= sprintf( 'u%sv‚ÌÊß°Ã¨°Š©—U‚ğ’f‚è‚Ü‚·', $party->getPartyName());
+#    $out->{CONFIRM_TYPE} = $type;
+#}
+#elsif ( $type eq "nc")
+#{
+##    $pl->inviteNg( $me );
+#    $out->{RESULT} .= sprintf( 'Êß°Ã¨°Š©—U‚ğ’f‚è‚Ü‚µ‚½');
+#    $out->{CONFIRM_TYPE} = $type;
+#}
 else
 {
     my $lines = 0;
@@ -173,7 +206,7 @@ else
 
     # Everyone menu
     $out->{RESULT} .= sprintf('<a href="board.cgi?guid=ON&t=2&oid=%s">Êß°Ã¨°Œf¦”Â</a><br />',$party->getOwnerId());
-    $out->{RESULT} .= sprintf('<a href="board.cgi?guid=ON&t=2&oid=%s">‘à—ñ•ÏX</a><br />',$party->getOwnerId());
+    $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=p&oid=%s">‘à—ñ•ÏX</a><br />',$party->getOwnerId());
 
     # Owner Menu
     if ( $me->getId()  == $party->getOwnerId() )

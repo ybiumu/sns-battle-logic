@@ -653,6 +653,8 @@ sub doQueing
                         $pu->notice("Flagment status: " . $flagment_sth->execute(($id, $nnid, $rid)));
                     } @{$members};
 
+# TODO ステータスの保存
+
                 }
                 elsif( $battle->isDraw() )
                 {
@@ -735,6 +737,17 @@ sub doQueing
 
             $pu->notice("End que.");
         }
+
+        # 更新完了後処理
+
+        # Party勧誘のクリア
+        # Foodのクリア
+        # 拠点なら回復
+        map {
+            my $char = $_;
+            my $id = $char->getId();
+            $pl->clearInvite($id);
+        } @{$members};
     }
     return $last_status;
 }

@@ -22,12 +22,13 @@ use base qw( Anothark::BaseLoader );
 
 my $sql_get_party_invitation = "
 SELECT
+    call.user_id AS invite_user_id,
     main.message,
     call.user_name
 FROM
     t_party_invitation AS main
     JOIN
-    t_user AS call
+    t_user AS `call`
     ON (
         main.call_user_id = call.user_id
     )
@@ -35,6 +36,68 @@ WHERE
     main.user_id = ?
 ";
 
+
+my $sql_do_invite = "
+INSERT IGNORE INTO t_party_invitation(call_user_id, owner_id, user_id, message )
+SELECT
+    user_id AS call_user_id,
+    IF(owner_id = 0,user_id, owner_id ) AS owner_id,
+    ? AS user_id,
+    'invited.' AS message
+FROM 
+    t_user
+WHERE
+    user_id = ?
+;
+";
+
+my $sql_do_join = "
+UPDATE
+    t_user AS main
+    JOIN
+    t_party_invitation AS invite
+    USING( user_id )
+    JOIN
+    t_user AS `call`
+    ON(
+        invite.call_user_id = call.user_id
+    )
+SET
+    main.owner_id = invite.owner_id
+WHERE
+    main.user_id = ?
+    AND
+    call.user_id = ?
+";
+
+my $sql_clear_invite = "DELETE FROM t_party_invitation WHERE user_id = ?";
+my $sql_reject_invite = "DELETE FROM t_party_invitation WHERE user_id = ? AND call_user_id = ?";
+
+my $sql_get_invited = "SELECT 1 FROM t_party_invitation WHERE user_id = ? AND call_user_id = ?";
+
+sub isNotRunFirst
+{
+    my $class = shift;
+    return 1;
+}
+sub notInvited
+{
+    my $class = shift;
+    my $call_user_id  = shift;
+    my $user_id       = shift;
+    $class->warning("[NOT INVITED] $call_user_id/$user_id");
+
+    my $sth  = $class->getDbHandler()->prepare($sql_get_invited);
+    my $stat = $sth->execute(($user_id,$call_user_id));
+    my $rows = $sth->rows();
+    $sth->finish();
+
+    if ( $rows > 0 )
+    {
+        return 0;
+    }
+    return 1;
+}
 
 sub getPartyInvitation
 {
@@ -55,36 +118,85 @@ sub getPartyInvitation
     }
 }
 
+sub invite
+{
+    my $class = shift;
+    my $user_id = shift;
+    my $target_user_id = shift;
+
+    my $sth  = $class->getDbHandler()->prepare($sql_do_invite);
+    my $stat = $sth->execute(($target_user_id, $user_id));
+    $sth->finish();
+}
+
+sub acceptInvite
+{
+    my $class = shift;
+    my $user_id = shift;
+    my $call_user_id = shift;
+
+    my $sth  = $class->getDbHandler()->prepare($sql_do_join);
+    my $stat = $sth->execute(($user_id, $call_user_id));
+    $sth->finish();
+    $class->clearInvite($user_id);
+}
+
+
+sub rejectInvite
+{
+    my $class = shift;
+    my $user_id = shift;
+    my $call_user_id = shift;
+
+    my $sth  = $class->getDbHandler()->prepare($sql_reject_invite);
+    my $stat = $sth->execute(($user_id, $call_user_id));
+    $sth->finish();
+}
+
+
+sub clearInvite
+{
+    my $class = shift;
+    my $user_id = shift;
+
+    my $sth  = $class->getDbHandler()->prepare($sql_clear_invite);
+    my $stat = $sth->execute(($user_id));
+    $sth->finish();
+}
+
 
 sub new
 {
     my $class = shift;
     my $at    = shift;
+    my $simple = shift || 0;
     my $db_handle = $at->getDbHandler();
     my $self = $class->SUPER::new( $db_handle );
     bless $self, $class;
     $self->setAt($at);
 
-    my $sql_member = "SELECT u.party_name, m.user_id,m.owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
-    my $sth  = $db_handle->prepare($sql_member);
-    $self->setSthParty($sth);
+    if( not $simple )
+    {
+        my $sql_member = "SELECT u.party_name, m.user_id,m.owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
+        my $sth  = $db_handle->prepare($sql_member);
+        $self->setSthParty($sth);
 
-    # NPC is party owners.
+        # NPC is party owners.
 #    my $sql_npc    = "SELECT npc1,npc2,npc3 FROM t_party_npc WHERE owner_id = ?";
-    my $sql_npc    = "SELECT npc_id,join_datetime,limit_datetime FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
-    my $sth_npc  = $db_handle->prepare($sql_npc);
-    $self->setSthNpc($sth_npc);
+        my $sql_npc    = "SELECT npc_id,join_datetime,limit_datetime FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
+        my $sth_npc  = $db_handle->prepare($sql_npc);
+        $self->setSthNpc($sth_npc);
 
 
-    my $sl = new Anothark::SkillLoader($db_handle);
-    $self->setSkillLoader($sl);
-    my $bs = new Anothark::BattleSetting($db_handle);
-    $self->setBattleSetting($bs);
+        my $sl = new Anothark::SkillLoader($db_handle);
+        $self->setSkillLoader($sl);
+        my $bs = new Anothark::BattleSetting($db_handle);
+        $self->setBattleSetting($bs);
 
+    }
 
     return $self;
 }
-
 
 
 # ƒƒ“ƒo[æ“¾‚¾‚¯

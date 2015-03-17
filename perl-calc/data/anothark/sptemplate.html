@@ -1,11 +1,26 @@
 <!--?xml version="1.0" encoding="Shift_JIS"?-->
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="jp" lang="jp"><head><meta name="viewport" content="width=320" /><meta http-equiv="Content-Type" content="application/xhtml+xml;charset=Shift_JIS" /><meta http-equiv="Cache-Control" content="no-cache" /><title>__PAGE_TITLE__</title><style type="text/css">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="jp" lang="jp"><head><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" /><meta http-equiv="Content-Type" content="application/xhtml+xml;charset=Shift_JIS" /><meta http-equiv="Cache-Control" content="no-cache" /><title>__PAGE_TITLE__</title><style type="text/css">
 <!--
 __BASE_CSS__
 -->
 </style>
 </head>
 <body>
+
+
+<nav class="navbar">
+  <form>
+    <div class="switcher">
+      <button id="toggleMenu">&#9776;</button>
+      <button formaction="mypage.cgi">M</button>
+      <button formaction="chose.cgi">C</button>
+      <button formaction="result.cgi">R</button>
+      <button formaction="bs.cgi">B</button>
+      <button id="toggleProf">&#9776;</button>
+    </div>
+  </form>
+</nav>
+
 <div id="nav" class="globalnav">
     <div class="pb">
         <div class="header">基本ﾒﾆｭｰ</div>
@@ -20,26 +35,24 @@ __BASE_CSS__
         <a href="index.html"         >TOP</a>
         <a href="howtouse.html">あそびかた</a>
         __LINK_TASKS__
+        <!--
         <div class="header">-Debug-</div>
         <a href="debug_room.cgi?guid=ON">ﾃﾞﾊﾞｯｸﾞﾙｰﾑ</a>
+        -->
+    </div>
+</div>
+
+<div id="prof" class="profnav">
+    <div class="pb">
         <div class="header">-黒猫さん-</div>
         <a class="twitter-timeline"  href="https://twitter.com/bcat_company"  data-widget-id="444065563774447618">@bcat_company からのツイート</a>
             <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
     </div>
 </div>
 <!--div style="font-size:x-small;width:240;"-->
-
+<!--div style="font-size:x-small;width:240;"-->
 
 <div id="main" class="content">
-<form>
-  <div class="switcher">
-    <button id="toggleMenu">&#9776;</button>
-    <button formaction="mypage.cgi">M</button>
-    <button formaction="chose.cgi">C</button>
-    <button formaction="result.cgi">R</button>
-    <button formaction="bs.cgi">B</button>
-  </div>
-</form>
 <div style="font-size:small;width:240;">
 <div class="contents">__TITLE__</div>
 __MESSAGE_BODY__
@@ -47,11 +60,9 @@ __MESSAGE_BODY__
 <aside>
 __ADD_SPACE__
 </aside>
-
-<footer>
 <hr>
-<div style="text-align: center;">Project「L」Archive</div>
-</footer>
+<div class="footer" style="text-align: center;">Project「L」Archive</div>
+
 </div>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
 <script type="text/javascript">
@@ -60,6 +71,12 @@ jQuery(function ($) {
   $('#toggleMenu').on('click', function (e) {
     e.preventDefault();
     $('body').toggleClass('showMenu');
+  });
+
+  $('#toggleProf').on('click', function (e) {
+    e.preventDefault();
+    $('body').toggleClass('showProf');
+    $('#prof').toggleClass('viewProf');
   });
 });
 //-->
