@@ -389,6 +389,11 @@ div.pb a {
     padding-left: 30px;
 }
 
+
+div.pb a.has_notice {
+    background-color: #ff4f4f;
+}
+
 div.pb div.header {
     border-style: solid;
     border-color: #b0aa00;

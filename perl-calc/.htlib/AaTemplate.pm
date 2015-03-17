@@ -53,6 +53,7 @@ my $gm_img = '<img src="imgld.cgi?i=icon/ico_gm.gif&guid=ON" />';
 
 my $img = undef;
 my $task_str = '<a href="viewtasks.cgi?guid=ON">&gt;Ç‚ÇÈÇ±Ç∆“”</a>';
+my $has_notice_task_str = '<a class="has_notice" href="viewtasks.cgi?guid=ON">&gt;Ç‚ÇÈÇ±Ç∆“”(__NOTICE_NUMBER__)</a>';
 
 my $local_menu = undef;
 sub init
@@ -324,6 +325,7 @@ _HERE_"
     my $ad_str     = $class->getAdStr();
     my $task_html  = $class->getTaskStr();
     my $local_menu = $class->getLocalMenu();
+    my $notice     = $class->{out}->{NOTICE_NUMBER};
 
     if ( $class->getMobileUtil()->getBrowser() ne "P" )
     {
@@ -341,6 +343,7 @@ _HERE_"
     $class->{base_html} =~ s/__LINK_TASKS__/$task_html/g;
     $class->{base_html} =~ s/__LOCAL_MENU__/$local_menu/g;
     $class->{base_html} =~ s/__ADD_SPACE__/$ad_str/g;
+    $class->{base_html} =~ s/__NOTICE_NUMBER__/$notice/g;
 }
 
 sub output
@@ -609,6 +612,10 @@ sub setupBaseData
     my $notice = $sns->hasNotice( $user_id );
     $class->{out}->{NOTICE_NUMBER} = $notice;
 
+    if ( $notice )
+    {
+        $class->setTaskStr($has_notice_task_str);
+    }
 
     return $result;
 }
