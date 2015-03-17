@@ -51,6 +51,15 @@ WHERE
 ;
 ";
 
+my $sql_update_party_name = "
+UPDATE
+    t_user
+SET
+    party_name = ?
+WHERE
+    user_id = ?
+";
+
 my $sql_do_join = "
 UPDATE
     t_user AS main
@@ -189,7 +198,7 @@ sub new
 
     if( not $simple )
     {
-        my $sql_member = "SELECT u.party_name, m.user_id,m.owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
+        my $sql_member = "SELECT u.party_name, m.user_id,CASE WHEN m.owner_id = 0 THEN m.user_id ELSE m.owner_id END AS owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
         my $sth  = $db_handle->prepare($sql_member);
         $self->setSthParty($sth);
 
@@ -406,6 +415,28 @@ sub loadPartyByUserId
     return $party; 
 }
 
+sub change
+{
+    my $class = shift;
+    my $user  = shift;
+    my $name  = shift;
+    $class->changeById($user->getId(), $name);
+}
+
+
+sub changeById
+{
+    my $class    = shift;
+    my $user_id  = shift;
+    my $name     = shift;
+
+
+    my $db_handle = $class->getDbHandler();
+
+    my $sth  = $db_handle->prepare($sql_update_party_name);
+    $sth->execute(($name,$user_id));
+    $sth->finish();
+}
 
 sub leave
 {

@@ -123,6 +123,27 @@ elsif ( $type eq "lc")
     $pl->leave( $me );
     $out->{RESULT} .= sprintf( 'ﾊﾟｰﾃｨｰを抜けました');
 }
+elsif ( $type eq "c" )
+{
+#    $at->setBody("body_party_reject.html");
+    $at->setBody("body_party_edit.html");
+    $out->{RESULT} .= sprintf( 'ﾊﾟｰﾃｨ名を変更します');
+    $out->{CURRENT_STR} = $party->getPartyName();
+    $out->{CONFIRM_TYPE} = $type;
+}
+elsif ( $type eq "cc")
+{
+    my $new_name = $c->param("str");
+    if ( $new_name )
+    {
+        $pl->change( $me, $new_name );
+        $out->{RESULT} .= sprintf( 'ﾊﾟｰﾃｨ名を変更しました');
+    }
+    else
+    {
+        $out->{RESULT} .= sprintf('ｴﾗｰ');
+    }
+}
 elsif ( $type eq "r" )
 {
 #    $at->setBody("body_party_reject.html");
@@ -211,8 +232,8 @@ else
     # Owner Menu
     if ( $me->getId()  == $party->getOwnerId() )
     {
-        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=c&oid=%s">ﾊﾟｰﾃｨｰ名変更</a>',$party->getOwnerId());
-        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=r&oid=%s">除名</a>',$party->getOwnerId());
+        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=c&oid=%s">ﾊﾟｰﾃｨｰ名変更</a><br />',$party->getOwnerId());
+        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=r&oid=%s">除名</a><br />',$party->getOwnerId());
         $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=d&oid=%s">ﾊﾟｰﾃｨｰを解散</a>',$party->getOwnerId());
     }
     # Member Menu
