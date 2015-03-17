@@ -107,7 +107,7 @@ my $party = $pl->loadPartyByUser( $me );
 
 if ($party->getPartyName() )
 {
-    $at->setPageName( sprintf( 'Êß°Ã¨°<br />%s', $party->getPartyName()));
+    $at->setPageName( sprintf( '%s', $party->getPartyName()));
 }
 
 $out->{CONFIRM_TYPE} = "";
