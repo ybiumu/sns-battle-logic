@@ -45,6 +45,29 @@ ORDER BY
     main.follow_user_id
 ";
 
+
+
+
+my $sql_find_friend = "
+SELECT
+    main.follow_user_id AS user_id
+FROM
+    t_follows AS main
+    LEFT JOIN
+    t_follows AS rev
+    ON (
+        main.user_id = rev.follow_user_id
+        AND main.follow_user_id = rev.user_id
+        AND main.delete_flag = rev.delete_flag
+    )
+WHERE
+    main.user_id = ?
+    AND
+    main.delete_flag <> 1
+ORDER BY
+    main.follow_user_id
+    ";
+
 my $do_follow_sql = "
     INSERT INTO t_follows( follow_user_id, user_id ) VALUES ( ?, ? )
         ON DUPLICATE KEY UPDATE delete_flag = 0;
@@ -132,8 +155,68 @@ sub isFollowing
     return $class->checkFollowStatus( $src_user_id, $dst_user_id );
 }
 
-sub getFollowingList
+sub getFollowingUserIdList
 {
+    my $class = shift;
+    my $user_id = shift;
+
+    my $sth  = $class->getDbHandler()->prepare($sql_find_friend);
+    my $stat = $sth->execute(($user_id));
+    my $row  = $sth->fetchrow_hashref();
+    if ( $sth->rows() == 0 )
+    {
+        $sth->finish();
+        return 0;
+    }
+    else
+    {
+        $sth->finish();
+        return $row->{result};
+    }
+}
+
+
+
+sub getFriendList
+{
+    my $class = shift;
+    my $user_id = shift;
+    my $last_user_id = shift || 0;
+
+    my $sql = sprintf(
+        "
+        SELECT
+            u.user_id,
+            u.user_name,
+            u.hair_type,
+            u.face_type,
+            u.msg
+        FROM
+            t_user AS u
+            JOIN
+            ( %s ) AS sub
+            USING( user_id )
+        WHERE
+            u.user_id > ?
+        ORDER BY u.user_id
+        LIMIT 10 
+        ",
+        $sql_find_friend
+    );
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+    my $stat = $sth->execute(($user_id, $last_user_id));
+    my $row  = $sth->fetchall_arrayref( +{} );
+    if ( $sth->rows() == 0 )
+    {
+        $sth->finish();
+        return 0;
+    }
+    else
+    {
+        $sth->finish();
+        return $row;
+    }
 }
 
 sub getFollowRequest

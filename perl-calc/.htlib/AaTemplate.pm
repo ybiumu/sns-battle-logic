@@ -684,7 +684,7 @@ sub loadEquipData
 SELECT
     SUM(im.max_hp) AS max_hp,
     SUM(im.hp) AS hp,
-    SUM(im.mp) AS magic,
+    SUM(im.magic) AS magic,
     SUM(im.agl) AS agl,
     SUM(im.kikyou) AS kikyou,
     SUM(im.atack) AS atack,
@@ -889,6 +889,7 @@ sub getMyCharacter
             s.node_id AS node_id,
             s.a_hp AS hp,
             s.a_atack AS atack,
+            s.a_magic AS magic,
             s.a_def AS def,
             s.stamina AS stamina,
             s.position_code AS position,
@@ -935,7 +936,7 @@ sub getMyCharacter
     $char->setNodeId(  $row->{node_id} );
     $char->getConcentration()->setBothValue($row->{rp});
     $char->getAtack()->setBothValue($row->{atack});
-    $char->getMagic()->setBothValue(0);
+    $char->getMagic()->setBothValue($row->{magic});
     $char->getDefence()->setBothValue($row->{def});
     $char->getAgility()->setBothValue($row->{a_agl});
     $char->getKehai()->setBothValue($row->{a_kehai});

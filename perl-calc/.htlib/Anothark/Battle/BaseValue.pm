@@ -199,12 +199,16 @@ sub getExpRate
     }
     elsif( $type == 5 )
     {
+        # for dallness chaf harmonic rezonanse.
         $exp_rate = sqrt(($class->getMainExpr()+1000)/1000);
     }
+=pod
+XXX For simple calc Odd eye's diamond eye. XXX
     elsif( $type == 6 )
     {
         $exp_rate = sqrt( ( ($class->getMainExpr()*3+$class->getSubExpr())*7 + 1000) / 1000 );
     }
+=cut
 #    $class->warning( "[EXP_RATE] $exp_rate");
     return sprintf("%s", $exp_rate);
 #    return sprintf("%.2f", $exp_rate);

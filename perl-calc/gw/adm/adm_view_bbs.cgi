@@ -30,7 +30,7 @@ $at->setAdminUtil($mu);
 my $ad_str = "";
 
 
-my $self_file = "adm_view_bbs.cgi";
+my $self_file = "adm_user_admin.cgi";
 
 my $browser      = $mu->getBrowser();
 #my $carrier_id   = $mu->getCarrierId();

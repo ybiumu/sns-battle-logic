@@ -715,5 +715,87 @@ sub getNoSkillType
 }
 
 
+my $regist_type = undef;
+my $expr_type = undef;
+sub setExprType
+{
+    my $class = shift;
+    return $class->setAttribute( 'expr_type', shift );
+}
+
+sub getExprType
+{
+    return $_[0]->getAttribute( 'expr_type' );
+}
+
+sub setRegistType
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_type', shift );
+}
+
+sub getRegistType
+{
+    return $_[0]->getAttribute( 'regist_type' );
+}
+
+
+my $seed_rate_value = undef;
+sub setSeedRateValue
+{
+    my $class = shift;
+    return $class->setAttribute( 'seed_rate_value', shift );
+}
+
+sub getSeedRateValue
+{
+    return $_[0]->getAttribute( 'seed_rate_value' );
+}
+
+
+sub checkSeedRate
+{
+    my $class = shift;
+    my $char  = shift;
+
+    my $result = sprintf("%040s",$class->getSeedRateValue() + $char->getSeedTypeValue()->cv());
+    $class->warning( sprintf("SEED_RESULT: %s/%s/%s\n", $result, $class->getSeedRateValue(),$char->getSeedTypeValue()->cv() ) );
+    if ( $result =~ /6/ )
+    {
+        return 1;
+    }
+    elsif( $result =~ /7/ )
+    {
+        return 2;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+
+my $effect_status_value = undef;
+sub setEffectStatusValue
+{
+    my $class = shift;
+    return $class->setAttribute( 'effect_status_value', shift );
+}
+
+sub getEffectStatusValue
+{
+    return $_[0]->getAttribute( 'effect_status_value' );
+}
+
+
+
+sub isChain
+{
+    my $class = shift;
+    my $target = shift;
+
+    return 1; # Exhibision;
+}
+
 
 1;

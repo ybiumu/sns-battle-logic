@@ -186,6 +186,22 @@ sub clearInvite
 }
 
 
+
+my $member_sql = "SELECT u.party_name, m.user_id,CASE WHEN m.owner_id = 0 THEN m.user_id ELSE m.owner_id END AS owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
+
+sub getMemberSql
+{
+    my $class = shift;
+    return $member_sql;
+}
+
+my $npc_sql = "SELECT npc_id,join_datetime,limit_datetime FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
+
+sub getNpcSql
+{
+    my $class = shift;
+    return $npc_sql;
+}
 sub new
 {
     my $class = shift;
@@ -198,15 +214,23 @@ sub new
 
     if( not $simple )
     {
-        my $sql_member = "SELECT u.party_name, m.user_id,CASE WHEN m.owner_id = 0 THEN m.user_id ELSE m.owner_id END AS owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
-        my $sth  = $db_handle->prepare($sql_member);
-        $self->setSthParty($sth);
+#        my $sql_member = "SELECT u.party_name, m.user_id,CASE WHEN m.owner_id = 0 THEN m.user_id ELSE m.owner_id END AS owner_id FROM t_user AS u LEFT JOIN t_user AS m ON( u.user_id = m.owner_id OR u.user_id = m.user_id ) WHERE u.user_id = ? ORDER BY m.user_id";
+        my $sql_member = $self->getMemberSql();
+        if ( $sql_member )
+        {
+            my $sth  = $db_handle->prepare($sql_member);
+            $self->setSthParty($sth);
+        }
 
         # NPC is party owners.
 #    my $sql_npc    = "SELECT npc1,npc2,npc3 FROM t_party_npc WHERE owner_id = ?";
-        my $sql_npc    = "SELECT npc_id,join_datetime,limit_datetime FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
-        my $sth_npc  = $db_handle->prepare($sql_npc);
-        $self->setSthNpc($sth_npc);
+#        my $sql_npc    = "SELECT npc_id,join_datetime,limit_datetime FROM t_party_npc WHERE owner_id = ? ORDER BY join_datetime";
+        my $sql_npc    = $self->getNpcSql();
+        if ( $sql_npc )
+        {
+            my $sth_npc  = $db_handle->prepare($sql_npc);
+            $self->setSthNpc($sth_npc);
+        }
 
 
         my $sl = new Anothark::SkillLoader($db_handle);

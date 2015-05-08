@@ -103,6 +103,8 @@ sub damageExecBase
     [rate]     : %s
     [Id]       : %s/%s
     [RT]       : %s
+    [ELEM]     : %s/%s
+    [TYPE]     : %s/%s
     ",
      $from->getName(),
      $skill->getSkillName(),
@@ -110,13 +112,20 @@ sub damageExecBase
      $from->getAttribute($skill->getPowerSourceByKey())->cv(),
      $skill->getSkillRate(),
      $skill->getSkillId(), $skill->getParentSkillId(),
-     $from->getConcentration()->cv()
+     $from->getConcentration()->cv(),
+     $skill->getBaseElement(),$skill->getSubBaseElement(),
+     $skill->getTypeId(),$skill->getSubTypeId()
     ));
 }
     $base->setPs( $from->getAttribute($skill->getPowerSourceByKey())->cv() );
     $base->setSr( $skill->getSkillRate() );
-    $base->setMainExpr(0);
-    $base->setSubExpr(0);
+#    $base->setSubExpr(0);
+#    $base->setMainExpr(0);
+#    $base->setMainExpr( $from->getTypeExperiment( $skill->getBaseElement() ) );
+#    $base->setSubExpr( $from->getTypeExperiment( $skill->getSubBaseElement() ) );
+    ## 攻撃属性ではなく熟練の話
+    $base->setMainExpr( $from->getTypeExperiment( $skill->getTypeId() ) );
+    $base->setSubExpr( $from->getTypeExperiment( $skill->getSubTypeId() ) );
     $base->setExprType(1);
     if ( $skill->getEffectType() == 1 )
     {
@@ -129,12 +138,27 @@ sub damageExecBase
     $base->setRand($skill->getRandomAlias());
 
 
+{
+    $class->warning( sprintf("
+    ** REGIST **
+    [ELEM]     : %s/%s
+    [REGIST]   : %s/%s
+    [REG_TYPE] : %s
+    [SEEDTYPE] : %s
+    ",
+     $skill->getBaseElement(),$skill->getSubBaseElement(),
+    $to->getRegistById( $skill->getBaseElement() )->cv(),
+    $to->getRegistById( $skill->getSubBaseElement() )->cv(),
+    $skill->getRegistType(),
+    $skill->checkSeedRate( $to ),
+    ));
+}
 
 
-    $status->setMainRegist(0);
-    $status->setSubRegist(0);
-    $status->setRegistType(0);
-    $status->setSeedRateType(0);
+    $status->setMainRegist( $to->getRegistById( $skill->getBaseElement() )->cv() );
+    $status->setSubRegist( $to->getRegistById( $skill->getSubBaseElement() )->cv() );
+    $status->setRegistType( $skill->getRegistType() );
+    $status->setSeedRateType( $skill->checkSeedRate( $to ) );
     $status->setStatMatchNum(0);
     $status->setStone(0);
     $status->setSleep(0);

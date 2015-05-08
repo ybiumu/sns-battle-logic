@@ -467,16 +467,16 @@ sub enemy001
     );
     $enemy->setCmd([
         [],
-#        $sl->loadSkill(1009),
-#        $sl->loadSkill(1009),
-#        $sl->loadSkill(1009),
-#        $sl->loadSkill(1009),
-#        $sl->loadSkill(1009),
-        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
-        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
-        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
-        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
-        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+        $sl->loadSkill(1088),
+        $sl->loadSkill(1010),
+        $sl->loadSkill(1088),
+        $sl->loadSkill(1010),
+        $sl->loadSkill(1088),
+#        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+#        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+#        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+#        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
+#        new Anothark::Skill( 'Šš‚Ý‚Â‚«' , { skill_rate => 1.2 ,length_type => 1, range_type => 1, power_source => 1 } ),
     ]);
     $enemy->setSide("e");
     $enemy->getPosition()->setBothValue("f");

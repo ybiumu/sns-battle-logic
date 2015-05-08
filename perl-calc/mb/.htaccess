@@ -97,8 +97,8 @@ Allow from 209.85.128.0/17
 Allow from 72.14.199.0/24
 Allow from 74.125.16.0/24
 Allow from 74.125.70.0/24
-Allow from 66.249.67.0/24
-Allow from 66.249.73.0/24
+# 66.249.64.1~66.249.79.254
+Allow from 66.249.64.0/20
 
 # Local
 

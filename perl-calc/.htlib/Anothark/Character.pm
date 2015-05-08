@@ -22,6 +22,22 @@ use Anothark::Battle::BaseValue;
 use Anothark::Battle::StatusValue;
 use Anothark::Battle::TargetValue;
 
+our $preset_keys = [
+    'hp',
+    'max_hp',
+    'stamina',
+    'magic',
+    'def',
+    'rp',
+    'atack',
+    'agl',
+    'kehai',
+    'chikaku',
+    'luck',
+    'kikyou',
+    'chrm'
+];
+
 sub new
 {
     my $class = shift;
@@ -68,6 +84,22 @@ sub init
     $class->setCharm( new Anothark::ValueObject());
 
     $class->setPosition( new Anothark::ValueObject());
+
+    $class->setRegist0( new Anothark::ValueObject() );
+    $class->setRegist1( new Anothark::ValueObject() );
+    $class->setRegist2( new Anothark::ValueObject() );
+    $class->setRegist3( new Anothark::ValueObject() );
+    $class->setRegist4( new Anothark::ValueObject() );
+
+    $class->setRegist11( new Anothark::ValueObject() );
+    $class->setRegist12( new Anothark::ValueObject() );
+    $class->setRegist13( new Anothark::ValueObject() );
+    $class->setRegist14( new Anothark::ValueObject() );
+
+    $class->setRegist_1( new Anothark::ValueObject() );
+
+    $class->setSeedTypeValue( new Anothark::ValueObject() );
+
     $class->setRel(0);
     $class->setVel(0);
 
@@ -103,11 +135,6 @@ sub init
             new Anothark::Skill::Exhibition("lost_memorys"),
             new Anothark::Skill::Exhibition("zoom_punch"),
             new Anothark::Skill::Exhibition("zoom_punch"),
-#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
-#        new Anothark::Skill( 'ズームパンチ'   , { power_source => 0, skill_rate => 20 ,length_type => 2,random_type => 2} ),
         ]);
     }
 
@@ -116,18 +143,54 @@ sub init
     $class->getHp()->setBothValue( 100 );
     $class->getStamina()->setBothValue( 100 );
     $class->getAgility()->setBothValue( 100 );
-
     $class->getChikaku()->setBothValue( 100 );
     $class->getKikyou()->setBothValue( 100 );
     $class->getCharm()->setBothValue( 100 );
     $class->getKehai()->setBothValue( 100 );
-
     $class->getDefence()->setBothValue( 0 );
 
     $class->getPosition()->setBothValue( "f" );
 
+    $class->getSeedTypeValue()->setBothValue( "0000000000000000000000000000000000000000" );
+
+    $class->preset();
+
 }
 
+sub preset
+{
+    my $class = shift;
+    $class->warning( "Call preset");
+    if ( exists $class->{preset})
+    {
+        $class->warning( "Preset exists.");
+        $class->warning( "keys [" . join("/",sort keys %{$class->{preset}}) . "].");
+
+        foreach my $key ( sort keys %{$class->{preset}})
+        {
+            if ( exists $class->{$key} )
+            {
+                my $ref = ref $class->{$key};
+                if ( $ref =~ /^Anothark::ValueObject(|::.+)$/ )
+                {
+                    $class->{$key}->setBothValue( $class->{preset}->{$key} );
+                }
+                else
+                {
+                    $class->{$key} = $class->{preset}->{$key};
+                }
+            }
+            else
+            {
+                $class->{$key} = $class->{preset}->{$key};
+            }
+        }
+    }
+}
+
+=pod
+初期状態の保存
+=cut
 sub fixInit
 {
     my $class = shift;
@@ -153,6 +216,17 @@ my $chikaku = undef;
 my $kikyou = undef;
 my $chrm = undef;
 
+
+my $regist_0 = undef;
+my $regist_1 = undef;
+my $regist_2 = undef;
+my $regist_3 = undef;
+my $regist_4 = undef;
+my $regist_11 = undef;
+my $regist_12 = undef;
+my $regist_13 = undef;
+my $regist_14 = undef;
+my $regist__1 = undef;
 
 my $side = undef;
 
@@ -526,6 +600,162 @@ sub getCharm
 }
 
 
+sub setRegist0
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_0', shift );
+}
+
+sub getRegist0
+{
+    return $_[0]->getAttribute( 'regist_0' );
+}
+
+sub setRegist1
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_1', shift );
+}
+
+sub getRegist1
+{
+    return $_[0]->getAttribute( 'regist_1' );
+}
+
+sub setRegist2
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_2', shift );
+}
+
+sub getRegist2
+{
+    return $_[0]->getAttribute( 'regist_2' );
+}
+
+sub setRegist3
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_3', shift );
+}
+
+sub getRegist3
+{
+    return $_[0]->getAttribute( 'regist_3' );
+}
+
+sub setRegist4
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_4', shift );
+}
+
+sub getRegist4
+{
+    return $_[0]->getAttribute( 'regist_4' );
+}
+
+sub setRegist11
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_11', shift );
+}
+
+sub getRegist11
+{
+    return $_[0]->getAttribute( 'regist_11' );
+}
+
+sub setRegist12
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_12', shift );
+}
+
+sub getRegist12
+{
+    return $_[0]->getAttribute( 'regist_12' );
+}
+
+sub setRegist13
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_13', shift );
+}
+
+sub getRegist13
+{
+    return $_[0]->getAttribute( 'regist_13' );
+}
+
+sub setRegist14
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_14', shift );
+}
+
+sub getRegist14
+{
+    return $_[0]->getAttribute( 'regist_14' );
+}
+
+sub setRegist_1
+{
+    my $class = shift;
+    return $class->setAttribute( 'regist_-1', shift );
+}
+
+sub getRegist_1
+{
+    return $_[0]->getAttribute( 'regist_-1' );
+}
+
+
+sub getRegistById
+{
+    return $_[0]->getAttribute( 'regist_' . $_[1] );
+}
+
+sub setRegistById
+{
+    my $class = shift;
+    my $id    = shift;
+    return $class->setAttribute( 'regist_' . $id, shift );
+}
+
+
+my $seed_type_value = undef;
+
+sub setSeedTypeValue
+{
+    my $class = shift;
+    return $class->setAttribute( 'seed_type_value', shift );
+}
+
+sub getSeedTypeValue
+{
+    return $_[0]->getAttribute( 'seed_type_value' );
+}
+
+
+=pod
+ End of status
+=cut
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 sub setVel
 {
     my $class = shift;
@@ -573,7 +803,17 @@ sub setTypeExperiment
 
 sub getTypeExperiment
 {
-    return $_[0]->getExperiments()->{$_[1]}->{"exp"};
+    my $class = shift;
+    my $type  = shift;
+    my $exps = $class->getExperiments();
+    if ( ref($exps) eq "HASH" && exists $exps->{$type} )
+    {
+        return $exps->{$type}->{"exp"};
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 my $type_level = undef;
@@ -844,6 +1084,17 @@ sub canTarget
     return 1;
 }
 
+sub Affected
+{
+    my $class = shift;
+    my $value = shift;
+    my $affected_target = shift;
+
+    my $remain = $class->getAttribute($affected_target)->cv() + $value;
+
+    return $class->getAttribute($affected_target)->setCurrentValue( $remain > 0 ? $remain : 0 );
+}
+
 sub Damage
 {
     my $class = shift;
@@ -873,7 +1124,12 @@ sub Damage
             $class->setDamaged(1);
             # この時点でStackを移動
             # 無名キャラがダメージ発生源ではないこと
-            $class->incrResolveChainStack(); # 連携を増やす->最終的には状態異常側に。
+#            $class->incrResolveChainStack(); # 連携を増やす->最終的には状態異常側に。
+#                                             #   -> 違う、スキル側に判定を移譲。
+            if ( $skill->isChain( $class ) ) # 連携の判定
+            {
+                $class->incrResolveChainStack(); # 連携を増やす
+            }
 
             if ( $char->getTemplate() ne "virtual" )
             {
@@ -901,6 +1157,9 @@ sub Damage
         }
     }
     # HP以外にダメージはDIFF計算不要・仮計算も不要
+    else
+    {
+    }
 
     # Status Resolve
     if ( $skill->getNoSkillType() == 4)

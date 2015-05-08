@@ -103,6 +103,57 @@ my $rp = undef;
 my $stamina = undef;
 
 
+
+my $affistr_fp = undef;
+my $affistr_sp = undef;
+my $has_affi_sp = undef;
+my $has_affi_fp = undef;
+
+sub setHasAffiFp
+{
+    my $class = shift;
+    return $class->setAttribute( 'has_affi_fp', shift );
+}
+
+sub getHasAffiFp
+{
+    return $_[0]->getAttribute( 'has_affi_fp' );
+}
+
+sub setHasAffiSp
+{
+    my $class = shift;
+    return $class->setAttribute( 'has_affi_sp', shift );
+}
+
+sub getHasAffiSp
+{
+    return $_[0]->getAttribute( 'has_affi_sp' );
+}
+
+sub setAffistrSp
+{
+    my $class = shift;
+    return $class->setAttribute( 'affistr_sp', shift );
+}
+
+sub getAffistrSp
+{
+    return $_[0]->getAttribute( 'affistr_sp' );
+}
+
+sub setAffistrFp
+{
+    my $class = shift;
+    return $class->setAttribute( 'affistr_fp', shift );
+}
+
+sub getAffistrFp
+{
+    return $_[0]->getAttribute( 'affistr_fp' );
+}
+
+
 sub postInit
 {
     my $class = shift;

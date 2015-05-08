@@ -61,20 +61,61 @@ sub getAt
 }
 
 
+## 全員の選択肢
+
+our $select_members_selection = "
+SELECT
+    q.selection_id,
+    COUNT(selection_id) AS num,
+    SUM(
+        CASE
+        WHEN u.owner_id = 0
+        THEN
+            1
+        ELSE
+            0
+        END
+    ) AS priority
+FROM
+    t_user AS u
+    JOIN 
+    t_selection_que q
+    USING( user_id )
+WHERE
+    ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+    AND
+    q.selection_id <> 0
+GROUP BY selection_id
+ORDER BY num DESC, priority DESC LIMIT 1
+";
+
 
 # loop before
 #
 # TODO: party member全員の状況を踏まえなければいけない
+#           -> イベント進行状況の重ねあわせ
+#               -> group by flagment_id HAVING COUNT(user_id) > party_member_num ?
+# TODO: 現状、リーダーの選択肢だけしか使われない
 #
-our $select_result_summary = "
-SELECT
+#
+# re:
+# rc:
+# r : 地理に基づく進行リザルト
+our $select_result_summary_old = "
+SELECT"
+    .
+    # 進行先のイベントのリザルトがとれたらイベント 
+    #    
+    "
     IFNULL(
         re.result_id,
         IFNULL(
             r.result_id,
             rc.result_id
         )
-    ) AS result_id,
+    ) AS result_id,"
+    .
+    "
     IFNULL(
         re.enemy_group_id,
         IFNULL(
@@ -99,6 +140,7 @@ FROM
     LEFT JOIN t_selection AS sel USING(selection_id)"
     .
 ## t_result_master.next_node_id から探す
+# 選択肢自体がイベント型
     "
     LEFT JOIN (
         t_event_master AS e
@@ -107,10 +149,12 @@ FROM
         ON ( e.event_id = re.parent_event_id )
         LEFT JOIN
         t_user_flagment AS cfe
-        ON ( re.close_flag_id = cfe.flag_id )
+        ON ( re.close_flag_id = cfe.flag_id )" . # XXX  除外条件では？ XXX user_id と結合しないと駄目では？ XXX
+"
     ) ON ( sel.event_id = e.event_id )"
     .
 ## t_selection.next_node_id から探す
+# 移動先でイベント発生型
     "
     LEFT JOIN (
         t_user_flagment AS f
@@ -119,10 +163,12 @@ FROM
         ON ( f.flag_id = r.flag_id )
         LEFT JOIN
         t_user_flagment AS cf
-        ON ( r.close_flag_id = cf.flag_id )
+        ON ( r.close_flag_id = cf.flag_id )" . # 除外条件: 経験済みなら発生しない XXX user_id と結合しないと駄目では？ XXX
+"
     ) ON ( f.user_id = u.user_id AND r.node_id = sel.next_node_id )"
     .
 ## t_user_status.node_id から探す
+# 滞留時イベント型
     "
     LEFT JOIN (
         t_user_flagment AS fc
@@ -131,10 +177,12 @@ FROM
         ON ( fc.flag_id = rc.flag_id )
         LEFT JOIN
         t_user_flagment AS cfc
-        ON ( rc.close_flag_id = cfc.flag_id )
+        ON ( rc.close_flag_id = cfc.flag_id )" . #除外条件: 経験済みなら発生しない XXX user_id と 結合しないと駄目では? XXX
+"
     ) ON ( fc.user_id = u.user_id AND rc.node_id = s.node_id )"
     .
 ## それ以外は現在地のnode_id
+# 単純滞留
     "
 WHERE u.user_id = ? AND cf.flag_id IS NULL AND cfc.flag_id IS NULL
 ORDER BY RAND() * re.priority * re.rate DESC, re.result_id DESC, RAND() * r.priority * r.rate DESC, r.result_id DESC, RAND() * rc.priority * rc.rate DESC,rc.result_id DESC LIMIT 1"
@@ -152,6 +200,299 @@ ORDER BY RAND() * re.priority * re.rate DESC, re.result_id DESC, RAND() * r.prio
 #    LEFT JOIN t_result_master AS r ON ( r.node_id = sel.next_node_id )
 #    JOIN t_result_master AS rc ON ( rc.node_id = s.node_id )
 #WHERE u.user_id = ? ";
+
+
+
+#        LEFT JOIN
+#        t_result_master AS re
+#        ON ( e.event_id = re.parent_event_id )
+#        LEFT JOIN
+#        t_user_flagment AS cfe
+#        ON ( re.close_flag_id = cfe.flag_id )" . # XXX  除外条件では？ XXX user_id と結合しないと駄目では？ XXX
+#
+# TODO 
+# UNIONして UNION毎にプライオリティ付けてLIMIT 1
+#
+# 1. イベントの移動先で発生するイベントの検索
+#   1.1 ->
+=pod
+    t_selection AS sel  # 選択肢
+      +t_event_master ON (sel.event_id = e.event_id ) # 選択肢から呼び出されるイベント
+        +t_result_master AS re ON ( e.event_id = re.parent_event_id ) # イベントに紐づくリザルト
+          *(
+            SELECT
+               *
+            FROM
+                t_user AS u
+                JOIN
+                t_user_flagment AS uf 
+                USING(user_id)
+                JOIN
+                (
+                    t_selection AS sel
+                    JOIN
+                    t_event_master AS e
+                    ON( sel.selection_id = ? AND  sel.event_id = e.event_id  )
+                    JOIN
+                    t_result_master AS re
+                    ON( e.event_id = re.parent_event_id )
+                )
+                ON ( re.close_flag_id = uf.flag_id )
+            WHERE
+                ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) ) 
+          )                                             # リザルトを発生させるために必要なフラグの発掘
+=cut
+#
+#
+# 2. 通常行動の移動先で発生するイベントの検索
+# 3. 滞留時の場所で発生するイベントの検索
+# 
+#
+
+
+
+=pod
+SELECT
+    1 AS priority,
+    re.result_id,
+    re.enemy_group_id,
+    IFNULL(
+        NULLIF(re.next_node_id, 0),
+        sel.next_node_id
+) AS next_node_id
+FROM
+    t_user AS u
+    JOIN
+    t_user_flagment AS uf 
+    USING(user_id)
+    JOIN
+    (
+        t_selection AS sel
+        JOIN
+        t_event_master AS e
+        ON( sel.selection_id = ? AND  sel.event_id = e.event_id  )
+        JOIN
+        t_result_master AS re
+        ON( e.event_id = re.parent_event_id )
+    )
+    ON ( re.close_flag_id = uf.flag_id )
+WHERE
+    ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+GROUP BY
+    result_id,enemy_group_id,next_node_id
+HAVING COUNT(re.result_id) = ?
+=cut
+
+
+# in: selection_id, owner_id, owner_id, member_num
+# node_id, flag_id, close_flag_id,result_id,enemy_group_id,next_node_id
+our $new_sql_part_1 = "
+SELECT
+    1 AS priority,
+    re.result_id,
+    re.enemy_group_id,
+    IFNULL(
+        NULLIF(re.next_node_id, 0),
+        sel.next_node_id
+) AS next_node_id
+FROM
+    t_user AS u
+    JOIN
+    t_user_flagment AS uf 
+    USING(user_id)
+    JOIN
+    (
+        t_selection AS sel
+        JOIN
+        t_event_master AS e
+        ON( sel.selection_id = ? AND  sel.event_id = e.event_id  )
+        JOIN
+        t_result_master AS re
+        ON( e.event_id = re.parent_event_id )
+    )
+    ON ( re.close_flag_id = uf.flag_id )
+WHERE
+    ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+GROUP BY
+    result_id,enemy_group_id,next_node_id
+HAVING COUNT(re.result_id) = ?
+";
+
+# TODO
+# in: selection_id, owner_id, owner_id, member_num
+# node_id, flag_id, close_flag_id,result_id,enemy_group_id,next_node_id
+our $new_sql_part_2 = "
+SELECT
+    2 AS priority,
+    re.result_id,
+    re.enemy_group_id,
+    IFNULL(
+        NULLIF(re.next_node_id, 0),
+        sel.next_node_id
+) AS next_node_id
+FROM
+    t_user AS u
+    JOIN
+    t_user_flagment AS uf 
+    USING(user_id)
+    JOIN
+    (
+        t_selection AS sel
+        JOIN
+        t_result_master AS re
+        ON ( sel.selection_id = ? AND sel.next_node_id = re.node_id)
+    )
+    ON ( uf.flag_id = re.flag_id )
+    LEFT JOIN
+    t_user_flagment AS cuf
+    ON ( cuf.user_id = u.user_id AND  re.close_flag_id = cuf.flag_id )
+WHERE
+    ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+GROUP BY
+    result_id,enemy_group_id,next_node_id
+HAVING COUNT(re.result_id) = ?
+";
+
+# in: owner_id, owner_id, member_num
+our $new_sql_part_3 = "
+SELECT
+    3 AS priority,
+    re.result_id,
+    re.enemy_group_id,
+    s.node_id AS next_node_id
+FROM
+    t_user AS u
+    JOIN
+    t_user_status AS s
+    USING(user_id)
+    LEFT JOIN
+    t_user_flagment AS uf 
+    USING(user_id)
+    LEFT JOIN
+    t_result_master AS re
+    ON ( s.node_id = re.node_id AND uf.flag_id = re.flag_id )
+    LEFT JOIN
+    t_user_flagment AS cuf
+    ON ( cuf.user_id = u.user_id AND  re.close_flag_id = cuf.flag_id )
+WHERE
+    ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+    AND
+    cuf.flag_id IS NULL
+GROUP BY
+    result_id,enemy_group_id,next_node_id
+HAVING COUNT(re.result_id) = ?
+";
+
+
+
+
+our $select_result_summary = "
+SELECT
+    *
+FROM
+(
+    SELECT
+        1 AS priority,
+        re.result_id,
+        re.enemy_group_id,
+        IFNULL(
+            NULLIF(re.next_node_id, 0),
+            sel.next_node_id
+    ) AS next_node_id
+    FROM
+        t_user AS u
+        JOIN
+        t_user_flagment AS uf 
+        USING(user_id)
+        JOIN
+        (
+            t_selection AS sel
+            JOIN
+            t_event_master AS e
+            ON( sel.selection_id = ? AND  sel.event_id = e.event_id  )
+            JOIN
+            t_result_master AS re
+            ON( e.event_id = re.parent_event_id )
+        )
+        ON ( re.close_flag_id = uf.flag_id )
+    WHERE
+        ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+    GROUP BY
+        result_id,enemy_group_id,next_node_id
+    HAVING COUNT(re.result_id) = ?
+    ORDER BY RAND() * re.priority * re.rate DESC, re.result_id DESC LIMIT 1
+) AS q1
+UNION ALL
+SELECT
+    *
+FROM
+(
+    SELECT
+        2 AS priority,
+        re.result_id,
+        re.enemy_group_id,
+        IFNULL(
+            NULLIF(re.next_node_id, 0),
+            sel.next_node_id
+    ) AS next_node_id
+    FROM
+        t_user AS u
+        JOIN
+        t_user_flagment AS uf 
+        USING(user_id)
+        JOIN
+        (
+            t_selection AS sel
+            JOIN
+            t_result_master AS re
+            ON ( sel.selection_id = ? AND sel.next_node_id = re.node_id)
+        )
+        ON ( uf.flag_id = re.flag_id )
+        LEFT JOIN
+        t_user_flagment AS cuf
+        ON ( cuf.user_id = u.user_id AND  re.close_flag_id = cuf.flag_id )
+    WHERE
+        ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+    GROUP BY
+        result_id,enemy_group_id,next_node_id
+    HAVING COUNT(re.result_id) = ?
+    ORDER BY RAND() * re.priority * re.rate DESC, re.result_id DESC LIMIT 1
+) AS q2
+UNION ALL
+SELECT
+    *
+FROM
+(
+    SELECT
+        3 AS priority,
+        re.result_id,
+        re.enemy_group_id,
+        s.node_id AS next_node_id
+    FROM
+        t_user AS u
+        JOIN
+        t_user_status AS s
+        USING(user_id)
+        LEFT JOIN
+        t_user_flagment AS uf 
+        USING(user_id)
+        LEFT JOIN
+        t_result_master AS re
+        ON ( s.node_id = re.node_id AND uf.flag_id = re.flag_id )
+        LEFT JOIN
+        t_user_flagment AS cuf
+        ON ( cuf.user_id = u.user_id AND  re.close_flag_id = cuf.flag_id )
+    WHERE
+        ( u.owner_id = ? OR ( u.owner_id = 0 AND u.user_id = ? ) )
+        AND
+        cuf.flag_id IS NULL
+    GROUP BY
+        result_id,enemy_group_id,next_node_id
+    HAVING COUNT(re.result_id) = ?
+    ORDER BY RAND() * re.priority * re.rate DESC, re.result_id DESC LIMIT 1
+) AS q3
+ORDER BY priority LIMIT 1
+";
 
 
 our $bookin_log_id = "
@@ -384,6 +725,7 @@ FROM
 
 our $booking_sth;
 our $result_pre_sth;
+our $select_members_selection_sth;
 our $result_sth;
 our $rs_sth;
 our $up_commit_sth;
@@ -416,15 +758,40 @@ sub doQueing
         my $me = $at->getBattlePlayerByUserId($user_id->[0]);
         $party = $pl->loadBattlePartyByUser( $me, 'p' );
         $last_status = 0;
-        $pu->notice("Target user id[$user_id->[0]]");
-        $pu->notice($rs_sth->execute(($user_id->[0])));
-        my $rsum_row  = $rs_sth->fetchrow_hashref();
-        if ( ! $rs_sth->rows() > 0 )
+
+        $pu->notice("Target party_owner id[$user_id->[0]]");
+# メンバーの選択肢から優先される選択肢をr取得
+        $pu->notice($select_members_selection_sth->execute(($user_id->[0], $user_id->[0])));
+        my $sel_row = $select_members_selection_sth->fetchrow_hashref();
+        if ( ! $select_members_selection_sth->rows() > 0 )
         {
+            $pu->notice(sprintf("Cannot found selection for owner[%s]", $user_id->[0]));
             next;
         }
 
+
         my $members = [ $party->getPartyPlayer() ];
+        my $member_num = scalar(@{$members});
+
+        my $selection_id = $sel_row->{selection_id};
+# 選択結果のリザルト探索
+        $pu->notice("Target user id[$user_id->[0]]");
+        $pu->notice(
+            $rs_sth->execute(
+                (
+                    $selection_id, $user_id->[0],$user_id->[0], $member_num,
+                    $selection_id, $user_id->[0],$user_id->[0], $member_num,
+                    $user_id->[0],$user_id->[0], $member_num
+                )
+            )
+        );
+        my $rsum_row  = $rs_sth->fetchrow_hashref();
+        if ( ! $rs_sth->rows() > 0 )
+        {
+            $pu->notice(sprintf("Cannot found result for owner[%s]", $user_id->[0]));
+            next;
+        }
+
         my $rid  = $rsum_row->{result_id};
         my $egid = $rsum_row->{enemy_group_id};
         my $nnid = $rsum_row->{next_node_id};
@@ -759,6 +1126,7 @@ sub openMainSth
     my $db    = $class->getAt()->getDbHandler();
 
 
+    $select_members_selection_sth = $db->prepare($select_members_selection);
     $result_pre_sth = $db->prepare( $insert_pre );
     $result_sth = $db->prepare( $insert_prepost );
     $rs_sth = $db->prepare( $select_result_summary );
@@ -777,6 +1145,7 @@ sub openMainSth
 
 sub finishMainSth
 {
+    $select_members_selection_sth->finish();
     $result_pre_sth->finish();
     $result_sth->finish();
     $rs_sth->finish();

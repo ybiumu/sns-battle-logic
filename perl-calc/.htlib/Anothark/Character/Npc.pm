@@ -35,6 +35,9 @@ sub isNpc
 
 
 my $npc_id = undef;
+my $npc_name = undef;
+my $img_code = undef;
+
 sub setNpcId
 {
     my $class = shift;
@@ -44,6 +47,28 @@ sub setNpcId
 sub getNpcId
 {
     return $_[0]->getAttribute( 'npc_id' );
+}
+
+sub setNpcName
+{
+    my $class = shift;
+    return $class->setAttribute( 'npc_name', shift );
+}
+
+sub getNpcName
+{
+    return $_[0]->getAttribute( 'npc_name' );
+}
+
+sub setImgCode
+{
+    my $class = shift;
+    return $class->setAttribute( 'img_code', shift );
+}
+
+sub getImgCode
+{
+    return $_[0]->getAttribute( 'img_code' );
 }
 
 

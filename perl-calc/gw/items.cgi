@@ -277,7 +277,24 @@ sub descr_item
     my $at = shift;
     my $item_id = shift;
     my $item = $im->loadUserItem($at->getOut()->{USER_ID}, $item_id);
-    return sprintf("<div class='smallheader'>%s</div>%s\n<div class='smalldescr'>%s</div>\n", $item->getItemLabel(), "NoData<br />",$item->getItemDescr());
+
+    return sprintf(
+        "<div class='smallheader'>–¼Ì: %s</div>W–ñ: %s<br />\n<div class='smalldescr'>à–¾: %s</div>\n",
+        $item->getItemLabel(), 
+        $item->getMergeNumber(),
+        $item->getItemDescr()
+    );
+
+#    return sprintf(
+#        "<div class='smallheader'>%s</div>%s\n<div class='smalldescr'>%s</div>%s\n",
+#        $item->getItemLabel(), "NoData<br />",$item->getItemDescr(),
+#        (
+#            $browser eq "P" ?
+#                ( $item->getHasAffiSp() ? sprintf("<hr />%s", $item->getAffistrSp() ) : "" )
+#                : ( $item->getHasAffiFp() ? sprintf("<hr />%s", $item->getAffistrFp() ) : "" )
+# 
+#        )
+#    );
 }
 
 sub pass_item
@@ -358,7 +375,8 @@ sub pre_descr_item
     $at->setPageName("±²ÃÑ&gt;Ú×");
     $im = new Anothark::ItemManager( $at->getDbHandler() );
 #    $pre_sth = $at->getDbHandler()->prepare($sql);
-    return "pre_descr_item";
+#    return "pre_descr_item";
+    return "";
 }
 
 sub pre_pass_item
@@ -413,7 +431,7 @@ sub post_use_item
 
 sub post_descr_item
 {
-    return "post_descr_item";
+#    return "post_descr_item";
 }
 
 sub post_pass_item

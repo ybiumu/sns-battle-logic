@@ -61,10 +61,13 @@ sub getRegistRate
     {
         $regist = ( $class->getMainRegist() + $class->getSubRegist() ) / 2;
     }
+=pod
+XXX For simple calc Odd eye's diamond eye. XXX
     elsif ( $class->getRegistType() == 2 )
     {
         $regist = ( $class->getMainRegist()*3 + $class->getSubRegist()*7 ) / 10;
     }
+=cut
     else
     {
         $regist = $class->getMainRegist();
@@ -74,6 +77,10 @@ sub getRegistRate
 }
 
 
+=pod
+1:種族強化
+2:種族弱化
+=cut
 sub getSeedRate
 {
     my $class = shift;
@@ -83,7 +90,7 @@ sub getSeedRate
     {
         return 1.5;
     }
-    elsif ( $type == -1 )
+    elsif ( $type == 2 )
     {
         return 0.5;
     }

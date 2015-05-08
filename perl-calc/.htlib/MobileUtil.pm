@@ -100,6 +100,14 @@ sub parseUserAgent
                     $class->debug(" Session user_id is `" . $session->param('user_id'). "'");
                     $class->setUid( sprintf("%s:%s", $session->param('pattern'), $session->param('user_id')));
                 }
+                elsif ( $session->param('pattern') eq "sandbox" )
+                {
+                    $class->debug(" Session is 'sandbox'");
+                    $class->setBrowser("P");
+                    $class->setCarrierId(12);
+                    $class->debug(" Session user_id is `" . $session->param('user_id'). "'");
+                    $class->setUid( sprintf("%s:%s", $session->param('pattern'), $session->param('user_id')));
+                }
                 else
                 {
                     $class->debug(" Session is 'unknown' type");
