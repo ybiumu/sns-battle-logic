@@ -6,6 +6,7 @@ $|=1;
 use strict;
 
 use Anothark::Status;
+use Anothark::StackObject;
 
 use LoggingObjMethod;
 use base qw( LoggingObjMethod );
@@ -46,45 +47,58 @@ my $stat_master = {
     27 => { array_order => 26,system_name => 'die',        short_label => '昏', long_label => '昏睡',    effect_span => 3, cancel_by => 0, triggered_by => 2, no_move => 'sub{1}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '倒れた' },
     28 => { array_order => 27,system_name => 'escape',     short_label => '逃', long_label => '逃走',    effect_span => 3, cancel_by => 0, triggered_by => 2, no_move => 'sub{1}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '逃げ出した' },
     29 => { array_order => 28,system_name => 'flip',       short_label => '転', long_label => '反転',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    30 => { array_order => 29,system_name => 'name_29',    short_label => '29', long_label => '状29',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    31 => { array_order => 30,system_name => 'name_30',    short_label => '30', long_label => '状30',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    32 => { array_order => 31,system_name => 'name_31',    short_label => '31', long_label => '状31',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    33 => { array_order => 32,system_name => 'name_32',    short_label => '32', long_label => '状32',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    34 => { array_order => 33,system_name => 'name_33',    short_label => '33', long_label => '状33',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    35 => { array_order => 34,system_name => 'name_34',    short_label => '34', long_label => '状34',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    36 => { array_order => 35,system_name => 'name_35',    short_label => '35', long_label => '状35',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    37 => { array_order => 36,system_name => 'name_36',    short_label => '36', long_label => '状36',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    38 => { array_order => 37,system_name => 'name_37',    short_label => '37', long_label => '状37',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    39 => { array_order => 38,system_name => 'name_38',    short_label => '38', long_label => '状38',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
+    40 => { array_order => 39,system_name => 'name_39',    short_label => '39', long_label => '状39',    effect_span => 1, cancel_by => 0, triggered_by => 0, no_move => 'sub{0}',                          no_target => 0, effect => 'sub{0}', enchant_effect => 'sub{0}', stat_msg => '' },
 };
 
-use constant LIFT      => 1;
-use constant DOWN      => 2;
-use constant DRY       => 3;
-use constant WET       => 4;
-use constant SHOCK     => 5;
-use constant BLANK     => 6;
-use constant DRAW      => 7;
-use constant KNOCKBACK => 8;
-use constant BURNING   => 9;
-use constant FREEZE    => 10;
-use constant STAN      => 11;
-use constant CONFUSE   => 12;
-use constant SLEEP     => 13;
-use constant POISON    => 14;
-use constant VENOM     => 15;
-use constant STONE     => 16;
-use constant FEAR      => 17;
-use constant DICONCENT => 18;
-use constant FLY       => 19;
-use constant GRAVITY   => 20;
-use constant GLAP      => 21;
-use constant GARD      => 22;
-use constant PHASEOUT  => 23;
-use constant REFLECT   => 24;
-use constant WALL      => 25;
-use constant AWAKE     => 26;
+use constant LIFT      => 0;
+use constant DOWN      => 1;
+use constant DRY       => 2;
+use constant WET       => 3;
+use constant SHOCK     => 4;
+use constant BLANK     => 5;
+use constant DRAW      => 6;
+use constant KNOCKBACK => 7;
+use constant BURNING   => 8;
+use constant FREEZE    => 9;
+use constant STAN      => 10;
+use constant CONFUSE   => 11;
+use constant SLEEP     => 12;
+use constant POISON    => 13;
+use constant VENOM     => 14;
+use constant STONE     => 15;
+use constant FEAR      => 16;
+use constant DICONCENT => 17;
+use constant FLY       => 18;
+use constant GRAVITY   => 19;
+use constant GLAP      => 20;
+use constant GARD      => 21;
+use constant PHASEOUT  => 22;
+use constant REFLECT   => 23;
+use constant WALL      => 24;
+use constant AWAKE     => 25;
 
-use constant DIE       => 27;
-use constant ESCAPE    => 28;
-use constant FLIP      => 29;
+use constant DIE       => 26;
+use constant ESCAPE    => 27;
+use constant FLIP      => 28;
 
-use constant NOT_STATUS  => 0;
-use constant JUST_STATUS => 1;
+#use constant NOT_STATUS  => 0;
+#use constant JUST_STATUS => 1;
+use constant JUST_STATUS => 0;
 use constant ANTI_STATUS => 2;
 # use constant ANY_STATUS? => 4;
 
-my $stat_length = 29;
+#my $stat_length = 29;
+my $stat_length = 40;
 my $stat_str = "0" x $stat_length;
 my $stat_array = [ ("0") x $stat_length ];
 
@@ -101,7 +115,8 @@ sub init
 {
     my $class = shift;
     $class->SUPER::init();
-    $class->setStack([]);
+    $class->setStack( new Anothark::StackObject() );
+    $class->setJustStack( new Anothark::StackObject() );
     $class->setStatArray($stat_array);
     $class->array2str();
 
@@ -129,10 +144,10 @@ sub having_flag
 #
 sub isStatTrue
 {
-    my $class   = shift;
-    my $index   = shift;
-    my $require = shift;
-    return having_flag(substr($class->getStatStr(), $index,1),$require);
+    my $class         = shift;
+    my $array_order   = shift;
+    my $require       = shift;
+    return having_flag(substr($class->getStatStr(), $array_order,1),$require);
 }
 
 
@@ -174,6 +189,113 @@ sub setStatus
     $_[0]->array2str();
 }
 
+
+sub setStatusIndex
+{
+    my $class = shift;
+    my $index = shift;
+    my $mod_name = $class->get_stat_master()->{$index}->{system_name};
+    my $mod = $class->loadStatusByModName( $mod_name );
+
+    $class->setStatusByObject( $mod );
+}
+
+sub setStatusByLabel
+{
+    my $class = shift;
+    my $label = shift;
+    my $vector = shift || 0;
+    my $buffer = shift || 0;
+    my @founds = grep {
+        $_->{system_name} eq $label 
+        or $_->{short_label} eq $label 
+        or $_->{long_label} eq $label 
+    } values %{ $class->get_stat_master() };
+
+    if ( scalar(@founds) == 1 )
+    {
+        my $mod_name = $founds[0]->{system_name};
+        my $mod = $class->loadStatusByModName( $mod_name );
+
+        $mod->setCurrentVector($vector);
+
+        if ( $buffer )
+        {
+            $class->setStatusBufferByObject( $mod );
+        }
+        else
+        {
+            $class->setStatusByObject( $mod );
+        }
+    }
+    else
+    {
+        $class->error("Find module failure, label [$label]");
+    }
+}
+
+
+sub setStatusBufferByObject
+{
+    my $class = shift;
+    my $stat  = shift;
+    if ( $stat->isAdd() )
+    {
+        $class->appendStatBufferStr( $stat );
+    }
+    elsif( $stat->isClear() )
+    {
+        $class->appendStatBufferStr( $stat );
+    }
+    else
+    {
+        $class->debug("Unknown vector");
+    }
+
+}
+
+sub appendStatBufferStr
+{
+    my $class = shift;
+    my $stat  = shift;
+    $class->getStatArray()->[($stat->getArrayOrder())] =  $stat->getCurrentVector();
+    $class->array2str();
+}
+
+sub setStatusByObject
+{
+    my $class = shift;
+    my $stat  = shift;
+    if ( $stat->isAdd() )
+    {
+        if ( $stat->isAnti() )
+        {
+            $class->appendStatus( $stat->getArrayOrder(), ANTI_STATUS );
+        }
+        else
+        {
+            $class->appendStatus( $stat->getArrayOrder(), JUST_STATUS );
+            $class->getJustStack()->stackOne($stat);
+        }
+    }
+    elsif( $stat->isClear() )
+    {
+        if ( $stat->isAnti() )
+        {
+            $class->clearStatus( $stat->getArrayOrder(), ANTI_STATUS );
+        }
+        else
+        {
+            $class->clearStatus( $stat->getArrayOrder(), JUST_STATUS );
+        }
+    }
+    else
+    {
+        $class->debug("Unknown vector");
+    }
+
+}
+
 sub appendStatus
 {
     my $current = $_[0]->getStatArray()->[$_[1]];
@@ -189,6 +311,65 @@ sub clearStatus
 }
 
 
+sub checkChainStatusByStr
+{
+    my $class        = shift;
+    my $chain_stat   = shift;
+    my $current_stat = $class->getStatStr();
+    $class->debug("[CURRENT CHAIN STATUS]" . $current_stat);
+    $class->debug("[SKILL   CHAIN STATUS]" . $chain_stat);
+    $current_stat &= $chain_stat;
+    $class->debug("[RESOLVE CHAIN STATUS]" . $current_stat);
+    my $result = ( $current_stat ) + 0;
+
+#    for(my $p = 0;$p < $stat_length; $p++ )
+#    {
+#        if (substr($chain_stat,$p,1))
+#        {
+#            $result |= ( 2**JUST_STATUS == (hex(substr($current_stat,$p,1)) & 2**JUST_STATUS ) )
+#        }
+#    }
+
+    return $result;
+}
+
+
+=pod
+    loadStatusByModName
+=cut
+sub loadStatusByModName
+{
+    my $class    = shift;
+    my $mod_name = ucfirst(shift);
+
+    my $mod = undef;
+    my $evstr = "use Anothark::Status::$mod_name;\$mod = new Anothark::Status::$mod_name();";
+    $class->debug("[loadStatusByModName]");
+    $class->debug($evstr);
+    eval($evstr);
+    if ($@)
+    {
+        $class->error("Can't load Anothark::Status::$mod_name!");
+        $mod = new Anothark::Status();
+    }
+
+    $class->debug("[REFS 0] " . ref($mod));
+    return $mod;
+}
+
+
+sub setupStatusByName
+{
+    my $class    = shift;
+    my $stat     = shift;
+    my $stat_obj = shift;
+    my $mod_name = ucfirst($stat_obj->{system_name});
+    my $mod = $class->loadStatusByModName( $mod_name );
+    $mod->setCurrentVector( substr($stat,$mod->getArrayOrder(),1) );
+    $class->debug("[MODULE0]" . $mod->getSystemName() . "/array_order:" . $mod->getArrayOrder());
+    return $mod;
+}
+
 =pod
 @param status_string
 @return status_object_array
@@ -199,39 +380,169 @@ sub appendStatusByStr
     my $stat  = shift;
 
     # load statuses for need.
-    my @status = map {
-        my $stat_obj = $_;
-        my $mod_name = ucfirst($stat_obj->{system_name});
-        my $mod = undef;
-        my $evstr = "use Anothark::Status::$mod_name;\$mod = new Anothark::Status::$mod_name();";
-        $class->debug($evstr);
-        eval($evstr);
-        if ($@)
-        {
-            $class->error("Can't load Anothark::Status::$mod_name!");
-            $mod = new Anothark::Status();
-        }
-        else
-        {
-            $mod->setCurrentVector( substr($stat,$mod->getArrayOrder(),1) );
-        }
-        $mod;
-    }
-    grep
+
+    # load statuses for need.
+    my @vals = grep
     {
         substr($stat,$_->{array_order},1) ne "0"
     } values %{ $class->get_stat_master() };
 
-    foreach my $stat ( @status )
+
+    my @status = map { ( $class->setupStatusByName($stat,$_) ) } @vals;
+
+    $class->debug("[Actions for each Stat module.]");
+
+    foreach my $stat_obj ( @status )
     {
+
+        $class->debug("[MODLUE]" . $stat_obj->getSystemName() );
         # regist check
 # some code.
+        # XXX Pattarn of nothing to do. XXX
+        if ( $stat_obj->isAdd() && not $stat_obj->isAnti() )
+        {
+            # regist.
+            if ( $class->isAnti( $stat_obj ) )
+            {
+                $class->debug("[result]: Registed.");
+                next;
+            }
+        }
+        elsif ( $stat_obj->isAdd() && $stat_obj->isAnti() )
+        {
+            # add anti.
+        }
+        elsif ( $stat_obj->isClear() )
+        {
+            # can't clear because no that stat_obj.
+            if ( not $class->isJust( $stat_obj ) && not $stat_obj->isAnti() )
+            {
+                $class->debug("[result]: Can't clear because no that stat_obj.");
+                next;
+            }
+            # can't clear anti because not having that stat_obj.
+            elsif ( not $class->isAnti( $stat_obj ) && $stat_obj->isAnti() )
+            {
+                $class->debug("[result]: Can't clear anti because not having that stat_obj.");
+                next;
+            }
+        }
+        else
+        {
+            $class->warning("Unknown vector![" .  $stat_obj->getCurrentVector() . "]");
+            next;
+        }
+
         # regist check後解決待ちだけど確定済みのステータスをスタック
-        push(@{$class->getStack()},$stat);
+        $class->getStack()->stackOne($stat_obj);
     }
 
 }
 
+# require Status object.
+sub isJust
+{
+    my $class = shift;
+    my $stat  = shift;
+    return $class->isStatTrue($stat->getArrayOrder(),JUST_STATUS );
+}
+
+# require Status object.
+sub isAnti
+{
+    my $class = shift;
+    my $stat  = shift;
+    return $class->isStatTrue($stat->getArrayOrder(),ANTI_STATUS );
+}
+
+
+my $just_stack = undef;
+sub setJustStack
+{
+    my $class = shift;
+    return $class->setAttribute( 'just_stack', shift );
+}
+
+sub getJustStack
+{
+    return $_[0]->getAttribute( 'just_stack' );
+}
+
+
+sub notTarget
+{
+    my $class = shift;
+    my $func  = sub {
+        my $stat = shift;
+        if ( $stat->getNoTarget() eq 1 )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    };
+    return $class->getJustStack()->existsByFunction($func);
+}
+
+sub notMove
+{
+    my $class = shift;
+    my $func  = sub {
+        my $stat = shift;
+        if ( &{$stat->getNoMove()}() eq 1 )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    };
+    return $class->getJustStack()->existsByFunction($func);
+}
+
+
+sub clearJustStackTurn
+{
+    my $class = shift;
+    my $func  = sub {
+        my $stat = shift;
+        if ( $stat->getEffectSpan() eq 2 )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    };
+    my $clear = $class->getJustStack()->filterByFunction($func);
+    map {
+        $class->clearStatus($_->getArrayOrder(),JUST_STATUS);
+    } $clear->moveAll();
+}
+
+sub clearJustStackAct
+{
+    my $class = shift;
+    my $func  = sub {
+        my $stat = shift;
+        if ( $stat->getEffectSpan() eq 1 )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    };
+    my $clear = $class->getJustStack()->filterByFunction($func);
+    map {
+        $class->clearStatus($_->getArrayOrder(),JUST_STATUS);
+    } $clear->moveAll();
+}
 
 my $stack = undef;
 sub setStack
@@ -247,12 +558,45 @@ sub getStack
 
 sub hasStack
 {
-    return scalar @{$_[0]->getStack()};
+    return $_[0]->getStack()->isRemain();
 }
+
 
 sub getResultStr
 {
-    return join("", map{ sprintf "%s!", $_->getLongLabel() } @{$_[0]->getStack() });
+    my $class = shift;
+
+    $class->debug("[Stack count]:" . scalar(@{$class->getStack()->getMemory() } ));
+
+    return join(
+        "",
+        map{
+            sprintf
+                "%s%s!",
+                $_->getLongLabel(),
+                (
+                    $_->isAnti() ? sprintf("%s", ($_->isClear() ? "耐性を解除" : "に耐性を得た") ) :
+                        ( $_->isClear() ? "を解除した" : "")
+                )
+        } @{$class->getStack()->getMemory() }
+    );
+}
+
+
+
+sub commitStack
+{
+    my $class = shift;
+    if ( $class->hasStack() )
+    {
+        my $stack = $class->getStack();
+        $class->debug("stack refs: [" . ref $stack . "]");
+        my @stat = $stack->moveAll();
+        map {
+            $class->setStatusByObject($_);
+        } @stat;
+#        } @{ $stack->moveAll() };
+    }
 }
 
 # synonym

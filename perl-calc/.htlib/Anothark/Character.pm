@@ -1072,7 +1072,7 @@ sub canMove
 {
     my $class = shift;
     # XXX check status manager! XXX
-    return 1;
+    return not $class->getStatus()->notMove();
 }
 
 
@@ -1081,7 +1081,7 @@ sub canTarget
 {
     my $class = shift;
     # XXX check status manager! XXX
-    return 1;
+    return not $class->getStatus()->notTarget();
 }
 
 sub Affected
@@ -1173,6 +1173,9 @@ sub Damage
             $class->getPosition->setCurrentValueWithoutStack("b");
         }
     }
+
+    # ステータス解決
+    $class->getStatus()->commitStack();
 
     return $class->getAttribute($effect_target)->setCurrentValue( $remain > 0 ? $remain : 0 );
 #    my $remain = $class->getHp()->cv() - $dmg;

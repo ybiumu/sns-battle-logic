@@ -68,6 +68,11 @@ our $rebind_sql_map = {
     7 => "UPDATE t_user_having_skill SET setting_slot = ? WHERE user_id = ? AND skill_id = ?",
 };
 
+our $postclear_bind_sql_map = {
+    2 => "UPDATE t_user_having_skill SET setting_slot = 0 WHERE user_id = ? AND setting_slot = ? AND skill_id <> ?",
+    7 => "UPDATE t_user_having_skill SET setting_slot = 0 WHERE user_id = ? AND setting_slot = ? AND skill_id <> ?",
+};
+
 our $clear_bind_map = {
     1 => "UPDATE t_user_battle_setting SET turn1_extra_info = 0, turn1_setting_id = 1 WHERE user_id = ?",
     2 => "UPDATE t_user_battle_setting SET turn2_extra_info = 0, turn2_setting_id = 1 WHERE user_id = ?",
@@ -165,6 +170,7 @@ sub updateDescTemplate
     my $message = "Desc save.";
     if ( scalar( grep { $setting_type eq $_ } keys %{$rebind_sql_map} ) )
     {
+
         # Skill Rebind 
         my $rebind_sth  = $db->prepare( $rebind_sql_map->{$setting_type} );
         my $rebind_stat = $rebind_sth->execute(($position, $user_id,$list_id ));
@@ -176,6 +182,12 @@ sub updateDescTemplate
         my $clear_sth   = $db->prepare( $clear_bind_map->{$pre_slot} );
         my $clear_stat = $clear_sth->execute(( $user_id ));
         $clear_sth->finish();
+
+
+        # Skill postclear bind 
+        my $postclear_bind_sth  = $db->prepare( $postclear_bind_sql_map->{$setting_type} );
+        my $postclear_bind_stat = $postclear_bind_sth->execute(($user_id,$position,$list_id ));
+        $postclear_bind_sth->finish();
 
 
     }

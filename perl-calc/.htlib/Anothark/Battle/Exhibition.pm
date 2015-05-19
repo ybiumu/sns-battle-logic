@@ -58,7 +58,8 @@ $battle->error("################################################");
     ##########
     my $node_append = {
        2 => [ sub { zwei(@_) } ],
-       4 => [ sub { golem(@_) }, sub { enemy001( @_ )} ],
+#       4 => [ sub { golem(@_) }, sub { enemy001( @_ )} ],
+       4 => [ sub { enemy001( @_ )} ],
        6 => [ sub { gemStone(@_) }, sub { enemy001( @_ )} ],
        10 => [
             (sub { enemy002(@_)}) x 10,
@@ -459,6 +460,7 @@ sub enemy001
     $enemy->setId("enemy001");
     $enemy->setName('²ÝËÞ¼ÞÌÞÙÊ³ÝÄÞ');
     $enemy->getHp()->setBothValue(80);
+    $enemy->getAgility()->setBothValue(95);
     $enemy->gDef()->setBothValue(10);
     $enemy->getAtack()->setBothValue(10);
     push(@{$enemy->getDropItems()}, 

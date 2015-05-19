@@ -31,6 +31,8 @@ sub new
     $self->setIsSkill(1);
     $self->setNoSkillType(0);
 
+    $self->setActionType(0);
+
 
 
     $self->setup_options($options);
@@ -59,7 +61,11 @@ sub setup_options
 }
 
 
-
+# action_type
+# 0: active
+# 1: passive
+# 2: prepare
+# 3: special
 
 
 #my $element_name =
@@ -259,6 +265,18 @@ my $field_names = undef;
 my $skill_loader = undef;
 
 
+
+my $action_type = undef;
+sub setActionType
+{
+    my $class = shift;
+    return $class->setAttribute( 'action_type', shift );
+}
+
+sub getActionType
+{
+    return $_[0]->getAttribute( 'action_type' );
+}
 
 
 sub setFieldNames
@@ -788,13 +806,25 @@ sub getEffectStatusValue
 }
 
 
+my $chain_status_value = undef;
+sub setChainStatusValue
+{
+    my $class = shift;
+    return $class->setAttribute( 'chain_status_value', shift );
+}
+
+sub getChainStatusValue
+{
+    return $_[0]->getAttribute( 'chain_status_value' );
+}
+
 
 sub isChain
 {
     my $class = shift;
     my $target = shift;
-
-    return 1; # Exhibision;
+    return $target->getStatus()->checkChainStatusByStr( $class->getChainStatusValue() );
+#    return 1; # Exhibision;
 }
 
 

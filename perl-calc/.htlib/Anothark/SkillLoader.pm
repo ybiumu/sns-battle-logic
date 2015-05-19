@@ -129,7 +129,7 @@ sub getSkillList
     my $class = shift;
     my $offset = shift || 0;
 
-    my $sql = "SELECT skill_id,skill_name FROM t_skill_master LIMIT ?,20";
+    my $sql = "SELECT skill_id,skill_name FROM t_skill_master LIMIT ?,50";
     my $sth  = $class->getDbHandler()->prepare($sql);
     my $stat = $sth->execute(($offset));
 

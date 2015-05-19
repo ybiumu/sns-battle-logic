@@ -42,7 +42,7 @@ my $resolve_stack = undef;
 my $current_resolve = undef;
 
 my $stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s/%s<br />';
-my $debug_stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s[%s]/%s(RT:%s/AT:%s/DF:%s[EXP:%s])<br />';
+my $debug_stat_template = '<span style="color:%s">%s%s&nbsp;[%s]&nbsp;</span>%s<br />HP:%s[%s]/%s(RT:%s/AT:%s/DF:%s[EXP:%s])<br />[STAT:%s]<br />';
 my $act_template = '<div style="text-align:%s;color:%s;">%s%s</div>';
 my $delay_template = '<div style="text-align:center;color:#2faf2f;">%s%s</div>';
 my $chain_template = '<div style="text-align:%s;color:#af2f2f;">-*&nbsp;%s連携&nbsp;*-</div>';
@@ -255,7 +255,7 @@ sub execActOrder
     my $turn  = shift;
     my $char = $class->getCharacter();
 #    $class->setOrder( [ map { $char->{$_} } sort { $char->{$a}->getTotalAgility($turn) <=> $char->{$b}->getTotalAgility($turn) } keys %{$char} ] );
-    $class->setOrder( [ map { $char->{$_} } sort { $char->{$a}->getTotalAgility($turn) <=> $char->{$b}->getTotalAgility($turn) } @{$class->getLiving()} ] );
+    $class->setOrder( [ map { $char->{$_} } sort { $char->{$b}->getTotalAgility($turn) <=> $char->{$a}->getTotalAgility($turn) } @{$class->getLiving()} ] );
 
 }
 
@@ -471,7 +471,8 @@ sub doTurn
     # 毒とか
     $class->chkScene( BEFORE_START_TURN ); 
 
-    if ( DEBUG )
+#    if ( DEBUG )
+    if ( $class->getAt()->{PLAYER}->getIsGm() )
     {
         foreach my $cs ( @{$class->getLiving()} )
         {
@@ -498,8 +499,9 @@ sub doTurn
                             $_,
                             $cnts->{$_}
                     } sort keys %{$cnts}
-                )
-            )
+                ),
+                $chars->{$cs}->getStatus()->getStatStr()
+            );
             # Turnly concent;
         }
     }
@@ -668,6 +670,7 @@ sub doCmd
     }
     else
     {
+        $class->doPassUnitBase($char,$cmd,$text_pointer,$force_target );
     }
 
 
@@ -887,6 +890,12 @@ sub doTargeting
                 $cmd->getPowerSourceByKey(),
                 $char->getAttribute($cmd->getPowerSourceByKey())->cv(),
             );
+            $$text_pointer .= sprintf(
+                $debug_template,
+                $cmd->getName(),
+                $cmd->getEffectStatusValue(),
+                $cmd->getChainStatusValue(),
+            );
         }
 
         # 単体
@@ -961,6 +970,45 @@ sub doTargeting
 
 }
 
+sub doPassUnitBase
+{
+    my $class = shift;
+    my $char  = shift;
+    my $cmd   = shift;
+    my $text_pointer = shift;
+    my $force_target = shift || 0;
+    my $chars  = $class->getCharacter();
+    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    {
+        $$text_pointer .= sprintf(
+            $debug_template,
+            '[doPassUnitBase]',
+            $cmd->getName(),
+            '-',
+        );
+    }
+
+=pod
+##################
+#### TARGETING ###
+##################
+already moved.
+=cut
+
+
+    # interrupt Check
+    # interrupt cmd
+    $class->checkAndRunInterrupt();
+
+    # status clear check
+    # インタラプトが発生しない所まで来たので、解決開始
+    $class->checkClearStatus( $cmd, $char );
+
+    $$text_pointer .= sprintf($effect_template, $symbol->{$char->getTextSide()}->{align},sprintf( $effect_str_template, "動けない"));
+
+#    $class->doSkillUnit( $char, $cmd, $text_pointer, $force_target);
+
+}
 
 sub doSkillUnitBase
 {
@@ -1027,6 +1075,10 @@ already moved.
     # interrupt Check
     # interrupt cmd
     $class->checkAndRunInterrupt();
+
+    # status clear check
+    # インタラプトが発生しない所まで来たので、解決開始
+    $class->checkClearStatus( $cmd, $char );
 
     $class->doSkillUnit( $char, $cmd, $text_pointer, $force_target);
 
@@ -1288,6 +1340,12 @@ sub resolveActions
                     $dmg_obj->getSkill()->getPowerSourceByKey(),
                     $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
                 );
+                $class->getTurnText()->[$turn]  .= sprintf(
+                    $debug_template,
+                    $dmg_obj->getSkill()->getName(),
+                    $dmg_obj->getSkill()->getEffectStatusValue(),
+                    $dmg_obj->getSkell()->getChainStatusValue(),
+                );
             }
         }
         elsif ( $skill->getEffectType() eq "4" )
@@ -1317,6 +1375,12 @@ sub resolveActions
                     $dmg_obj->getFrom->getName(),
                     $dmg_obj->getSkill()->getPowerSourceByKey(),
                     $dmg_obj->getFrom()->getAttribute($dmg_obj->getSkill()->getPowerSourceByKey())->cv(),
+                );
+                $class->getTurnText()->[$turn]  .= sprintf(
+                    $debug_template,
+                    $dmg_obj->getSkill()->getName(),
+                    $dmg_obj->getSkill()->getEffectStatusValue(),
+                    $dmg_obj->getSkell()->getChainStatusValue(),
                 );
             }
         }
@@ -1397,6 +1461,11 @@ sub continueChain
         }
         # 戦闘可能でtargetだが、chainの開始時
         elsif( $char->{$_}->getChainStack() eq $char->{$_}->getResolveChainStack() )
+        {
+            $char->{$_}->setResolveChainStack(0);
+        }
+        # 戦闘可能でtargetでchain継続中だが、次がチェインしない
+        elsif( not $cmd->isChain( $char->{$_}  ) )
         {
             $char->{$_}->setResolveChainStack(0);
         }
@@ -1818,6 +1887,22 @@ sub isReach
     return $result;
 }
 
+sub checkClearStatus
+{
+    my $class  = shift;
+    my $cmd    = shift;
+    my $act    = shift;
+    if ( $cmd->getActionType() eq "0" )
+    {
+        $act->getStatus()->clearJustStackTurn();
+    }
+
+    my $char = $class->getCharacter();
+
+    map {
+        $char->{$_}->getStatus()->clearJustStackAct();
+    } @{$class->getLiving()};
+}
 
 sub checkAndRunInterrupt
 {

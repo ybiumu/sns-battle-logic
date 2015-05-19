@@ -6,7 +6,7 @@
 
 <form action="edit_skill.cgi?guid=ON" method="post">
 <input type="hidden" name="guid" value="ON" />
-<a href="#a" accesskey="4">A</a>/<a href="#b" accesskey="5">B</a>/<a href="#c" accesskey="6">C</a>/<a href="#d" accesskey="7">D</a>
+<a href="#a" accesskey="4">A</a>/<a href="#b" accesskey="5">B</a>/<a href="#c" accesskey="6">C</a>/<a href="#d" accesskey="7">D</a>/<a href="#e">E</a>
 <a name="a"><div class="contents">-A-&nbsp;基本情報</div></a>
 ｽｷﾙID　：<input type="hidden" size="4" maxlength="4" name="skill_id" value="$out->{skill_id}" />$out->{skill_id}<br />
 ｽｷﾙ名　：<input type="text" size="20" name="skill_name" value="$out->{skill_name}" /><br />
@@ -25,6 +25,7 @@
 
 
 <a name="b"><div class="contents">-B-&nbsp;習得関連</div></a>
+<br />
 習得法 ：<span style="font-size:medium"><select name="learn_type_id">
 <option value="0"$out->{_learn_type_id}->{0}>不可</option>
 <option value="1"$out->{_learn_type_id}->{1}>熟練</option>
@@ -66,6 +67,7 @@
 </select></span>&nbsp;Lv<input type="text" size="3" maxlength="3" name="sub_enable_level" value="$out->{sub_enable_level}" istyle="4" mode="numeric" /><br />
 
 <a name="c"><div class="contents">-C-&nbsp;ﾊﾟﾗﾒｰﾀ</div></a>
+<br />
 係数　　：<input type="text" name="skill_rate" size="5" maxlength="5" value="$out->{skill_rate}" istyle="4" mode="numeric"/><br />
 ﾀｲﾌﾟ　　：<span style="font-size:medium"><select name="skill_type">
 <option value="1"$out->{_skill_type}->{1}>ｱｸﾃｨﾌﾞ</option>
@@ -136,6 +138,7 @@
 <option value="14"$out->{_sub_base_element}->{14}>負電磁</option>
 </select></span><br />
 <a name="d"><div class="contents">-D-&nbsp;対象</div></a>
+<br />
 射程：<span style="font-size:medium"><select name="length_type">
 <option value="1"$out->{_length_type}->{1}>近接</option>
 <option value="2"$out->{_length_type}->{2}>中距離</option>
@@ -165,11 +168,19 @@
 <option value="0"$out->{_phaseout_limit_type}->{0}>限定なし</option>
 <option value="1"$out->{_phaseout_limit_type}->{1}>離脱以外</option>
 <option value="2"$out->{_phaseout_limit_type}->{2}>離脱限定</option>
-</select></span><br />
+</select></span><br /><br />
+
+
+<a name="e"><div class="contents">-E-&nbsp;付与/連携</div></a>
+<br />
+付与：<input type="text" size="60" maxlength="40" name="effect_status_value" value="$out->{effect_status_value}" /><br />
+連携：<input type="text" size="60" name="chain_status_value" value="$out->{chain_status_value}" /><br />
+<br /><br />
 
 
 <input type="hidden" name="act" value="saveconfirm" />
 <input type="submit" name="calc" value="8.保存"  accesskey="8" />
+<br />
 </form>
 <div class="contents">version</div>
 

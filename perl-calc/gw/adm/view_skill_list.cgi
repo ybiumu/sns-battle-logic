@@ -87,6 +87,7 @@ if ( scalar((keys%{$skill_list})) > 0 )
         $out->{RESULT} .= sprintf("<div class=\"item_%s\"><input type=\"radio\" name=\"skill_id\" value=\"%s\" />&nbsp;%s</div>\n",$oddeven[$lines%2], $row->{skill_id}, $row->{skill_name})
     }
     $out->{RESULT} .= <<_HERE_
+<br />
 <select name="act">
 <option value="descr">Ú‚µ‚­Œ©‚é</option>
 <option value="edit">•ÒW‚·‚é</option>

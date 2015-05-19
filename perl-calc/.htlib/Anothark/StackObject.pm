@@ -91,7 +91,9 @@ sub moveAll
 {
     my $class = shift;
     my $stack_list =  $class->getMemory();
+    $class->debug("LENGTH1: " . scalar(@{$stack_list}));
     $class->clearStack();
+    $class->debug("LENGTH2: " . scalar(@{$stack_list}));
     return @{$stack_list};
 }
 
@@ -105,6 +107,27 @@ sub filter
     $class->clearStack();
     $class->stackArray(@remain);
     return $new_object;
+}
+
+sub filterByFunction
+{
+    my $class = shift;
+    my $filter_function = shift;
+    my $new_object = new Anothark::StackObject();
+    $new_object->stackArray( grep { &{$filter_function}($_) } @{$class->getMemory()} );
+    my @remain = grep { not &{$filter_function}($_) } @{$class->getMemory()};
+    $class->clearStack();
+    $class->stackArray(@remain);
+    return $new_object;
+}
+
+
+sub existsByFunction
+{
+    my $class = shift;
+    my $filter_function = shift;
+    my $new_object = new Anothark::StackObject();
+    return scalar grep { &{$filter_function}($_) } @{$class->getMemory()};
 }
 
 1;
