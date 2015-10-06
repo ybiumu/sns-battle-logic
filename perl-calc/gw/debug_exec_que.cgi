@@ -73,9 +73,9 @@ my $mob_uid = $mu->get_muid();
 ### Main ###
 ############
 
-# Owner‚Ìê‡‚Æmember‚Ìê‡‚Å•ª‚¯‚é
+# TODO Owner‚Ìê‡‚Æmember‚Ìê‡‚Å•ª‚¯‚é?
 #
-my $select_user_id = " SELECT user_id FROM t_user AS u WHERE u.carrier_id = ? AND u.uid = ? ";
+my $select_user_id = " SELECT CASE WHEN u.owner_id = 0 THEN u.user_id ELSE u.owner_id END AS user_id FROM t_user AS u WHERE u.carrier_id = ? AND u.uid = ? ";
 
 my $rs_sth = $db->prepare( $select_user_id );
 $pu->output_log($rs_sth->execute(($carrier_id, $mob_uid)));

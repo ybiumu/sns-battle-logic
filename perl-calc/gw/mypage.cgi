@@ -4,7 +4,7 @@ use lib qw( .htlib ../.htlib );
 use CGI;
 use DbUtil;
 use MobileUtil;
-use GoogleAdSence;
+use GoogleAdSence qw( get_ad );
 use Avatar;
 use PageUtil;
 use AaTemplate;
@@ -29,10 +29,11 @@ $at->setMobileUtil($mu);
 my $fm = new Anothark::FollowingManager($db);
 my $pl = new Anothark::PartyLoader( $at );
 
-my $ad_str = "";
-
-
 my $browser      = $mu->getBrowser();
+
+get_ad($at);
+
+
 #my $carrier_id   = $mu->getCarrierId();
 $pu->setSelectedStr( $browser eq "P" ? ' selected="true" ' : ' selected' );
 my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
@@ -66,6 +67,9 @@ my $version = "0.1a20120328";
 
 ## Main
 
+
+
+# 他人のマイペ
 if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{USER_ID} )
 {
 
@@ -81,19 +85,25 @@ if ( $c->param("user_id") && $c->param("user_id") ne $at->{out}->{USER_ID} )
     else
     {
         $at->setBody("body_yourpage.html");
+        # フォローしていない
         if ( not $fm->isFollowed($my_user_id, $out->{USER_ID}) )
         {
             $out->{FOLLOW_CMD} .= sprintf('<a href="follow.cgi?guid=ON&oid=%s">友達申請する</a><br />', $out->{USER_ID});
         }
+        # フォローしている
         else
         {
-            if ( ( not $pl->isPartyMember($my_user_id, $out->{USER_ID}) ) && $at->sameNode( $at->{PLAYER},$out->{CHAR} ) && $pl->notInvited($my_user_id, $out->{USER_ID}) && $pl->isNotRunFirst() )
+            # フォローされている,パーティメンバーじゃない,同じ場所にいる,勧誘状態じゃない,更新時間が…
+            if ( $fm->isFollowed($out->{USER_ID},$my_user_id) && ( not $pl->isPartyMember($my_user_id, $out->{USER_ID}) ) && $at->sameNode( $at->{PLAYER},$out->{CHAR} ) && $pl->notInvited($my_user_id, $out->{USER_ID}) && $pl->isNotRunFirst() )
             {
                 $out->{FOLLOW_CMD} .= sprintf('<a href="party.cgi?t=i&guid=ON&oid=%s">ﾊﾟｰﾃｨｰに勧誘する</a><br />', $out->{USER_ID});
             }
         }
     }
 }
+
+
+
 
 my $entry =  $board->readMyBoardOne( $my_user_id, $out->{USER_ID})->[0];
 

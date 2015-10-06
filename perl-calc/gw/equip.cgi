@@ -208,12 +208,12 @@ else
     foreach my $pos ( (6,4,5,3,2,1,7) )
     {
         $out->{"list_pos_" . $pos} .= sprintf(
-            "<input type='radio' name='pos_%s' value='0' %s>%s<br />\n",
+            "<label class=\"chose\"><input type='radio' name='pos_%s' value='0' %s><span>%s</span></label><span class=\"fp_sep\"><br /></span>\n",
             $pos, $equip_row->{"pos_$pos"} eq "0" ? "checked" : "" , '‘•”õ‚µ‚È‚¢'
         );
         foreach my $e_item ( grep { $_->{position} eq $pos } @{$items} )
         {
-            $out->{"list_pos_" . $pos} .= sprintf("<input type='radio' name='pos_%s' value='%s' %s>%s(%s)<br />\n", $pos, $e_item->{item_id}, $e_item->{item_id} eq $equip_row->{"pos_$pos"} ? "checked" : "" , $e_item->{item_label}, $e_item->{broken_status} );
+            $out->{"list_pos_" . $pos} .= sprintf("<label class=\"chose\"><input type='radio' name='pos_%s' value='%s' %s><span>%s(%s)</span></label><span class=\"fp_sep\"><br /></span>\n", $pos, $e_item->{item_id}, $e_item->{item_id} eq $equip_row->{"pos_$pos"} ? "checked" : "" , $e_item->{item_label}, $e_item->{broken_status} );
         }
     }
 

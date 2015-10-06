@@ -823,6 +823,7 @@ sub isChain
 {
     my $class = shift;
     my $target = shift;
+    $class->debug("[isChain]");
     return $target->getStatus()->checkChainStatusByStr( $class->getChainStatusValue() );
 #    return 1; # Exhibision;
 }

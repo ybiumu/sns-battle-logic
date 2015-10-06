@@ -13,6 +13,7 @@ use GoogleAdSence;
 use Avatar;
 use PageUtil;
 use AaTemplate;
+use Digest::MD5 qw( md5_hex );
 
 use Anothark::ShopManager;
 use Anothark::Shop;
@@ -71,6 +72,7 @@ my @oddeven = ( "odd", "even" );
 my $tr = $c->param("tr") || 0;
 
 $out->{TMP_MONEY} = $out->{$money_unit};
+
 # Check record exists.
 if ( $shop_id )
 {
@@ -91,6 +93,8 @@ if ( $shop_id )
 
         if ( $tr == 2 )
         {
+            my $t = time;
+            my $ssid = md5_hex(sprintf("%s_%s_%s", $out->{TMP_MONEY}, $user_id, $t));
             $at->setPageName( $at->getPageName() . '/購入確認');
             my $seid = $c->param("item") || 0;
 $at->warning("SEID: $seid");
@@ -104,6 +108,15 @@ $at->warning("ITEM2: ".ref($item));
             $out->{PRICE} = $item->getPrice();
             $out->{SEID}  = $item->getShopElementId();
             $out->{SHOP_ID} = $shop_id;
+            $out->{TT}      = $t;
+            $out->{SS}      = $ssid;
+            my $returns = $at->event( 'itemBuy', 'confirm', $item->getItemLabel(), $item->getPrice() );
+
+            if ( $returns )
+            {
+                $out->{SHOP_DESCR} .= $returns;
+            }
+
         }
         elsif( $tr == 3 )
         {
@@ -112,19 +125,35 @@ $at->warning("ITEM2: ".ref($item));
             my $n  = $c->param("n")  || 0;
             my $hm = $c->param("hm") || 0;
             my $seid = $c->param("item") || 0;
+            my $tt = $c->param("tt") || 0;
+            my $ss = $c->param("ss") || 0;
 
 
             if ( $ci )
             {
+                my $tss = md5_hex(sprintf("%s_%s_%s", $out->{$money_unit}, $user_id, $tt)); 
                 # B B 対応
-                if ( $hm != $out->{$money_unit} )
+#                if ( $hm != $out->{$money_unit} )
+                if ( $ss ne $tss )
                 {
                     # Not same session!
+                    $out->{SHOP_DESCR} = sprintf('ブラウザ操作で戻るのは禁止されてます');
                 }
                 else
                 {
                     my $status = $sm->trading( $at->{PLAYER}, $shop, $seid, $money_unit, $n);
                     $out->{SHOP_DESCR} = $status;
+
+                    if ( $sm->getTradingStatus() )
+                    {
+                        my $item = $shop->getItems()->{$seid};
+                        my $returns = $at->event( 'itemBuy', 'commit', $item->getItemLabel(), $item->getPrice() );
+                        if ( $returns )
+                        {
+                            $out->{SHOP_DESCR} .= $returns;
+                        }
+#                        $at->item( $ssid, $item->getItemLabel(),$item->getPrice(),$n );
+                    }
                 }
 
             }

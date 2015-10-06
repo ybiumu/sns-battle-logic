@@ -34,6 +34,10 @@ my $checked_str  = $browser eq "P" ? ' checked="true" '  : ' checked';
 #my $mob_uid = $mu->get_muid();
 my $c = new CGI();
 
+my $v = $c->param("v") || 1;
+my $o = $c->param("o") || 0;
+my $p = $c->param("p") || 1;
+
 
 ##################
 ### init check ###
@@ -70,7 +74,7 @@ my $version = "0.1a20130415";
 ############
 
 
-my $item_list = $im->getItemList();
+my $item_list = $im->getItemList($o,$v);
 
 my @oddeven = ( "odd", "even" );
 
@@ -79,7 +83,36 @@ my $lines = 0;
 
 if ( scalar((keys%{$item_list})) > 0 )
 {
-    $out->{RESULT} = "<form name=\"item\" method=\"get\" action=\"edit_item.cgi\">\n";
+
+    if( $p > 1 )
+    {
+        $out->{RESULT} .= sprintf(
+            qq[<a href="view_item_list.cgi?guid=ON&p=%s&o=%s&v=%s">&lt;&lt;*‘O‚Ö</a>],
+            $p-1, (sort { $a <=> $b } keys %{$item_list})[0] ,-1
+        );
+    }
+    else
+    {
+        $out->{RESULT} .= sprintf( qq[&lt;&lt;*‘O‚Ö] );
+    }
+
+    $out->{RESULT} .= "|";
+
+    if ( $im->hasNext() )
+    {
+        $out->{RESULT} .= sprintf(
+            qq[<a href="view_item_list.cgi?guid=ON&p=%s&o=%s&v=%s">#ŽŸ‚Ö&gt;&gt;</a>],
+            $p+1, (sort { $b <=> $a } keys %{$item_list})[0] ,1
+        );
+    }
+    else
+    {
+        $out->{RESULT} .= sprintf( qq[#ŽŸ‚Ö&gt;&gt;] );
+    }
+
+    $out->{RESULT} .= "<br />\n";
+
+    $out->{RESULT} .= "<form name=\"item\" method=\"get\" action=\"edit_item.cgi\">\n";
     $out->{RESULT} .= "<input type=\"hidden\" name=\"guid\" value=\"ON\"/>";
     foreach my $row ( map { $item_list->{$_} } sort { $a <=> $b } keys %{$item_list} )
     {

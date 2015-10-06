@@ -48,7 +48,7 @@ our $update_query_map = {
 };
 
 our $getlist_sql_map = {
-    2 => "SELECT skill_id AS list_id,CONCAT(CONVERT(skill_name USING cp932),'[',skill_cost,']') AS list_name FROM t_skill_master JOIN t_user_having_skill USING(skill_id) WHERE user_id = ? AND skill_type = 1 ",
+    2 => "SELECT skill_id AS list_id,CONCAT(CONVERT(skill_name USING cp932),'[',skill_cost,']') AS list_name FROM t_skill_master JOIN t_user_having_skill AS u USING(skill_id) WHERE user_id = ? AND skill_type = 1 AND u.delete_flag = 0 ",
     4 => "SELECT position_id AS list_id, position_name AS list_name FROM t_position_master WHERE LENGTH(?) > 0 ORDER BY position_id DESC",
     5 => "SELECT item_id AS list_id,item_label AS list_name FROM t_item_master JOIN t_user_item USING(item_master_id) WHERE user_id = ? AND item_type_id = 6",
     7 => "SELECT skill_id AS list_id,skill_name AS list_name FROM t_skill_master WHERE skill_id = 1 UNION SELECT skill_id AS list_id,skill_name AS list_name FROM t_skill_master JOIN t_user_having_skill USING(skill_id) WHERE user_id = ? AND skill_type IN( 2,3 ) ",
@@ -72,6 +72,14 @@ our $postclear_bind_sql_map = {
     2 => "UPDATE t_user_having_skill SET setting_slot = 0 WHERE user_id = ? AND setting_slot = ? AND skill_id <> ?",
     7 => "UPDATE t_user_having_skill SET setting_slot = 0 WHERE user_id = ? AND setting_slot = ? AND skill_id <> ?",
 };
+
+
+#our $postclear_bind_simple_sql_map = {
+#    2 => "UPDATE t_user_having_skill SET setting_slot = 0 WHERE user_id = ? AND setting_slot = ?",
+#    7 => "UPDATE t_user_having_skill SET setting_slot = 0 WHERE user_id = ? AND setting_slot = ?",
+#};
+
+our $postclear_bind_simple_sql_map = "UPDATE t_user_having_skill SET setting_slot = 0 WHERE user_id = ? AND setting_slot = ?";
 
 our $clear_bind_map = {
     1 => "UPDATE t_user_battle_setting SET turn1_extra_info = 0, turn1_setting_id = 1 WHERE user_id = ?",
@@ -125,6 +133,12 @@ sub updateSimpleTemplate
     my $up_sth  = $db->prepare( $update_query_map->{$position} );
     my $up_stat = $up_sth->execute(( 0,$setting_type, $user_id ));
     $up_sth->finish();
+
+    # Skill postclear bind 
+    my $postclear_bind_sth  = $db->prepare( $postclear_bind_simple_sql_map );
+    my $postclear_bind_stat = $postclear_bind_sth->execute(($user_id,$position ));
+    $postclear_bind_sth->finish();
+
     $class->notice("UPDATE status is [$up_stat]");
     return $up_stat;
 }

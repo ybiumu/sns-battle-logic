@@ -557,7 +557,7 @@ FROM
     t_user AS u
     JOIN t_user_status AS s USING(user_id)
     JOIN t_result_master AS r ON ( r.result_id = ? AND r.node_id = ? )
-    JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? )
+    LEFT JOIN t_result_text AS t ON ( r.result_id = t.result_id AND t.result_position = ? )
 WHERE u.user_id = ? ";
 
 our $insert_prepost = "
@@ -763,17 +763,21 @@ sub doQueing
 # メンバーの選択肢から優先される選択肢をr取得
         $pu->notice($select_members_selection_sth->execute(($user_id->[0], $user_id->[0])));
         my $sel_row = $select_members_selection_sth->fetchrow_hashref();
-        if ( ! $select_members_selection_sth->rows() > 0 )
+        my $selection_id = 0;
+        if ( $select_members_selection_sth->rows() > 0 )
+        {
+            $selection_id = $sel_row->{selection_id};
+        }
+        else
         {
             $pu->notice(sprintf("Cannot found selection for owner[%s]", $user_id->[0]));
-            next;
+#            next;
         }
 
 
         my $members = [ $party->getPartyPlayer() ];
         my $member_num = scalar(@{$members});
 
-        my $selection_id = $sel_row->{selection_id};
 # 選択結果のリザルト探索
         $pu->notice("Target user id[$user_id->[0]]");
         $pu->notice(
@@ -804,6 +808,7 @@ sub doQueing
 # log_idの予約
 
         # 強制フラグ
+        $pu->debug("[Force Flag] : " . $class->getForce() );
         if ( $class->getForce() )
         {
             $pu->notice("Force queing.");
@@ -1021,6 +1026,7 @@ sub doQueing
                     } @{$members};
 
 # TODO ステータスの保存
+# ステータス異常・HP・持久のみ保存
 
                 }
                 elsif( $battle->isDraw() )
@@ -1106,14 +1112,16 @@ sub doQueing
         }
 
         # 更新完了後処理
-
-        # Party勧誘のクリア
-        # Foodのクリア
-        # 拠点なら回復
         map {
             my $char = $_;
             my $id = $char->getId();
+            # Party勧誘のクリア
             $pl->clearInvite($id);
+
+            # Foodのクリア
+
+            # 拠点なら回復
+
         } @{$members};
     }
     return $last_status;

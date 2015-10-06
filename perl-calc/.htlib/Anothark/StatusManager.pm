@@ -315,7 +315,8 @@ sub checkChainStatusByStr
 {
     my $class        = shift;
     my $chain_stat   = shift;
-    my $current_stat = $class->getStatStr();
+#    my $current_stat = $class->getStatStr();
+    my $current_stat = $class->getJustStackByStr();
     $class->debug("[CURRENT CHAIN STATUS]" . $current_stat);
     $class->debug("[SKILL   CHAIN STATUS]" . $chain_stat);
     $current_stat &= $chain_stat;
@@ -344,8 +345,8 @@ sub loadStatusByModName
 
     my $mod = undef;
     my $evstr = "use Anothark::Status::$mod_name;\$mod = new Anothark::Status::$mod_name();";
-    $class->debug("[loadStatusByModName]");
-    $class->debug($evstr);
+#    $class->debug("[loadStatusByModName]");
+#    $class->debug($evstr);
     eval($evstr);
     if ($@)
     {
@@ -353,7 +354,7 @@ sub loadStatusByModName
         $mod = new Anothark::Status();
     }
 
-    $class->debug("[REFS 0] " . ref($mod));
+#    $class->debug("[REFS 0] " . ref($mod));
     return $mod;
 }
 
@@ -366,7 +367,7 @@ sub setupStatusByName
     my $mod_name = ucfirst($stat_obj->{system_name});
     my $mod = $class->loadStatusByModName( $mod_name );
     $mod->setCurrentVector( substr($stat,$mod->getArrayOrder(),1) );
-    $class->debug("[MODULE0]" . $mod->getSystemName() . "/array_order:" . $mod->getArrayOrder());
+#    $class->debug("[MODULE0]" . $mod->getSystemName() . "/array_order:" . $mod->getArrayOrder());
     return $mod;
 }
 
@@ -468,6 +469,17 @@ sub getJustStack
     return $_[0]->getAttribute( 'just_stack' );
 }
 
+sub getJustStackByStr
+{
+    my $class = shift;
+    my $tmp_array = [ ("0") x $stat_length ];
+    map
+    {
+        $tmp_array->[$_->getArrayOrder()] = 1;
+    }
+    @{ $class->getJustStack()->getMemory() };
+    return join("",@{$tmp_array});
+}
 
 sub notTarget
 {
@@ -527,6 +539,7 @@ sub clearJustStackTurn
 sub clearJustStackAct
 {
     my $class = shift;
+    $class->debug("[clearJustStackAct]");
     my $func  = sub {
         my $stat = shift;
         if ( $stat->getEffectSpan() eq 1 )

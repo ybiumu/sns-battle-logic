@@ -61,6 +61,139 @@ a {
     background-clip: padding-box;
 }
 
+.result a {
+    display: block;
+    border-radius: 0px;
+    box-shadow: 0px 0px 2px #000000;
+}
+.result hr {
+    border: none;
+    margin: 0px;
+    margin-bottom: 2px;
+}
+
+/*
+label.chose {
+    display:block;
+    border-style: solid;
+    border-color: #bf8f8f;
+    border-width: 1px 1px 0px 1px;
+
+  padding: 4px;
+  width; auto;
+  height: auto;
+}
+*/
+
+label.chose span {
+    padding: 5px;
+}
+
+label.chose a {
+    width: 40px;
+    border-radius: 0px;
+    box-shadow: 0px 0px 2px #000000;
+}
+
+
+label.chose input{
+    display: none;
+}
+
+label.chose{
+    display: block;
+    cursor: pointer;
+/*
+    float: left;
+    width: 80px;
+*/
+    margin: 0px;
+    border-bottom: 1px solid #abb2b7;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1;
+    transition: .2s;
+}
+/*
+label.chose:first-of-type {
+    border-radius: 3px 0 0 3px;
+}
+label.chose:last-of-type {
+    border-right: 0px;
+    border-radius: 0 3px 3px 0;
+}
+*/
+
+label.chose span {
+    display:block;
+    padding: 12px 5px;
+    padding-left: 40px;
+    text-align: left;
+    margin: 1px;
+    font-size: 14px;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.2s;
+  box-shadow: 0 2px 7px 0 rgba(0, 0, 0, 0.26);
+}
+label.chose input[type="radio"]:checked + span{
+    border-width: 1px;
+    background-color: #b15d5d;
+    color: #fff;
+}
+
+
+input[type="submit"],input[type="reset"]{
+/*
+    border-radius: 5px;
+*/
+    border-style:none;
+    display:block;
+    padding: 12px 5px;
+    background-color: #7f7fff;
+    width: 60%;
+    font-size: 14pt;
+    color: #fff;
+    margin: 0 auto;
+
+
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.2s;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+
+
+input[type="submit"].small,input[type="reset"].small{
+/*
+    border-radius: 5px;
+*/
+    border-style:none;
+    display: inline-block;
+    padding: 5px 12px;
+    background-color: #7f7fff;
+    width: auto;
+    font-size: 12pt;
+    color: #fff;
+    margin: 0 auto;
+
+
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 0.2s;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+label.chose:nth-child(even) {
+    background-color: #F0F0F6; 
+}
+
+label.chose:nth-child(odd) {
+    background-color: #FCFCFC;
+}
+
+label.chose:nth-last-child(1) {
+    border-width: 1px;
+}
+
 div.content a {
     text-align: center;
     vertical-align: middle;
@@ -99,6 +232,156 @@ div.content a {
 */
 }
 
+span.fp_sep {
+    display:none;
+}
+
+
+span.heading {
+    display: block;
+    width: 50%;
+    margin-top: 6px;
+    padding-left: 6px;
+    background-color: #4fcf2f;
+    color: #ffffff;
+}
+
+span.number_heading {
+    display: inline-block;
+    width: 24px;
+    margin: 0 auto;
+    font-weight: bold;
+    font-size: 16pt;
+    line-height: normal;
+    text-align: center;
+}
+
+span.number_content {
+    display: inline-block;
+    width: auto;
+    margin: 0 auto;
+}
+
+a.inline_menu {
+    background-color: #cf0000;
+    display: inline-block;
+    width: 80px;
+    font-size: 12pt;
+    margin-right: 4px;
+}
+
+a.inline_menu span.icon {
+    display: block;
+    margin: 0 auto;
+}
+
+a.inline_menu span.small {
+    font-size: smaller;;
+}
+
+
+
+
+
+.css-ic_forum_24px-dims { width: 24px; height:24px; }
+.css-ic_map_24px-dims { width: 24px; height:24px; }
+.css-ic_group_24px-dims { width: 24px; height:24px; }
+.css-ic_attach_money_24px-dims { width: 24px; height:24px; }
+.css-ic_store_24px-dims { width: 24px; height:24px; }
+.css-ic_chevron_left_24px-dims { width: 24px; height:24px; }
+.css-ic_chevron_right_24px-dims { width: 24px; height:24px; }
+.css-ic_arrow_drop_down_24px-dims { width: 24px; height:24px; }
+.css-ic_remove_circle_outline_24px-dims { width: 24px; height:24px; }
+.css-ic_sort_24px-dims { width: 24px; height:24px; }
+
+.skill_part {
+    font-size: 12pt;
+}
+
+.skill_part select {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+    text-indent: 1em;
+
+
+	background-position: 0 -168px;
+	background-repeat: no-repeat;
+	background-image: url(css-sprite/css-sprite-anoth-icon.png);
+
+    background-size:24px 24px;
+
+    width: 120px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 15px;
+    vertical-align: middle;
+    border:1px solid #CCC;
+    margin-bottom:5px;
+}
+
+/*
+a.map_link span.icon {
+    display: block;
+    margin: 0 auto;
+    width: 30px;
+    height: 30px;
+    background: url("img/icon/ic_map_black_24dp.png");
+    background-size: cover;
+}
+
+
+a.forum_link {
+    background-color: #cf0000;
+    display: inline-block;
+    width: 80px;
+    font-size: 12pt;
+}
+
+a.forum_link span.icon {
+    display: block;
+    margin: 0 auto;
+    width: 30px;
+    height: 30px;
+    background: url("img/icon/ic_forum_black_24dp.png");
+    background-size: cover;
+}
+
+a.buyboard_link {
+    background-color: #cf0000;
+    display: inline-block;
+    width: 80px;
+    font-size: 12pt;
+}
+
+a.buyboard_link span.icon {
+    display: block;
+    margin: 0 auto;
+    width: 30px;
+    height: 30px;
+    background: url("img/icon/ic_attach_money_black_24dp.png");
+    background-size: cover;
+}
+
+a.psp_link {
+    background-color: #cf0000;
+    display: inline-block;
+    width: 80px;
+    font-size: 12pt;
+}
+
+a.psp_link span.icon {
+    display: block;
+    margin: 0 auto;
+    width: 30px;
+    height: 30px;
+    background: url("img/icon/ic_group_black_24dp.png");
+    background-size: cover;
+}
+
+*/
+
+
 
 a:link{color:#0048FF;}
 a:focus{color:#FF6600;}
@@ -116,14 +399,14 @@ div.contents {
     width:100%;
     text-align:center;
     padding:1px;
-    background-color:#2f2f2f;
+    background-color:#4f4f4f;
     color:#ffffff;
     border-top:solid 2px #2f6f6f;
     border-bottom:solid 2px #2f6f6f;
     clear:both;
 }
 div.contents2 {
-    background-color:#00af3f;
+    background-color:#3f9f6f;
     text-align:center;
     color:#ffffff;
     width:100%;
@@ -137,7 +420,7 @@ div.contents2 {
     clear:both;
 }
 div.contents3 {
-    background-color:#005DFC;
+    background-color:#3f6dcf;
     text-align:center;
     color:#ffffff;
     width:100%;
@@ -248,6 +531,18 @@ div.clear {
 /**
  for smartphone
 */
+
+
+
+div.skill_part:nth-child(even) {
+    background-color: #F0F0F6; 
+}
+
+div.skill_part:nth-child(odd) {
+    background-color: #FCFCFC;
+}
+
+
 
 img.dispimg {
     display: block;
@@ -389,6 +684,21 @@ div.pb a {
     padding-left: 30px;
 }
 
+div.pb a.clear_style {
+    color: #00cfff;
+    display: inline;
+    border: none;
+    text-align: initial;
+    padding: initial;
+
+    vertical-align: initial ;
+    text-decoration: underline;
+    background-color: inherit ;
+    border-radius: none;
+    box-shadow: none;
+    background-clip: none;
+}
+
 
 div.pb a.has_notice {
     background-color: #ff4f4f;
@@ -431,20 +741,79 @@ div.pb a:hover {
 }
 
 .switcher {
-  background: #202020;
+  background: #303030;
 }
 
 .switcher button {
+
+  border: 0;
+  margin: 0 auto;
+  padding: 4px;
+  width; auto;
+  height: auto;
+  background: #202020;
+  color: #f6f6f6;
+
+/*
   border: 0;
   border-right: 1px solid #000;
-  padding: 0.5em;
-  height: 2em;
+  padding: 16px;
+  height: 48px;
   box-shadow: 1px 0 0 0 #303030;
   background: transparent;
   color: #f6f6f6;
   font-size: 2em;
   line-height: 1;
+*/
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.2s;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
 }
+
+
+
+.switcher a {
+
+  display: inline-block;
+  border: 0;
+  margin: 0 auto;
+  padding: 4px;
+  width; auto;
+  height: auto;
+  background: #202020;
+  color: #f6f6f6;
+  vertical-align: initial;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.2s;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+
+/*
+.switcher button:active {
+  box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2);
+  transition-delay: 0s;
+}
+*/
+
+/*
+.switcher button img {
+    -webkit-filter: invert(100%);
+    -moz-filter: invert(100%);
+    -o-filter: invert(100%);
+    -ms-filter: invert(100%);
+    filter: invert(100%);
+}
+*/
+
+.css-ic_list_48px-dims { width: 48px; height: 48px; }
+.css-ic_home_48px-dims { width: 48px; height: 48px; }
+.css-ic_input_48px-dims { width: 48px; height: 48px; }
+.css-ic_history_48px-dims { width: 48px; height: 48px; }
+.css-ic_accessibility_48px-dims { width: 48px; height: 48px; }
+.css-ic_toc_48px-dims { width: 48px; height: 48px; }
+
+
 
 .debugmenu {
   background: #4f4f4f;
@@ -467,10 +836,15 @@ div.content div.debugmenu a {
 
 div.content {
   position: fixed;
+  top:0px;
+/*
   top:64px;
+*/
   bottom:0px;
   width: 100%;
+/*
   height: 100%;
+*/
   overflow-y: scroll;
 }
 
@@ -489,25 +863,63 @@ div.content div.debugmenu a:hover {
 
 .profnav {
   position: fixed;
+/*
   top: 64px;
+*/
+  top: 0px;
   right: 0;
+/*
   z-index: 2000;
+*/
+  z-index: -1;
   width: 200px;
   height: 100%;
   /*
   background: #fee;
+  display: none;
   */
   background: #4f4f4f;
   color: #b0b0b0;
   border-style: solid;
   border-width: 1px;
   visibility: hidden;
-  display: none;
   -webkit-transition: visibility 0s linear 0.2s;
   -moz-transition: visibility 0s linear 0.2s;
   -o-transition: visibility 0s linear 0.2s;
   transition: visibility 0s linear 0.2s;
-  margin-right: -200px;
+}
+
+.showProf .profnav {
+  z-index: 2;
+  visibility: visible;
+  -webkit-transition: z-index 0s linear 0.2s;
+  -moz-transition: z-index 0s linear 0.2s;
+  -o-transition: z-index 0s linear 0.2s;
+  transition: z-index 0s linear 0.2s;
+}
+
+
+
+.showProf .content {
+  -webkit-transform: translateX(-200px);
+  -moz-transform: translateX(-200px);
+  -o-transform: translateX(-200px);
+  transform: translateX(-200px);
+}
+
+
+
+.showProf .navbar {
+  -webkit-transform: translateX(-200px);
+  -moz-transform: translateX(-200px);
+  -o-transform: translateX(-200px);
+  transform: translateX(-200px);
+}
+
+
+
+.content {
+  background-color: #efefef ;
   -webkit-transform: translateX(0px);
   -moz-transform: translateX(0px);
   -o-transform: translateX(0px);
@@ -515,40 +927,8 @@ div.content div.debugmenu a:hover {
   -webkit-transition: -webkit-transform 0.2s ease;
   -moz-transition: -moz-transform 0.2s ease;
   -o-transition: -o-transform 0.2s ease;
-  transition: transform 400ms ease;
-  -webkit-transition-property: -webkit-transform,left,right;
-  -webkit-backface-visibility: hidden;
-}
-
-.showProf .profnav {
-  z-index: 2000;
-  visibility: visible;
-  display:block;
-/*
-  -webkit-transition: -webkit-transform 0.2s ease;
-  -moz-transition: -moz-transform 0.2s ease;
-  -o-transition: -o-transform 0.2s ease;
   transition: transform 0.2s ease;
-  -webkit-transform: translateX(-200px);
-  -moz-transform: translateX(-200px);
-  -o-transform: translateX(-200px);
-  transform: translateX(-200px);
-  transition: transform 400ms ease;
-  -webkit-transition-property: -webkit-transform,left,right;
-  -webkit-backface-visibility: hidden;
-*/
 }
-.viewProf {
-  -webkit-transform: translateX(-200px);
-  -moz-transform: translateX(-200px);
-  -o-transform: translateX(-200px);
-  transform: translateX(-200px);
-}
-
-
-
-
-
 
 
 .globalnav {
@@ -581,18 +961,6 @@ div.content div.debugmenu a:hover {
   transition: z-index 0s linear 0.2s;
 }
 
-.content {
-  background-color: #efefef ;
-  -webkit-transform: translateX(0px);
-  -moz-transform: translateX(0px);
-  -o-transform: translateX(0px);
-  transform: translateX(0px);
-  -webkit-transition: -webkit-transform 0.2s ease;
-  -moz-transition: -moz-transform 0.2s ease;
-  -o-transition: -o-transform 0.2s ease;
-  transition: transform 0.2s ease;
-}
-
 .showMenu .content {
   -webkit-transform: translateX(200px);
   -moz-transform: translateX(200px);
@@ -611,8 +979,17 @@ div.content div.debugmenu a:hover {
 
 
 
+.button.raised {
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.2s;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+
 .navbar {
   position: fixed;
+  top: 0px;
+  left: 0px;
   z-index: 1000;
   width: 100%;
 
@@ -624,4 +1001,10 @@ div.content div.debugmenu a:hover {
   -moz-transition: -moz-transform 0.2s ease;
   -o-transition: -o-transform 0.2s ease;
   transition: transform 0.2s ease;
+
+  -webkit-filter: opacity(0.9);
+  -moz-filter: opacity(0.9);
+  -o-filter: opacity(0.9);
+  -ms-filter: opacity(0.9);
+  filter: opacity(0.9);
 }

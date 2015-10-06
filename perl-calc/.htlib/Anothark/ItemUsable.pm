@@ -11,7 +11,8 @@ use base qw( LoggingObjMethod );
 
 
 use constant USABLE => {
-    "" => 0,
+    ""   => 0,
+    "0"  => 0,
 };
 
 use constant CALLBACK => {

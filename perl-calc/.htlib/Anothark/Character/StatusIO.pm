@@ -330,8 +330,49 @@ sub useItem
     my $item_id = $item->getItemId();
 
 #    $class-> ;
+    if ( $item->getItemSubTypeId() eq 35 )
+    {
+        $class->learnSkill( $item->getExternalFunction() );
+    }
 
-    $class->rejectItem( $item_id );
+    $class->rejectItemOne( $item_id );
+}
+
+sub learnSkill
+{
+    my $class = shift;
+    my $skill_id = shift;
+    my $user_id = $class->getUserId();
+
+
+    $class->debug("Inner user_id[" . $class->getUserId() . "]");
+
+    my $sql = "
+    INSERT INTO t_user_having_skill( user_id, skill_id )
+    SELECT user_id,skill_id
+    FROM t_user AS u JOIN t_skill_master AS s ON ( u.user_id = ? AND s.skill_id = ?)
+    ON DUPLICATE KEY UPDATE delete_flag = 0, setting_slot = 0
+    ";
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+    my $stat = $sth->execute(($user_id,$skill_id));
+    $sth->finish();
+
+}
+
+sub rejectItemOne
+{
+    my $class = shift;
+#    my $user_id = shift;
+    my $user_id = $class->getUserId();
+    my $item_id = shift;
+    $class->debug("Inner user_id[" . $class->getUserId() . "]");
+
+    my $sql = "UPDATE t_user_item SET delete_flag = CASE WHEN merged_number = 1 THEN 1 ELSE 0 END, merged_number = merged_number - 1 WHERE user_id = ? AND item_id = ?";
+
+    my $sth  = $class->getDbHandler()->prepare($sql);
+    my $stat = $sth->execute(($user_id,$item_id));
+    $sth->finish();
 }
 
 sub rejectItem

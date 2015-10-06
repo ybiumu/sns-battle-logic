@@ -69,6 +69,7 @@ sub init
     $class->setStatus( new Anothark::StatusManager() );
     $class->setRawData( new Anothark::ValueObject() );
     $class->setHp( new Anothark::ValueObject() );
+    $class->setMaxHp( new Anothark::ValueObject() );
     $class->setStamina( new Anothark::ValueObject());
     $class->setConcentration( new Anothark::ValueObject());
 
@@ -141,6 +142,7 @@ sub init
     $class->getRawData()->setBothValue(1);
 
     $class->getHp()->setBothValue( 100 );
+    $class->getMaxHp()->setBothValue( 100 );
     $class->getStamina()->setBothValue( 100 );
     $class->getAgility()->setBothValue( 100 );
     $class->getChikaku()->setBothValue( 100 );
@@ -195,8 +197,13 @@ sub fixInit
 {
     my $class = shift;
     map {
-        $class->{$_}->setStackValues( 0 );
-    } grep { my $ref = ref $class->{$_}; $ref =~ /^Anothark::ValueObject(|::.+)$/ } sort keys %{$class};
+        $class->{$_}->setInitValue( $class->{$_}->cv() );
+    }
+    grep
+    {
+        my $ref = ref $class->{$_};
+        $ref =~ /^Anothark::ValueObject(|::.+)$/
+    } sort keys %{$class};
 }
 
 my $raw_data = undef;
@@ -204,6 +211,7 @@ my $raw_data = undef;
 my $user_name = undef;
 
 my $hp = undef;
+my $max_hp = undef;
 my $stamina = undef;
 my $atack = undef;
 my $magic = undef;
@@ -521,6 +529,19 @@ sub getPosition
 sub gPos
 {
     return $_[0]->getPosition();
+}
+
+
+
+sub setMaxHp
+{
+    my $class = shift;
+    return $class->setAttribute( 'max_hp', shift );
+}
+
+sub getMaxHp
+{
+    return $_[0]->getAttribute( 'max_hp' );
 }
 
 
@@ -952,7 +973,7 @@ sub isSmallerThanHalf
 {
     my $class = shift;
 #    $class->warning( sprintf("%s is living.", $class->getName()));
-    return ( $class->getHp()->cv() < $class->getHp()->mv() / 2 );
+    return ( $class->getHp()->cv() < $class->getMaxHp()->cv() / 2 );
 }
 
 
@@ -1128,6 +1149,7 @@ sub Damage
 #                                             #   -> 違う、スキル側に判定を移譲。
             if ( $skill->isChain( $class ) ) # 連携の判定
             {
+                $class->debug("[Chain and incr chain]");
                 $class->incrResolveChainStack(); # 連携を増やす
             }
 

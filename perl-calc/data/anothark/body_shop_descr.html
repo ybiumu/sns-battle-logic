@@ -1,5 +1,6 @@
 •i–¼: $out->{ITEM_LABEL}<br />
 ‰¿Ši: $out->{PRICE}rel<br />
+$out->{SHOP_DESCR}<br />
 <div>$out->{ITEM_DESCR}</div>
 <hr />
 <form name="buy" action="shop.cgi" method="get">
@@ -7,6 +8,8 @@
 <input type="hidden" name="item" value="$out->{SEID}" />
 <input type="hidden" name="sid" value="$out->{SHOP_ID}" />
 <input type="hidden" name="tr" value="3" />
+<input type="hidden" name="tt" value="$out->{TT}" />
+<input type="hidden" name="ss" value="$out->{SS}" />
 <input type="hidden" name="guid" value="ON" />
 <select name="n">
 <option value="1">1</option>

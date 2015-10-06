@@ -55,7 +55,7 @@ my $sm = new Anothark::ShopManager( $db );
 
 if ( $sm->getExistsShop($user_id) )
 {
-    $out->{APPEND_CTL} .= "/<a href='shop.cgi?guid=ON'>¼®¯Ìß</a>";
+    $out->{APPEND_CTL} .= qq[<span class="fp_sep">/</span><a class="inline_menu" href='shop.cgi?guid=ON'><span class="icon css-ic_store_24px css-ic_forum_24px-dims"></span><span class="label">¼®¯Ìß</span></a>];
 }
 
 my $debug_str = "";
@@ -83,6 +83,8 @@ if ( $out->{CHOSED} == 1 )
         $up_sth->execute($user_id);
         $up_sth->finish();
     }
+
+    $at->event('chose', 'done', 'choseOk', $c->param("sel") || 0 );
 }
 
 
@@ -157,12 +159,13 @@ if ( $rownum == 1 )
     }
     else
     {
-        my @sels = (sprintf('<input type="radio" name="sel" value="0" %s/>‚Ü‚¾Œˆ‚ß‚Ä‚È‚¢',$r_sel->{0}));
+        my @sels = (sprintf('<label class="chose"><input type="radio" name="sel" value="0" %s/><span>‚Ü‚¾Œˆ‚ß‚Ä‚È‚¢</span></label>',$r_sel->{0}));
         while (my $sel_row = $sth2->fetchrow_hashref() )
         {
-            push(@sels, sprintf( "<input type=\"radio\" name=\"sel\" value=\"%s\"%s />%s(<a href=\"debug_node_view.cgi?nnid=%s\">%s</a>)", $sel_row->{selection_id}, $r_sel->{$sel_row->{selection_id}}, $sel_row->{label}, $sel_row->{next_node_id}, $sel_row->{next_node_id}) );
+            push(@sels, sprintf( "<label class=\"chose\"><input type=\"radio\" name=\"sel\" value=\"%s\"%s /><span>%s(<a href=\"debug_node_view.cgi?nnid=%s\">%s</a>)</span></label>", $sel_row->{selection_id}, $r_sel->{$sel_row->{selection_id}}, $sel_row->{label}, $sel_row->{next_node_id}, $sel_row->{next_node_id}) );
         }
-        $out->{SELECTION_STR} = join( "<br />\n", @sels);
+        my $field = $browser eq "P" ? "" : "<br />";
+        $out->{SELECTION_STR} = join( "$field\n", @sels);
     }
     # Redirect event mapper
     $sth2->finish();

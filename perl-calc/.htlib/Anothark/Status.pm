@@ -82,7 +82,7 @@ sub init
 {
     my $class = shift;
     $class->SUPER::init();
-    $class->debug("CALL_INIT");
+#    $class->debug("CALL_INIT");
     $class->setLongLabel($long_label);
 #    $class->setLongLabel(LONG_LABEL);
     $class->setShortLabel($short_label);

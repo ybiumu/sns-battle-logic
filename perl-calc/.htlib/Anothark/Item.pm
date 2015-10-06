@@ -161,7 +161,20 @@ sub postInit
 
     if ( defined Anothark::ItemUsable::USABLE->{$class->getItemSubTypeId()} )
     {
-        $class->setAttribute( 'to_use', Anothark::ItemUsable::CALLBACK->{ $class->getItemSubTypeId() }  );
+        if (  Anothark::ItemUsable::USABLE->{$class->getItemSubTypeId()} == 0 )
+        {
+            $class->setAttribute( 'to_use', Anothark::ItemUsable::CALLBACK->{ $class->getItemSubTypeId() }  );
+        }
+        else
+        {
+            $class->setAttribute(
+                'to_use',
+                sub {
+                    my $self = shift;
+                    my $target = shift;
+                }
+            );
+        }
     }
     else
     {

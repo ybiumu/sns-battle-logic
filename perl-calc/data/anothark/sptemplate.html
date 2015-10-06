@@ -1,5 +1,11 @@
 <!--?xml version="1.0" encoding="Shift_JIS"?-->
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="jp" lang="jp"><head><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" /><meta http-equiv="Content-Type" content="application/xhtml+xml;charset=Shift_JIS" /><meta http-equiv="Cache-Control" content="no-cache" /><title>__PAGE_TITLE__</title><style type="text/css">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="jp" lang="jp"><head><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" /><meta http-equiv="Content-Type" content="application/xhtml+xml;charset=Shift_JIS" /><meta http-equiv="Cache-Control" content="no-cache" /><title>__PAGE_TITLE__</title>
+<!-- Google material-design-icons -->
+<link href="css-sprite/css-sprite-anoth-buttons.css"  rel="stylesheet" />
+<link href="css-sprite/css-sprite-anoth-icon.css"  rel="stylesheet" />
+<style type="text/css">
+
+
 <!--
 __BASE_CSS__
 -->
@@ -11,12 +17,12 @@ __BASE_CSS__
 <nav class="navbar">
   <form>
     <div class="switcher">
-      <button id="toggleMenu">&#9776;</button>
-      <button formaction="mypage.cgi">M</button>
-      <button formaction="chose.cgi">C</button>
-      <button formaction="result.cgi">R</button>
-      <button formaction="bs.cgi">B</button>
-      <button id="toggleProf">&#9776;</button>
+      <a name="toggleMenu" id="toggleMenu"><div class="css-ic_list_48px css-ic_list_48px-dims"></div></a>
+      <a href="mypage.cgi"><div class="css-ic_home_48px css-ic_home_48px-dims"></div></a>
+      <a href="chose.cgi"><div class="css-ic_input_48px css-ic_input_48px-dims"></div></a>
+      <a href="result.cgi"><div class="css-ic_history_48px css-ic_history_48px-dims"></div></a>
+      <a href="equip.cgi"><div class="css-ic_accessibility_48px css-ic_accessibility_48px-dims"></div></a>
+      <a name="toggleProf" id="toggleProf"><div class="css-ic_toc_48px css-ic_toc_48px-dims"></div></a>
     </div>
   </form>
 </nav>
@@ -43,6 +49,10 @@ __BASE_CSS__
 
 <div id="prof" class="profnav">
     <div class="pb">
+        <div class="header">About</div>
+        <br />
+        <hr>
+        <h3>アイコン</h3>All icons are based on '<a class="clear_style" href='https://github.com/google/material-design-icons/releases/tag/2.0'>Material Design Icons</a>' by Google. Licensed under <a class="clear_style" href='http://creativecommons.org/licenses/by/4.0/'>CC BY</a>
         <div class="header">-黒猫さん-</div>
         <a class="twitter-timeline"  href="https://twitter.com/bcat_company"  data-widget-id="444065563774447618">@bcat_company からのツイート</a>
             <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
@@ -52,7 +62,7 @@ __BASE_CSS__
 <!--div style="font-size:x-small;width:240;"-->
 
 <div id="main" class="content">
-<div style="font-size:small;width:240;">
+<div style="font-size:small;width:240;margin-top:64px;">
 <div class="contents">__TITLE__</div>
 __MESSAGE_BODY__
 </div>
@@ -90,9 +100,16 @@ jQuery(function ($) {
   ga('create', 'UA-48583017-1', 'ciao.jp');
   ga('send', 'pageview');
 
+  if ( document.getElementById("ga-event-component") != null )
+  {
+      var cp = $('#ga-event-component');
+      ga('send','event', cp.data('ec'), cp.data('ea'), cp.data('el'), cp.data('ev') );
+  }
+
+
 </script>
 
-<script type="text/javascript">
+<!--script type="text/javascript">
 
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-48583017-2']);
@@ -105,7 +122,7 @@ jQuery(function ($) {
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 
-</script>
+</script-->
 
 </body></html>
 

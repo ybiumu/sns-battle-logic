@@ -60,6 +60,7 @@ $battle->error("################################################");
        2 => [ sub { zwei(@_) } ],
 #       4 => [ sub { golem(@_) }, sub { enemy001( @_ )} ],
        4 => [ sub { enemy001( @_ )} ],
+#       4 => [ sub { zwei( @_ )} ],
        6 => [ sub { gemStone(@_) }, sub { enemy001( @_ )} ],
        10 => [
             (sub { enemy002(@_)}) x 10,
@@ -118,7 +119,7 @@ sub gemStone
     my $enemy = new Anothark::Character::Enemy();
     $battle->setPartyName("“¹’[‚Ì•óÎ");
     $battle->setPartyImg("load_king");
-    $battle->setPartyLevel(20);
+    $battle->setPartyLevel(18);
     $enemy->setId("load_king");
     $enemy->setName("Û°ÄÞ¥µ³Þ¥¼ÞªÑ½Ä°Ý");
     $enemy->getHp()->setBothValue(150);
@@ -164,7 +165,7 @@ sub zwei
     my $im = new Anothark::ItemManager($db);
     $battle->setPartyName("ŒJ‚è•Ô‚·ˆ«–²");
     $battle->setPartyImg("endless_nightmare");
-    $battle->setPartyLevel(35);
+    $battle->setPartyLevel(20);
 
     my $enemy1 = new Anothark::Character::Enemy();
     $enemy1->setId("zwei");

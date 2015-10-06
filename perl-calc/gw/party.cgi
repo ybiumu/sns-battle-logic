@@ -101,7 +101,7 @@ if ( $type eq "iv" )
 
 
 my $me = $at->getBattlePlayerByUserId($out->{USER_ID});
-my $party = $pl->loadPartyByUser( $me );
+my $party = $pl->loadBattlePartyByUser( $me, 'p' );
 
 
 
@@ -226,20 +226,20 @@ else
     $out->{RESULT} .= "<br />";
 
     # Everyone menu
-    $out->{RESULT} .= sprintf('<a href="board.cgi?guid=ON&t=2&oid=%s">ﾊﾟｰﾃｨｰ掲示板</a><br />',$party->getOwnerId());
-    $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=p&oid=%s">隊列変更</a><br />',$party->getOwnerId());
+    $out->{RESULT} .= sprintf('<a class="inline_menu" href="board.cgi?guid=ON&t=2&oid=%s"><span class="icon css-ic_forum_24px css-ic_forum_24px-dims"></span><span class="label small">ﾊﾟｰﾃｨｰ掲示板</span></a><span class="fp_sep"><br /></span>',$party->getOwnerId());
+    $out->{RESULT} .= sprintf('<a class="inline_menu" href="party.cgi?guid=ON&t=p&oid=%s"><span class="icon css-ic_sort_24px css-ic_sort_24px-dims"></span><span class="label">隊列変更</span></a><span class="fp_sep"><br /></span>',$party->getOwnerId());
 
     # Owner Menu
     if ( $me->getId()  == $party->getOwnerId() )
     {
-        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=c&oid=%s">ﾊﾟｰﾃｨｰ名変更</a><br />',$party->getOwnerId());
-        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=r&oid=%s">除名</a><br />',$party->getOwnerId());
-        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=d&oid=%s">ﾊﾟｰﾃｨｰを解散</a>',$party->getOwnerId());
+        $out->{RESULT} .= sprintf('<a class="inline_menu" href="party.cgi?guid=ON&t=c&oid=%s"><span class="icon"></span><span class="label small">ﾊﾟｰﾃｨｰ名変更</span></a><span class="fp_sep"><br /></span>',$party->getOwnerId());
+        $out->{RESULT} .= sprintf('<a class="inline_menu" href="party.cgi?guid=ON&t=r&oid=%s"><span class="icon css-ic_remove_circle_outline_24px css-ic_remove_circle_outline_24px-dims"></span><span class="label">除名</span></a><span class="fp_sep"><br /></span>',$party->getOwnerId());
+        $out->{RESULT} .= sprintf('<a class="inline_menu" href="party.cgi?guid=ON&t=d&oid=%s"><span class="icon"></span><span class="label small">ﾊﾟｰﾃｨｰを解散</span></a>',$party->getOwnerId());
     }
     # Member Menu
     else
     {
-        $out->{RESULT} .= sprintf('<a href="party.cgi?guid=ON&t=l&oid=%s">ﾊﾟｰﾃｨｰを抜ける</a>',$party->getOwnerId());
+        $out->{RESULT} .= sprintf('<a class="inline_menu" href="party.cgi?guid=ON&t=l&oid=%s"><span class="icon"></span><span class="label">ﾊﾟｰﾃｨｰを抜ける</span></a>',$party->getOwnerId());
     }
 
 

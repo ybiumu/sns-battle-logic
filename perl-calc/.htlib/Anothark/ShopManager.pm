@@ -147,6 +147,7 @@ sub trading
     my $total = $price * $num;
     my $status = "";
     my $lc_mu = lc($money_unit);
+    $class->setTradingStatus(0);
     # ‚¿‹àŠm”F
     $class->warning("Total: $total / Having:  $char->{$lc_mu} / Unit: $money_unit / Char: " . ref($char) );
     if ( $char->{$lc_mu} >= $total )
@@ -156,6 +157,7 @@ sub trading
         $s_io->spendMoney( $total, $money_unit );
         $s_io->getItem( $item->getItemMasterId(), $num );
         $status = sprintf('%s‚ğw“ü‚µ‚Ü‚µ‚½', $item->getItemLabel());
+        $class->setTradingStatus(1);
     }
     else
     {
@@ -164,5 +166,19 @@ sub trading
     }
     return $status;
 }
+
+
+my $trading_status = undef;
+sub setTradingStatus
+{
+    my $class = shift;
+    return $class->setAttribute( 'trading_status', shift );
+}
+
+sub getTradingStatus
+{
+    return $_[0]->getAttribute( 'trading_status' );
+}
+
 
 1;

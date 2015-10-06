@@ -29,6 +29,7 @@ use base qw( LoggingObjMethod );
 my $max_value = undef;
 my $current_value = undef;
 my $stack_values = undef;
+my $total_stack_values = undef;
 my $init_value = undef;
 
 
@@ -49,12 +50,15 @@ sub init
     $class->setMaxValue(0);
     $class->setCurrentValue(0);
     $class->setStackValues(0);
+    $class->setTotalStackValues(0);
+    $class->setInitValue(0);
 }
 
+# Use only init timing.
 sub setBothValue
 {
     my $class = shift;
-    return $class->setCurrentValue( $class->setMaxValue( shift ) );
+    return $class->initCurrentValue( $class->setMaxValue( shift ) );
 }
 
 
@@ -119,8 +123,8 @@ sub getCurrentValue
 }
 
 #
-# •Ï‰»‚Ì—ÝÏ’l
-# a_*‚ÉŠi”[
+# "¡‰ñ‚Ì"•Ï‰»‚Ì—ÝÏ’l
+# I—¹ˆ—Žž‚Étotal_stack_values‚É’Ç‰Á
 #
 #
 sub setStackValues
@@ -140,6 +144,41 @@ sub addStackValues
     return $class->setStackValues( $class->getStackValues() + shift );
 }
 
+
+#
+#
+# ‹CŠÇ“à‘S‚Ä‚Ì•Ï‰»‚Ì—ÝÏ’l
+# a_* ‚ÉŠi”[
+#
+sub setTotalStackValues
+{
+    my $class = shift;
+    return $class->setAttribute( 'total_stack_values', shift );
+}
+
+sub getTotalStackValues
+{
+    return $_[0]->getAttribute( 'total_stack_values' );
+}
+
+sub addTotalStackValues
+{
+    my $class = shift;
+    return $class->setTotlaStackValues( $class->getTotalStackValues() + shift );
+}
+
+sub fixTotalStackValues
+{
+    my $class = shift;
+    return $class->addTotalStackValues( $class->getStackValues() );
+}
+
+
+sub mergeTotalStackValues
+{
+    my $class = shift;
+    $class->initCurrentValue( $class->getCurrentValue() + $class->getTotalStackValues() );
+}
 
 
 ##################
@@ -172,16 +211,19 @@ sub addBoth
 }
 
 # action method
+# •t—^
 sub add
 {
     $_[0]->addBoth($_[1]);
 }
 
+# ‰ñ•œ
 sub rewind
 {
     $_[0]->addCurrent($_[1]);
 }
 
+# Œ³‚É–ß‚·
 sub clear
 {
     $_[0]->setCurrent( $_[0]->getInitValue() );

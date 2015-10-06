@@ -6,6 +6,9 @@ use LWP::UserAgent;
 use Time::HiRes qw(gettimeofday);
 use URI::Escape;
 
+use Exporter 'import';
+our @EXPORT_OK = qw( get_ad get_fp_ad get_sp_ad );
+
 sub google_append_color {
   my @color_array = split(/,/, $_[0]);
   return $color_array[$_[1] % @color_array];
@@ -68,6 +71,22 @@ sub google_append_via_and_accept {
 
 sub get_ad
 {
+    my $at = shift;
+    if ( $at->isRelease() )
+    {
+        if ( $at->getMobileUtil()->getBrowser() eq "P" )
+        {
+            $at->setAdStr( get_sp_ad() );
+        }
+        else
+        {
+            $at->setAdStr( get_fp_ad() );
+        }
+    }
+}
+
+sub get_fp_ad
+{
     my $google_dt = sprintf("%.0f", 1000 * gettimeofday());
     my $google_scheme = ($ENV{"HTTPS"} eq "on") ? "https://" : "http://";
     my $google_user_agent = uri_escape($ENV{"HTTP_USER_AGENT"});
@@ -80,7 +99,8 @@ sub get_ad
 #      "&oe=sjis" .
       "&output=xhtml" .
       "&ref=" . uri_escape($ENV{"HTTP_REFERER"}) .
-      "&slotname=0148237806" .
+#      "&slotname=0148237806" .
+      "&slotname=8244801244" .
       "&url=" . uri_escape($google_scheme . $ENV{"HTTP_HOST"} . $ENV{"REQUEST_URI"}) .
       "&useragent=" . $google_user_agent .
       google_append_screen_res() .
@@ -96,5 +116,20 @@ sub get_ad
 
 
     return $ad_str;
+}
+
+sub get_sp_ad
+{
+    return <<_HERE_
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- anothark_sp_footer -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:320px;height:50px"
+     data-ad-client="ca-pub-6767456309495643"
+     data-ad-slot="6628467242"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+_HERE_
 }
 1;

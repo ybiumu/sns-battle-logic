@@ -392,7 +392,7 @@ sub getLivingFrontCharactersBySide
     my $class  = shift;
     my $side   = shift;
     my $char   = $class->getCharacter();
-    $class->setLivingOrder([ map { $char->{$_}->getPosition()->cv() eq "f" } @{$class->getLivingCharactersBySide($side)} ]);
+    $class->setLivingOrder([ grep { $char->{$_}->getPosition()->cv() eq "f" } @{$class->getLivingCharactersBySide($side)} ]);
 }
 
 
@@ -430,7 +430,7 @@ sub doBattle
     );
 
 
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $class->getTurnText()->[0] .= sprintf(
             $debug_template,
@@ -472,7 +472,7 @@ sub doTurn
     $class->chkScene( BEFORE_START_TURN ); 
 
 #    if ( DEBUG )
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         foreach my $cs ( @{$class->getLiving()} )
         {
@@ -570,10 +570,20 @@ sub doTurnCmd
     # Living forward check
     foreach my $side ( sort{ $side_value->{$b} <=> $side_value->{$a} } keys %{$side_value} )
     {
-        # Point Check
-        if ( not scalar($class->getLivingCharactersBySide($side)) )
+
+        if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
         {
-            map { $chars->{$_}->getPosition()->setCurrentValue("f") } $class->getLivingFrontCharactersBySide($side);
+            $class->getTurnText()->[$turn] .= sprintf(
+                $debug_template,
+                '[LivingCheck]',
+                $side,
+                scalar(@{$class->getLivingFrontCharactersBySide($side)}),
+            );
+        }
+        # Point Check
+        if ( not scalar(@{$class->getLivingFrontCharactersBySide($side)}) )
+        {
+            map { $chars->{$_}->getPosition()->setCurrentValue("f") } @{$class->getLivingCharactersBySide($side)};
         }
     }
 }
@@ -595,7 +605,7 @@ sub doDelaiedCmd
     $class->setCurrentResolve( $char );
     $class->error("[Delaied Char] " . ref $char );
 
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $class->getTurnText()->[$turn] .= sprintf(
             $debug_template,
@@ -626,9 +636,9 @@ sub doDelaiedCmd
         foreach my $side ( sort{ $side_value->{$b} <=> $side_value->{$a} } keys %{$side_value} )
         {
             # Point Check
-            if ( not scalar($class->getLivingCharactersBySide($side)) )
+            if ( not scalar(@{$class->getLivingFrontCharactersBySide($side)}) )
             {
-                map { $chars->{$_}->getPosition()->setCurrentValue("f") } $class->getLivingFrontCharactersBySide($side);
+                map { $chars->{$_}->getPosition()->setCurrentValue("f") } @{$class->getLivingCharactersBySide($side)};
             }
         }
     }
@@ -648,7 +658,7 @@ sub doCmd
     my $text_pointer = \$class->getTurnText()->[$turn];
     my $cmd = $char->getCmd()->[$turn];
 
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $$text_pointer .= sprintf(
             $debug_template,
@@ -715,7 +725,7 @@ sub doPreTargeting
     my $force_target = shift || 0;
     my $chars  = $class->getCharacter();
 
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $$text_pointer .= sprintf(
             $debug_template,
@@ -833,7 +843,7 @@ sub doTargeting
     my $force_target = shift || 0;
     my $chars  = $class->getCharacter();
 
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $$text_pointer .= sprintf(
             $debug_template,
@@ -882,7 +892,7 @@ sub doTargeting
 
 
         # Debug for Game Master
-        if ( $class->getAt()->{PLAYER}->getIsGm() )
+        if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
         {
             $$text_pointer .= sprintf(
                 $debug_template,
@@ -937,7 +947,7 @@ sub doTargeting
                     @{$class->getLivingTargetsWithState( $char,$cmd )}
                 );
 
-                if ( $class->getAt()->{PLAYER}->getIsGm() )
+                if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
                 {
                     $$text_pointer .= sprintf(
                         $debug_template,
@@ -978,7 +988,7 @@ sub doPassUnitBase
     my $text_pointer = shift;
     my $force_target = shift || 0;
     my $chars  = $class->getCharacter();
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $$text_pointer .= sprintf(
             $debug_template,
@@ -1018,7 +1028,7 @@ sub doSkillUnitBase
     my $text_pointer = shift;
     my $force_target = shift || 0;
     my $chars  = $class->getCharacter();
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $$text_pointer .= sprintf(
             $debug_template,
@@ -1058,7 +1068,7 @@ already moved.
     # 呪詛設置・罠設置以外は連携継続のチェック対象
     # TODO ここをもっと厚く
     $class->continueChain($cmd,@target_order);
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         map{
             $$text_pointer .= sprintf(
@@ -1093,7 +1103,7 @@ sub doSkillUnit
     my $force_target = shift || 0;
     my $chars  = $class->getCharacter();
 
-    if ( $class->getAt()->{PLAYER}->getIsGm() )
+    if ( DEBUG && $class->getAt()->{PLAYER}->getIsGm() )
     {
         $$text_pointer .= sprintf(
             $debug_template,
@@ -1380,7 +1390,7 @@ sub resolveActions
                     $debug_template,
                     $dmg_obj->getSkill()->getName(),
                     $dmg_obj->getSkill()->getEffectStatusValue(),
-                    $dmg_obj->getSkell()->getChainStatusValue(),
+                    $dmg_obj->getSkill()->getChainStatusValue(),
                 );
             }
         }
@@ -1422,6 +1432,7 @@ sub resolveActions
                                             $effect_template,
                                             $symbol->{$char->getTextSide()}->{align}, "　⇒⇒倒れた");
         $target->Die();
+        # 乗っているスタックも消去しなくてはならない
     }
     else
     {
@@ -1449,6 +1460,7 @@ sub continueChain
         @targets = ();
     }
 
+$class->debug("[continueChain]");
 
     my $targets = { map { $_ => 1 } @targets };
 
@@ -1457,17 +1469,25 @@ sub continueChain
         # 戦闘可能だが target外
         if ( not exists $targets->{$char->{$_}->getId()} )
         {
+            $class->debug("[Not target]");
             $char->{$_}->setResolveChainStack(0);
         }
         # 戦闘可能でtargetだが、chainの開始時
-        elsif( $char->{$_}->getChainStack() eq $char->{$_}->getResolveChainStack() )
-        {
-            $char->{$_}->setResolveChainStack(0);
-        }
+#        elsif( $char->{$_}->getChainStack() eq $char->{$_}->getResolveChainStack() )
+#        {
+#            $class->debug("[initial chain]");
+#            $char->{$_}->setResolveChainStack(0);
+#        }
         # 戦闘可能でtargetでchain継続中だが、次がチェインしない
         elsif( not $cmd->isChain( $char->{$_}  ) )
         {
+            $class->debug( sprintf("[CHAIN CHECK] %s is not Chain.", $char->{$_}->getName()));
             $char->{$_}->setResolveChainStack(0);
+        }
+        else
+        {
+            $char->{$_}->incrResolveChainStack();
+            $class->debug("[CHAIN!]");
         }
 
         # ここでは既に乗っている予約chain数を実chain数に移すだけ
@@ -1683,6 +1703,27 @@ sub checkExperiment
                                 $type_exp;
             }
         }
+
+        # Armore exp
+        if ( $c->isLiving() )
+        {
+            my $type = 21;
+            # value
+            my $type_exp = (
+                ( $class->getPartyLevel() - $c->getTypeLevel($type) > 1 ? 1 : 0 ) * ( ( $c->getHp()->mv() > $c->getHp()->cv() ) ? ( $c->getHp()->mv() / $c->getHp()->cv() * 2 ) : 0  )
+                );
+            if ( $type_exp > 0 )
+            {
+                $type_exp = 10 if ( $type_exp > 10 );
+                $exp_values->{$type} = $type_exp;
+                # Str 
+                $chk_str .= sprintf '%sは%sの熟練が%.2f上がった<br />',
+                                $c->getName(),
+                                Anothark::Skill::typeId2typeName($type),
+                                $type_exp;
+            }
+        }
+
         # Save
         $exps->{$c->getId()} = $exp_values;
 #        $c->getStatusIo()->updateExp($exp_values);

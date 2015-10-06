@@ -363,7 +363,13 @@ sub sep_item
 
 sub pre_use_item
 {
-    return "pre_use_item";
+    my $at = shift;
+    my $c = shift;
+    $depth = 1;
+    $at->setBody("body_any.html");
+    $at->setPageName("±²ÃÑ&gt;g‚¤");
+    $im = new Anothark::ItemManager( $at->getDbHandler() );
+    return "";
 }
 
 sub pre_descr_item

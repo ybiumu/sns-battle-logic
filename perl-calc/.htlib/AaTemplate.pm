@@ -41,6 +41,7 @@ my $mobile_util = undef;
 my $db_handler = undef;
 my $out = {};
 
+my $notice = undef;
 
 my $strict = 0;
 
@@ -56,6 +57,68 @@ my $task_str = '<a href="viewtasks.cgi?guid=ON">&gt;やることﾒﾓ</a>';
 my $has_notice_task_str = '<a class="has_notice" href="viewtasks.cgi?guid=ON">&gt;やることﾒﾓ(__NOTICE_NUMBER__)</a>';
 
 my $local_menu = undef;
+
+
+
+
+our $common_base_sql = "
+SELECT
+    b.user_id AS user_id,
+    b.user_name AS user_name,
+    mn.rel AS rel,
+    mn.vel AS vel,
+    b.msg AS msg,
+    b.face_type AS face_type,
+    b.hair_type AS hair_type,
+    b.is_gm AS is_gm,
+    b.owner_id AS owner_id,
+    s.rp AS rp,
+    s.max_hp    AS max_hp,
+    s.a_max_hp  AS a_max_hp,
+    s.hp        AS hp,
+    s.a_hp      AS a_hp,
+    s.agl       AS agl,
+    s.a_agl     AS a_agl,
+    s.kehai     AS kehai,
+    s.a_kehai   AS a_kehai,
+    s.chikaku   AS chikaku,
+    s.a_chikaku AS a_chikaku,
+    s.luck      AS luck,
+    s.a_luck    AS a_luck,
+    s.kikyou    AS kikyou,
+    s.a_kikyou  AS a_kikyou,
+    s.chrm      AS chrm,
+    s.a_chrm    AS a_chrm,
+    s.atack     AS atack,
+    s.a_atack   AS a_atack,
+    s.magic     AS magic,
+    s.a_magic   AS a_magic,
+    s.def       AS def,
+    s.a_def     AS a_def,
+    s.stamina AS stamina,
+    s.node_id AS node_id,
+    s.position_code AS position,
+    b.uuid,
+    n.node_name
+FROM
+    t_user AS b
+    JOIN
+    t_user_money AS mn USING(user_id)
+    JOIN
+    t_user_status s USING( user_id )
+    JOIN
+    t_node_master n USING(node_id)
+WHERE
+    b.delete_flag = 0
+";
+
+
+
+
+
+
+
+
 sub init
 {
     my $class = shift;
@@ -336,6 +399,11 @@ _HERE_"
         $task_html =~ s/&gt;//g;
     }
 
+    if ( $ad_str )
+    {
+        $ad_str = '<div class="contents2">広告</div>'. $ad_str
+    }
+
     $class->{base_html} =~ s/__TITLE__/$page_name/g;
     $class->{base_html} =~ s/__PAGE_TITLE__/$page_name/g;
     $class->{base_html} =~ s/__BASE_CSS__/$base_css/g;
@@ -354,10 +422,37 @@ sub output
     print $class->getBaseHtml();
     if ( $class->getMobileUtil()->getBrowser() ne "P" )
     {
-        UniversalAnalytics::report($class);
+        $class->pageview();
     }
 }
 
+sub pageview
+{
+    my $class = shift;
+    return UniversalAnalytics::pageview($class);
+}
+
+sub event
+{
+    my $class = shift;
+    my $ec = shift;
+    my $ea = shift;
+    my $el = shift;
+    my $ev = shift;
+
+    return UniversalAnalytics::event($class, $ec,$ea,$el,$ev);
+}
+
+sub item
+{
+    my $class = shift;
+    my $ti = shift;
+    my $in = shift;
+    my $ip = shift;
+    my $iq = shift;
+
+    return UniversalAnalytics::item($class, $ti,$in,$ip,$iq );
+}
 
 sub printHeader
 {
@@ -464,36 +559,6 @@ sub setupBaseData
     }
     my $result = 0;
     my $char = $class->getMyCharacter( $template );
-#    my $get_base_sql = "
-#        SELECT
-#            b.user_id AS user_id,
-#            b.user_name AS user_name,
-#            mn.rel AS rel,
-#            mn.vel AS vel,
-#            b.msg AS msg,
-#            b.face_type AS face_type,
-#            b.hair_type AS hair_type,
-#            b.is_gm AS is_gm,
-#            s.a_max_hp AS max_hp,
-#            s.rp AS rp,
-#            s.a_agl AS a_agl,
-#            s.a_kehai AS a_kehai,
-#            s.a_chikaku AS a_chikaku,
-#            s.a_luck AS a_luck,
-#            s.a_kikyou AS a_kikyou,
-#            s.a_chrm   AS a_chrm,
-#            s.node_id AS node_id,
-#            s.a_hp AS hp,
-#            b.uuid,
-#            n.node_name
-#        FROM
-#            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ?";
-#    my $sth  = $class->getDbHandler()->prepare($get_base_sql);
-#    my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
-#    my $row  = $sth->fetchrow_hashref();
-#
-#    $class->notice(qq["Already registed check: " ], sprintf("carrier: %s, uid: %s, row: %s",$class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid(), $sth->rows() ));
-
 
     if ( not $char )
     {
@@ -507,108 +572,19 @@ sub setupBaseData
         exit 1;
     }
 
-#    if ( ! $row->{uuid} )
-#    {
-#        #
-#        $class->{out}->{UUID} = UniversalAnalytics::gen_uuid();
-#        my $uuid_update_sql = "UPDATE t_user SET uuid = ? WHERE user_id = ?";
-#        $class->getDbHandler()->do( $uuid_update_sql, undef, $class->{out}->{UUID}, $row->{user_id});
-#    }
-#    else
-#    {
-#        $class->{out}->{UUID} = $row->{uuid}; 
-#    }
 
     $class->loadEquipData( $char );
     my $user_id = $char->getUserId();
+    $class->{PLAYER} = $char;
 
     $result = 1;
-#    $class->{out}->{NAME} = sprintf("(%s)%s%s",$row->{user_id} , $row->{is_gm} ? $gm_img : "", $row->{user_name});
-#
-#    $class->{out}->{V_HP} =  $row->{hp};
-#    $class->{out}->{V_MHP} = $row->{max_hp};
-#    $class->{out}->{MSG}   = $row->{msg};
-#    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$row->{face_type}};
-#    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$row->{hair_type}};
-#    $class->{out}->{PLACE} = $row->{node_name};
-#    $class->{out}->{NODE_ID} = $row->{node_id};
-#    $class->{out}->{USER_ID} = $row->{user_id};
-#    $class->{out}->{USER_NAME} = $row->{user_name};
-#    $class->{out}->{VEL}     = $row->{vel};
-#    $class->{out}->{REL}     = $row->{rel};
-#    $class->{out}->{GM}      = $row->{is_gm};
-#
-#
-#
-#    $class->{out}->{V_CON} = $row->{rp};
-#    $class->{out}->{V_ATK} = 0;
-#    $class->{out}->{V_MAG} = 0;
-#    $class->{out}->{V_DEF} = 0;
-#    $class->{out}->{V_AGL} = $row->{a_agl};
-#    $class->{out}->{V_KHI} = $row->{a_kehai};
-#    $class->{out}->{V_SNC} = $row->{a_chikaku};
-#    $class->{out}->{V_LUK} = $row->{a_luck};
-#    $class->{out}->{V_HMT} = $row->{a_kikyou};
-#    $class->{out}->{V_CHR} = $row->{a_chrm};
-    $class->{out}->{NAME} = sprintf("(%s)%s%s", $user_id, $char->getIsGm() ? $gm_img : "", $char->getName());
-    $class->{out}->{V_HP} =  $char->getHp()->current();
-    $class->{out}->{V_MHP} = $char->getHp()->max();
-    $class->{out}->{MSG}   = $char->getMsg();
-    $class->{out}->{FACE}  = Avatar::Face::TYPE->{$char->getFaceType()};
-    $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$char->getHairType()};
-    $class->{out}->{PLACE} = $char->getNodeName();
-    $class->{out}->{NODE_ID} = $char->getNodeId();
-    $class->{out}->{USER_ID} = $user_id;
-    $class->{out}->{USER_NAME} = $char->getUserName();
-    $class->{out}->{VEL}     = $char->getVel();
-    $class->{out}->{REL}     = $char->getRel();
-    $class->{out}->{GM}      = $char->getIsGm();
 
-
-
-    $class->{out}->{V_CON} = $char->getConcentration()->current();
-    $class->{out}->{V_ATK} = $char->getAtack()->current();
-    $class->{out}->{V_MAG} = $char->getMagic()->current();
-    $class->{out}->{V_DEF} = $char->getDefence()->current();
-    $class->{out}->{V_AGL} = $char->getAgility()->current();
-    $class->{out}->{V_KHI} = $char->getKehai()->current();
-    $class->{out}->{V_SNC} = $char->getChikaku()->current();
-    $class->{out}->{V_LUK} = $char->getLuck()->current();
-    $class->{out}->{V_HMT} = $char->getKikyou()->current();
-    $class->{out}->{V_CHR} = $char->getCharm()->current();
-
-
-
-
-#    $class->{PLAYER} = $class->getPlayerByUserId( $row->{user_id},$without_skill );
-    $class->{PLAYER} = $char;
-#    $sth->finish();
-#    $class->{out}->{EXP}   = join(
-#        "<br />\n",
-#        map {
-#            sprintf "%s Lv%s (%s)", 
-#            Anothark::Skill::typeId2typeName2($_),
-#            $class->{PLAYER}->getTypeLevel($_),
-#            int $class->{PLAYER}->getTypeExperiment($_),
-#        } sort keys %{$class->{PLAYER}->getExperiments() }
-#    );
-    $class->{out}->{EXP}   = join(
-        "<br />\n",
-        map {
-            sprintf "%s Lv%s (%s)", 
-            Anothark::Skill::typeId2typeName2($_),
-            $char->getTypeLevel($_),
-            int $char->getTypeExperiment($_),
-        } sort keys %{$char->getExperiments() }
-    );
+    $class->setupOutFromCharacter( $char );
 
     $class->setStatusIo( $char->getStatusIo() );
-#    $class->setStatusIo( $class->{PLAYER}->getStatusIo() );
-#    $class->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
 
     my $sns = new Anothark::SnsNoticeManager( $class );
-
     my $notice = $sns->hasNotice( $user_id );
     $class->{out}->{NOTICE_NUMBER} = $notice;
 
@@ -621,58 +597,34 @@ sub setupBaseData
 }
 
 
-
-
-my $notice = undef;
-sub setNotice
+# 汎用ユーザーデータ取得
+# 他人のマイペ
+sub getBaseDataByUserId
 {
     my $class = shift;
-    return $class->setAttribute( 'notice', shift );
-}
+    my $user_id = shift;
+    my $result = 0;
+    my $template = new Anothark::Character::Player();
 
-sub getNotice
-{
-    return $_[0]->getAttribute( 'notice' );
-}
+    my $char = $class->getCharacterByUserId($user_id,$template);
+    if ( not $char )
+    {
+        return $result;
+    }
 
-
-
-sub setStatusIo
-{
-    my $class = shift;
-    return $class->setAttribute( 'status_io', shift );
-}
-
-sub getStatusIo
-{
-    return $_[0]->getAttribute( 'status_io' );
-}
+    $class->loadEquipData( $char );
 
 
+    $result = 1;
 
-sub commitCharctorStatus
-{
+    $class->setupOutFromCharacter( $char );
+
+
+    $char->fixInit();
+    return $result;
 }
 
 
-
-
-sub Error
-{
-    my $class = shift;
-    $class->setPageName("ERROR");
-#    $class->setBase("template.html");
-    $class->setBody("body_any.html");
-}
-
-
-sub Critical
-{
-    my $class = shift;
-    $class->setPageName("ERROR");
-    $class->setBase("small_template.html");
-    $class->setBody("body_any.html");
-}
 
 
 sub loadEquipData
@@ -748,10 +700,12 @@ _SQL_
     my $row  = $sth->fetchrow_hashref();
 
     $char->getHp()->addBoth($row->{max_hp});
+    $char->getHp()->mergeTotalStackValues();
     $char->setEquipSkillId( $row->{equip_skill_id} );
     map {
         warn "[KEY] $_ [add] $row->{$_} [BASE] $char->{$_}->{max_value}";
-        $char->{$_}->addBoth( $row->{$_} )
+        $char->{$_}->addBoth( $row->{$_} );
+        $char->{$_}->mergeTotalStackValues();
     } grep { ( not /^max_hp$/ ) && ( not /^equip_skill_id$/ ) } sort keys %{$row};
 
 }
@@ -798,26 +752,78 @@ sub getPlayerByUserId
     return $char;
 }
 
-# 汎用ユーザーデータ取得
-sub getBaseDataByUserId
+
+
+sub setupCharacter
 {
     my $class = shift;
-    my $user_id = shift;
-    my $result = 0;
-    my $template = new Anothark::Character::Player();
+    my $char  = shift;
+    my $row   = shift;
 
-    my $char = $class->getCharacterByUserId($user_id,$template);
-    if ( not $char )
-    {
-        return $result;
-    }
+    $char->setName($row->{user_name});
+    $char->getHp()->setCurrentValue($row->{hp});
+    $char->getHp()->setTotalStackValues($row->{a_hp});
+    $char->getHp()->setMaxValue($row->{max_hp});
+    $char->getMaxHp()->setBothValue($row->{max_hp});
+    $char->setMsg($row->{msg});
+    $char->setFaceType($row->{face_type});
+    $char->setHairType($row->{hair_type});
+    $char->setId($row->{user_id});
+    $class->debug("Record user_id: " . $row->{user_id});
+    $class->debug("getId:" . $char->getId() . " getUserId:" . $char->getUserId());
+    $char->setNodeName(  $row->{node_name} );
+    $char->setNodeId(  $row->{node_id} );
 
-    $class->loadEquipData( $char );
+    $char->getConcentration()->setBothValue($row->{rp});
+
+    $char->getAtack()->setBothValue($row->{atack});
+    $char->getMagic()->setBothValue($row->{magic});
+    $char->getDefence()->setBothValue($row->{def});
+    $char->getAgility()->setBothValue($row->{agl});
+    $char->getKehai()->setBothValue($row->{kehai});
+    $char->getChikaku()->setBothValue($row->{chikaku});
+    $char->getLuck()->setBothValue($row->{luck});
+    $char->getKikyou()->setBothValue($row->{kikyou});
+    $char->getCharm()->setBothValue($row->{chrm});
+
+    $char->getAtack()->setTotalStackValues($row->{a_atack});
+    $char->getMagic()->setTotalStackValues($row->{a_magic});
+    $char->getDefence()->setTotalStackValues($row->{a_def});
+    $char->getAgility()->setTotalStackValues($row->{a_agl});
+    $char->getKehai()->setTotalStackValues($row->{a_kehai});
+    $char->getChikaku()->setTotalStackValues($row->{a_chikaku});
+    $char->getLuck()->setTotalStackValues($row->{a_luck});
+    $char->getKikyou()->setTotalStackValues($row->{a_kikyou});
+    $char->getCharm()->setTotalStackValues($row->{a_chrm});
 
 
-    $result = 1;
+    $char->getStamina()->setBothValue($row->{stamina});
+    $char->getPosition()->setBothValue($row->{position});
+
+    $char->setIsGm( $row->{is_gm} );
+    $char->setOwnerId( $row->{owner_id} );
+
+    $char->setVel( $row->{vel} );
+    $char->setRel( $row->{rel} );
+
+
+    ## SetSkill
+    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+
+    $char->setExperiments( $class->loadExp( $char->getUserId()) );
+
+
+}
+
+
+sub setupOutFromCharacter
+{
+    my $class = shift;
+    my $char  = shift;
+
+
     $class->{out}->{CHAR} = $char;
-    $class->{out}->{NAME} = sprintf("(%s)%s%s", $user_id, $char->getIsGm() ? $gm_img : "", $char->getName());
+    $class->{out}->{NAME} = sprintf("(%s)%s%s", $char->getUserId(), $char->getIsGm() ? $gm_img : "", $char->getName());
     $class->{out}->{V_HP} =  $char->getHp()->current();
     $class->{out}->{V_MHP} = $char->getHp()->max();
     $class->{out}->{MSG}   = $char->getMsg();
@@ -825,7 +831,7 @@ sub getBaseDataByUserId
     $class->{out}->{HAIR}  = Avatar::Hair::TYPE->{$char->getHairType()};
     $class->{out}->{PLACE} = $char->getNodeName();
     $class->{out}->{NODE_ID} = $char->getNodeId();
-    $class->{out}->{USER_ID} = $user_id;
+    $class->{out}->{USER_ID} = $char->getUserId();
     $class->{out}->{USER_NAME} = $char->getUserName();
     $class->{out}->{VEL}     = $char->getVel();
     $class->{out}->{REL}     = $char->getRel();
@@ -852,51 +858,20 @@ sub getBaseDataByUserId
             Anothark::Skill::typeId2typeName2($_),
             $char->getTypeLevel($_),
             int $char->getTypeExperiment($_),
-        } sort keys %{$char->getExperiments() }
+        } sort {$a <=> $b} keys %{$char->getExperiments() }
     );
 
-
-    $char->fixInit();
-    return $result;
 }
 
 
-
+# Get only self data
 sub getMyCharacter
 {
     my $class   = shift;
-#    my $user_id = shift;
     my $char    = shift || new Anothark::Character::Player();
-    my $get_base_sql = "
-        SELECT
-            b.user_id AS user_id,
-            b.user_name AS user_name,
-            mn.rel AS rel,
-            mn.vel AS vel,
-            b.msg AS msg,
-            b.face_type AS face_type,
-            b.hair_type AS hair_type,
-            b.is_gm AS is_gm,
-            b.owner_id AS owner_id,
-            s.a_max_hp AS max_hp,
-            s.rp AS rp,
-            s.a_agl AS a_agl,
-            s.a_kehai AS a_kehai,
-            s.a_chikaku AS a_chikaku,
-            s.a_luck AS a_luck,
-            s.a_kikyou AS a_kikyou,
-            s.a_chrm   AS a_chrm,
-            s.node_id AS node_id,
-            s.a_hp AS hp,
-            s.a_atack AS atack,
-            s.a_magic AS magic,
-            s.a_def AS def,
-            s.stamina AS stamina,
-            s.position_code AS position,
-            b.uuid,
-            n.node_name
-        FROM
-            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.carrier_id = ? AND b.uid = ? AND b.delete_flag = 0";
+    my $get_base_sql = $common_base_sql 
+                     . "AND b.carrier_id = ? AND b.uid = ?";
+
     my $sth  = $class->getDbHandler()->prepare($get_base_sql);
     my $stat = $sth->execute(($class->getMobileUtil()->getCarrierId(), $class->getMobileUtil()->get_muid()));
     my $row  = $sth->fetchrow_hashref();
@@ -923,80 +898,26 @@ sub getMyCharacter
         $class->{out}->{UUID} = $row->{uuid}; 
     }
 
-    $char->setName($row->{user_name});
-    $char->getHp()->setCurrentValue($row->{hp});
-    $char->getHp()->setMaxValue($row->{max_hp});
-    $char->setMsg($row->{msg});
-    $char->setFaceType($row->{face_type});
-    $char->setHairType($row->{hair_type});
-    $char->setId($row->{user_id});
-    $class->debug("Record user_id: " . $row->{user_id});
-    $class->debug("getId:" . $char->getId() . " getUserId:" . $char->getUserId());
-    $char->setNodeName(  $row->{node_name} );
-    $char->setNodeId(  $row->{node_id} );
-    $char->getConcentration()->setBothValue($row->{rp});
-    $char->getAtack()->setBothValue($row->{atack});
-    $char->getMagic()->setBothValue($row->{magic});
-    $char->getDefence()->setBothValue($row->{def});
-    $char->getAgility()->setBothValue($row->{a_agl});
-    $char->getKehai()->setBothValue($row->{a_kehai});
-    $char->getChikaku()->setBothValue($row->{a_chikaku});
-    $char->getLuck()->setBothValue($row->{a_luck});
-    $char->getKikyou()->setBothValue($row->{a_kikyou});
-    $char->getCharm()->setBothValue($row->{a_chrm});
-    $char->getStamina()->setBothValue($row->{stamina});
-    $char->getPosition()->setBothValue($row->{position});
-
-    $char->setIsGm( $row->{is_gm} );
-    $char->setOwnerId( $row->{owner_id} );
-
-    $char->setVel( $row->{vel} );
-    $char->setRel( $row->{rel} );
-
     $sth->finish();
 
-    ## SetSkill
-    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
+    $class->setupCharacter( $char, $row );
 
-    $char->setExperiments( $class->loadExp( $char->getUserId()) );
 
     return $char;
 }
 
 
+
+
+# get each character data
 sub getCharacterByUserId
 {
     my $class   = shift;
     my $user_id = shift;
     my $char    = shift || new Anothark::Character::Player();
-    my $get_base_sql = "
-        SELECT
-            b.user_id AS user_id,
-            b.user_name AS user_name,
-            mn.rel AS rel,
-            mn.vel AS vel,
-            b.msg AS msg,
-            b.face_type AS face_type,
-            b.hair_type AS hair_type,
-            b.is_gm AS is_gm,
-            b.owner_id AS owner_id,
-            s.a_max_hp AS max_hp,
-            s.rp AS rp,
-            s.a_agl AS a_agl,
-            s.a_kehai AS a_kehai,
-            s.a_chikaku AS a_chikaku,
-            s.a_luck AS a_luck,
-            s.a_kikyou AS a_kikyou,
-            s.a_chrm   AS a_chrm,
-            s.node_id AS node_id,
-            s.a_hp AS hp,
-            s.a_atack AS atack,
-            s.a_def AS def,
-            s.stamina AS stamina,
-            s.position_code AS position,
-            n.node_name
-        FROM
-            t_user AS b JOIN t_user_money AS mn USING(user_id) JOIN t_user_status s USING( user_id ) JOIN t_node_master n USING(node_id) WHERE b.user_id = ?";
+    my $get_base_sql = $common_base_sql 
+                     . "AND b.user_id = ?";
+
     my $sth  = $class->getDbHandler()->prepare($get_base_sql);
     my $stat = $sth->execute(($user_id));
     my $row  = $sth->fetchrow_hashref();
@@ -1010,46 +931,17 @@ sub getCharacterByUserId
         return undef;
     }
 
-    $char->setName($row->{user_name});
-    $char->getHp()->setCurrentValue($row->{hp});
-    $char->getHp()->setMaxValue($row->{max_hp});
-    $char->setMsg($row->{msg});
-    $char->setFaceType($row->{face_type});
-    $char->setHairType($row->{hair_type});
-    $char->setId($row->{user_id});
-    $class->debug("Record user_id: " . $row->{user_id});
-    $class->debug("getId:" . $char->getId() . " getUserId:" . $char->getUserId());
-    $char->setNodeName(  $row->{node_name} );
-    $char->setNodeId(  $row->{node_id} );
-    $char->getConcentration()->setBothValue($row->{rp});
-    $char->getAtack()->setBothValue($row->{atack});
-    $char->getMagic()->setBothValue(0);
-    $char->getDefence()->setBothValue($row->{def});
-    $char->getAgility()->setBothValue($row->{a_agl});
-    $char->getKehai()->setBothValue($row->{a_kehai});
-    $char->getChikaku()->setBothValue($row->{a_chikaku});
-    $char->getLuck()->setBothValue($row->{a_luck});
-    $char->getKikyou()->setBothValue($row->{a_kikyou});
-    $char->getCharm()->setBothValue($row->{a_chrm});
-    $char->getStamina()->setBothValue($row->{stamina});
-    $char->getPosition()->setBothValue($row->{position});
-
-    $char->setIsGm( $row->{is_gm} );
-    $char->setOwnerId( $row->{owner_id} );
-
-    $char->setVel( $row->{vel} );
-    $char->setRel( $row->{rel} );
-
     $sth->finish();
 
-    ## SetSkill
-    $char->setStatusIo( new Anothark::Character::StatusIO( $class->getDbHandler() ) );
 
-    $char->setExperiments( $class->loadExp( $char->getUserId()) );
+    $class->setupCharacter($char, $row);
+
 
     return $char;
 }
 
+
+# load experiment
 sub loadExp
 {
     my $class = shift;
@@ -1093,5 +985,59 @@ sub sameNode
     }
 }
 
+sub setNotice
+{
+    my $class = shift;
+    return $class->setAttribute( 'notice', shift );
+}
+
+sub getNotice
+{
+    return $_[0]->getAttribute( 'notice' );
+}
+
+
+
+sub setStatusIo
+{
+    my $class = shift;
+    return $class->setAttribute( 'status_io', shift );
+}
+
+sub getStatusIo
+{
+    return $_[0]->getAttribute( 'status_io' );
+}
+
+
+
+sub commitCharctorStatus
+{
+}
+
+
+
+
+sub isRelease
+{
+     return not $LocalConfig::LOCAL_DEBUG;
+}
+
+sub Error
+{
+    my $class = shift;
+    $class->setPageName("ERROR");
+#    $class->setBase("template.html");
+    $class->setBody("body_any.html");
+}
+
+
+sub Critical
+{
+    my $class = shift;
+    $class->setPageName("ERROR");
+    $class->setBase("small_template.html");
+    $class->setBody("body_any.html");
+}
 
 1;

@@ -183,6 +183,8 @@ elsif ( $c->param("commit") eq "OK" )
         my $sth_reg  = $db->prepare("UPDATE regist_count SET cnt = cnt - 1;");
         my $stat_reg = $sth_reg->execute();
         $sth_reg->finish();
+        my $results = $at->event('register', 'ok', 'registerOk', 1);
+        $out->{"RESULT"} .= $results;
     }
 
 }

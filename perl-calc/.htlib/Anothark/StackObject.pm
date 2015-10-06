@@ -40,14 +40,14 @@ sub stackOne
 {
     my $class = shift;
     my $stack = shift;
-    $class->error("[STACKED] ", join (",", map { sprintf("[%s]=[%s]", $_, $stack->{$_}) } keys %{$stack} ) );
+#    $class->debug("[STACKED] ", join (",", map { sprintf("[%s]=[%s]", $_, $stack->{$_}) } keys %{$stack} ) );
     push(@{$class->getMemory()},$stack);
 
 }
 
 sub isRemain
 {
-    $_[0]->error("[CALL IS_REMAIN]: " . scalar(@{$_[0]->getMemory()}));
+#    $_[0]->debug("[CALL IS_REMAIN]: " . scalar(@{$_[0]->getMemory()}));
     return scalar(@{$_[0]->getMemory()})
 }
 
@@ -91,9 +91,9 @@ sub moveAll
 {
     my $class = shift;
     my $stack_list =  $class->getMemory();
-    $class->debug("LENGTH1: " . scalar(@{$stack_list}));
+#    $class->debug("LENGTH1: " . scalar(@{$stack_list}));
     $class->clearStack();
-    $class->debug("LENGTH2: " . scalar(@{$stack_list}));
+#    $class->debug("LENGTH2: " . scalar(@{$stack_list}));
     return @{$stack_list};
 }
 

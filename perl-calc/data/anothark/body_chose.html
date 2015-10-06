@@ -4,8 +4,8 @@
 <!--img class="dispimg" src="http://dummyimage.com/230x160/bbb8bb/000.jpg&text=bgid_$out->{BGID}" /-->
 <div>$out->{NODE_DESCR}</div>
 <hr />
-<a href="img/Map_p1.jpg">地図</a><!--/<a href="">ﾊﾞｻﾞｰ</a-->/<a href="psp.cgi?guid=ON">近くの人</a>$out->{APPEND_CTL}<br />
-掲示板:<a href="board.cgi?guid=ON&t=3&oid=$out->{USER_ID}">雑記</a>
+<a class="inline_menu" href="img/Map_p1.jpg"><span class="icon css-ic_map_24px css-ic_map_24px-dims "></span><span class="label">地図</span></a><!--/<a href="">ﾊﾞｻﾞｰ</a--><span class="fp_sep">/</span><a class="inline_menu" href="psp.cgi?guid=ON"><span class="icon css-ic_group_24px css-ic_group_24px-dims"></span><span class="label">近くの人</span></a>$out->{APPEND_CTL}<br />
+<span class="heading">掲示板</span><span class="fp_sep">:</span><a class="inline_menu" href="board.cgi?guid=ON&t=3&oid=$out->{USER_ID}"><span class="icon css-ic_forum_24px css-ic_forum_24px-dims"></span><span class="label">雑記</span></a>
 <hr />
 <form name="chose" action="chose.cgi?guid=ON">
 <div class="contents3">次回処理時間<br />$out->{QUE_HOUR}時頃</div>

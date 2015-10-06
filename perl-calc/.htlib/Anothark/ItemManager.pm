@@ -106,8 +106,18 @@ sub getItemList
 {
     my $class = shift;
     my $offset = shift || 0;
+    my $vector = shift || 1;
 
-    my $sql = "SELECT item_master_id,item_label FROM t_item_master LIMIT ?,20";
+    my $sql;
+    if ( $vector eq 1 )
+    {
+        $sql = "SELECT item_master_id,item_label FROM t_item_master WHERE item_master_id > ? ORDER BY item_master_id LIMIT 51";
+    }
+    else
+    {
+        $sql = "SELECT item_master_id,item_label FROM t_item_master WHERE item_master_id < ? ORDER BY item_master_id DESC LIMIT 51";
+    }
+
     my $sth  = $class->getDbHandler()->prepare($sql);
     my $stat = $sth->execute(($offset));
 
@@ -116,12 +126,65 @@ sub getItemList
     if ( $sth->rows > 0 )
     {
         $item_list = $sth->fetchall_hashref(("item_master_id"));
+        if ( $vector eq 1 )
+        {
+            if ( $sth->rows > 50 )
+            {
+                $class->setHasNext(1);
+                delete $item_list->{ (sort { $b <=> $a } keys %{$item_list})[0] };
+            }
+        }
+        else
+        {
+            $class->setHasPrev(1);
+            $class->setHasNext(1);
+            if ( $sth->rows > 50 )
+            {
+                delete $item_list->{ (sort { $a <=> $b } keys %{$item_list})[0] };
+            }
+        }
     }
     $sth->finish();
     return $item_list;
 }
 
 
+
+
+my $has_next = undef;
+my $has_prev = undef;
+
+sub setHasNext
+{
+    my $class = shift;
+    return $class->setAttribute( 'has_next', shift );
+}
+
+sub getHasNext
+{
+    return $_[0]->getAttribute( 'has_next' );
+}
+
+sub setHasPrev
+{
+    my $class = shift;
+    return $class->setAttribute( 'has_prev', shift );
+}
+
+sub getHasPrev
+{
+    return $_[0]->getAttribute( 'has_prev' );
+}
+
+sub hasPrev
+{
+    return $_[0]->getHasPrev();
+}
+
+sub hasNext
+{
+    return $_[0]->getHasNext();
+}
 
 
 

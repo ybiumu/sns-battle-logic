@@ -47,13 +47,32 @@ ORDER BY
 
 
 
+my $sql_find_follower = "
+SELECT
+    main.follow_user_id AS user_id
+FROM
+    t_follows AS main
+    LEFT JOIN
+    t_follows AS rev
+    ON (
+        main.user_id = rev.follow_user_id
+        AND main.follow_user_id = rev.user_id
+        AND main.delete_flag = rev.delete_flag
+    )
+WHERE
+    main.user_id = ?
+    AND
+    main.delete_flag <> 1
+ORDER BY
+    main.follow_user_id
+    ";
 
 my $sql_find_friend = "
 SELECT
     main.follow_user_id AS user_id
 FROM
     t_follows AS main
-    LEFT JOIN
+    JOIN
     t_follows AS rev
     ON (
         main.user_id = rev.follow_user_id
@@ -142,16 +161,16 @@ sub checkFollowStatus
 sub isFollowed
 {
     my $class = shift;
-    my $src_user_id = shift;
-    my $dst_user_id = shift;
+    my $src_user_id = shift;# from
+    my $dst_user_id = shift;# to
     return $class->checkFollowStatus( $dst_user_id, $src_user_id );
 }
 
 sub isFollowing
 {
     my $class = shift;
-    my $src_user_id = shift;
-    my $dst_user_id = shift;
+    my $src_user_id = shift;# from
+    my $dst_user_id = shift;# to
     return $class->checkFollowStatus( $src_user_id, $dst_user_id );
 }
 
@@ -160,7 +179,7 @@ sub getFollowingUserIdList
     my $class = shift;
     my $user_id = shift;
 
-    my $sth  = $class->getDbHandler()->prepare($sql_find_friend);
+    my $sth  = $class->getDbHandler()->prepare($sql_find_follower);
     my $stat = $sth->execute(($user_id));
     my $row  = $sth->fetchrow_hashref();
     if ( $sth->rows() == 0 )
