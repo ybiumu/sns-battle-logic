@@ -1,0 +1,18 @@
+<div class="contents2">($out->{_npc_descr}->{npc_id})$out->{_npc_descr}->{npc_name}</div>
+
+<img class="dispimg" src="../epimgld.cgi?guid=ON&b=1&i=f$out->{_npc_descr}->{img_code}" />
+<!--img class="dispimg" src="http://dummyimage.com/230x160/bbb8bb/000.jpg&text=bgid_$out->{BGID}" /-->
+<div>$out->{_npc_descr}->{npc_code}</div>
+<hr />
+体力：$out->{_npc_descr}->{hp}->{current_value} / $out->{_npc_descr}->{max_hp}<br />
+持久：$out->{_npc_descr}->{stamina}->{current_value}<br/>
+
+魔力&nbsp;$out->{_npc_descr}->{"magic"}->{current_value} 防御&nbsp;$out->{_npc_descr}->{"def"}->{current_value}<br />
+集中&nbsp;$out->{_npc_descr}->{"rp"}->{current_value} 攻撃&nbsp;$out->{_npc_descr}->{"atack"}->{current_value}<br />
+AGL&nbsp;$out->{_npc_descr}->{"agl"}->{current_value} AUR&nbsp;$out->{_npc_descr}->{"kehai"}->{current_value}<br />
+SEN&nbsp;$out->{_npc_descr}->{"chikaku"}->{current_value} LUC&nbsp;$out->{_npc_descr}->{"luck"}->{current_value}<br />
+ODD&nbsp;$out->{_npc_descr}->{"kikyou"}->{current_value} CHR&nbsp;$out->{_npc_descr}->{"chrm"}->{current_value}<br />
+
+
+最終更新日：$out->{_npc_descr}->{last_update}<br />
+<hr />
