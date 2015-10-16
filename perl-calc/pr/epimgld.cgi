@@ -109,8 +109,10 @@ foreach my $i_obj ( grep { $_->{position} eq "f" } @images )
     }
 }
 
-$magick_handler->Composite( image => $monster_handler_back,  compose => 'over', gravity => 'Center', y => "+25" );
-$magick_handler->Composite( image => $monster_handler_front, compose => 'over', gravity => 'Center', y => "+40" );
+#$magick_handler->Composite( image => $monster_handler_back,  compose => 'over', gravity => 'Center', y => "+25" );
+#$magick_handler->Composite( image => $monster_handler_front, compose => 'over', gravity => 'Center', y => "+40" );
+$magick_handler->Composite( image => $monster_handler_back,  compose => 'over', gravity => 'Center', y => "+5" );
+$magick_handler->Composite( image => $monster_handler_front, compose => 'over', gravity => 'Center', y => "+30" );
 
 ############
 ### Main ###

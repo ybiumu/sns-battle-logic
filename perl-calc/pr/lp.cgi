@@ -64,12 +64,13 @@ my $version = "0.1a20151015";
 
 
 
-$at->setCardTitle();
-$at->setBgId( $image_id );
-$at->setEnemyId( $bimage_id );
+$at->setCardTitle("BattleImage");
+$at->setBgId( $bimage_id );
+$at->setEnemyId( $image_id );
 
 
-my $img = sprintf(q[<img src="http://pr.gmpj.biz/epimgld.cgi?b=%s&i=%s" >],$bimage_id, $image_id);
+#my $img = sprintf(q[<img src="http://pr.gmpj.biz/epimgld.cgi?b=%s&i=%s" >],$bimage_id, $image_id);
+my $img = sprintf(q[<img src="http://pr.gmpj.biz/%s/%s/epimgld.jpg" >],$bimage_id, $image_id);
 
 $out->{RESULT} = $img;
 
