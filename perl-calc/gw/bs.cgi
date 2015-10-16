@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+#: Battle Setting :#
 ############
 ### LOAD ###
 ############

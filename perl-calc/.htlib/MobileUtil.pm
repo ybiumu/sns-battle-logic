@@ -16,6 +16,8 @@ our $carrier_str = {
     3  => "SoftBank/FP",
     4  => "Willcom/FP",
     11 => "Twitter",
+    12 => "SundBox",
+    21 => "NoLimits",
 };
 
 my $browser = undef;
@@ -78,6 +80,12 @@ sub parseUserAgent
     elsif( $class->getIsBatch() eq "1" )
     {
         $class->debug("Run as batch");
+    }
+    elsif( $class->getNoLimits() eq "1" )
+    {
+        $class->debug("Run as No Limits");
+        $class->setBrowser("P");
+        $class->setCarrierId(21);
     }
     else
     {
@@ -225,6 +233,18 @@ sub getIsBatch
     return $_[0]->getAttribute( 'is_batch' );
 }
 
+
+my $no_limits = undef;
+sub setNoLimits
+{
+    my $class = shift;
+    return $class->setAttribute( 'no_limits', shift );
+}
+
+sub getNoLimits
+{
+    return $_[0]->getAttribute( 'no_limits' );
+}
 
 
 1;

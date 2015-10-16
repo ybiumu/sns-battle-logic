@@ -334,6 +334,44 @@ sub getMobileUtil
 }
 
 
+my $card_title = undef;
+my $bg_id = undef;
+my $enemy_id = undef;
+sub setCardTitle
+{
+    my $class = shift;
+    return $class->setAttribute( 'card_title', shift );
+}
+
+sub getCardTitle
+{
+    return $_[0]->getAttribute( 'card_title' );
+}
+
+sub setBgId
+{
+    my $class = shift;
+    return $class->setAttribute( 'bg_id', shift );
+}
+
+sub getBgId
+{
+    return $_[0]->getAttribute( 'bg_id' );
+}
+
+sub setEnemyId
+{
+    my $class = shift;
+    return $class->setAttribute( 'enemy_id', shift );
+}
+
+sub getEnemyId
+{
+    return $_[0]->getAttribute( 'enemy_id' );
+}
+
+
+
 sub setTaskStr
 {
     my $class = shift;
@@ -412,6 +450,14 @@ _HERE_"
     $class->{base_html} =~ s/__LOCAL_MENU__/$local_menu/g;
     $class->{base_html} =~ s/__ADD_SPACE__/$ad_str/g;
     $class->{base_html} =~ s/__NOTICE_NUMBER__/$notice/g;
+
+    my $card_title = $class->getCardTitle();
+    my $bg_id      = $class->getBgId();
+    my $enemy_id   = $class->getEnemyId();
+
+    $class->{base_html} =~ s/__CARD_TITLE__/$card_title/g;
+    $class->{base_html} =~ s/__BG_ID__/$bg_id/g;
+    $class->{base_html} =~ s/__ENEMY_ID__/$enemy_id/g;
 }
 
 sub output
