@@ -109,13 +109,13 @@ else
 
     my $target_char;
 
-    if ( grep { $board_type_id == $_ } (1,2) )
+    if ( grep { $board_type_id == $_ } (1,2,11) )
     {
         $target_char = $at->getCharacterByUserId( $target_user_id );
     }
 
     $at->setPageName(
-        ( ( grep { $board_type_id == $_ } (1,2) ) ? sprintf('%s‚Ì', $target_char->getName()) : "" )
+        ( ( grep { $board_type_id == $_ } (1,2,11) ) ? sprintf('%s‚Ì', $target_char->getName()) : "" )
         .
         Anothark::BoardManager->BOARD_TYPE_NAME->{$board_type_id}
     );
@@ -193,6 +193,8 @@ else
         }
     }
 
+
+    # Return page.
     if ( $thread_id )
     {
         $out->{SRC_PAGE} = sprintf( "board.cgi?guid=ON&t=%s&p=%s&oid=%s", $board_type_id,$page_id, $target_user_id );

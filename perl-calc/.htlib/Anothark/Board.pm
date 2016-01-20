@@ -15,6 +15,7 @@ use constant BOARD_TYPE_NAME => {
     "2" => "Êß°Ã¨°BBS",
     "3" => "’nˆæBBS",
     "4" => "”„”ƒBBS",
+    "11" => "story_memo",
 };
 
 
@@ -128,6 +129,12 @@ sub getOwnersBoard
     {
         $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( t_user_status AS u JOIN t_node_master n USING( node_id ) )  ON ( b.owner_id = n.parent_node_id ) WHERE u.user_id = ? AND b.board_type_id = ? ";
         @params = ($user_id, $type_id);
+    }
+    # Owners self memo board
+    if ( $type_id == 11 )
+    {
+        $sql = "SELECT b.board_id FROM t_board_map AS b WHERE b.owner_id = ? AND b.board_type_id = ? ";
+        @params = ( $user_id, $type_id);
     }
     else
     {
