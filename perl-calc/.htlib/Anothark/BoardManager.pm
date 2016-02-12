@@ -120,9 +120,15 @@ sub getOwnersBoard
         $sql = "SELECT b.board_id FROM t_board_map AS b JOIN ( t_user_status AS u JOIN t_node_master n USING( node_id ) )  ON ( b.owner_id = n.parent_node_id ) WHERE u.user_id = ? AND b.board_type_id = ? ";
         @params = ($user_id, $type_id);
     }
+    # Owners self memo board
+    elsif ( $type_id == 11 )
+    {
+        $sql = "SELECT b.board_id FROM t_board_map AS b WHERE b.owner_id = ? AND b.board_type_id = ? ";
+        @params = ( $user_id, $type_id);
+    }
     else
     {
-        $class->fatal("Unknown type_id [$type_id]");
+        $class->error("Unknown type_id [$type_id]");
         return $board_id;
     }
 
@@ -168,13 +174,13 @@ sub getWritableBoard
     }
     # Shared board
     # Party board
-    elsif ( grep { $type_id == $_ } (2,3,4) )
+    elsif ( grep { $type_id == $_ } (2,3,4,11) )
     {
         return 1;
     }
     else
     {
-        $class->fatal("Unknown type_id [$type_id]");
+        $class->error("Unknown type_id [$type_id]");
         return 0;
     }
 

@@ -131,14 +131,14 @@ sub getOwnersBoard
         @params = ($user_id, $type_id);
     }
     # Owners self memo board
-    if ( $type_id == 11 )
+    elsif ( $type_id == 11 )
     {
         $sql = "SELECT b.board_id FROM t_board_map AS b WHERE b.owner_id = ? AND b.board_type_id = ? ";
         @params = ( $user_id, $type_id);
     }
     else
     {
-        $class->fatal("Unknown type_id [$type_id]");
+        $class->error("Unknown type_id [$type_id]");
         return $board_id;
     }
 
